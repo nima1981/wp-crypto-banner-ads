@@ -160,6 +160,31 @@ final class DWADS_Payments {
 	}
 
 	/**
+	 * Public summary of an address, used by the diagnostics screen.
+	 *
+	 * @param string $address Bitcoin address.
+	 * @return array|WP_Error
+	 */
+	public static function address_summary( $address ) {
+		$address = trim( (string) $address );
+		if ( '' === $address ) {
+			return new WP_Error( 'dwads_no_address', __( 'No address to check.', 'dwads' ) );
+		}
+		$data = self::api( '/address/' . rawurlencode( $address ) );
+		if ( is_wp_error( $data ) ) {
+			return $data;
+		}
+		$chain = isset( $data['chain_stats'] ) && is_array( $data['chain_stats'] ) ? $data['chain_stats'] : array();
+		$pool  = isset( $data['mempool_stats'] ) && is_array( $data['mempool_stats'] ) ? $data['mempool_stats'] : array();
+
+		return array(
+			'address'      => $address,
+			'tx_count'     => (int) ( $chain['tx_count'] ?? 0 ) + (int) ( $pool['tx_count'] ?? 0 ),
+			'funded_sats'  => (int) ( $chain['funded_txo_sum'] ?? 0 ) + (int) ( $pool['funded_txo_sum'] ?? 0 ),
+		);
+	}
+
+	/**
 	 * Poll a single banner address.
 	 *
 	 * @param array $banner Banner row.

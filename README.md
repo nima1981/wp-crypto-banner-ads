@@ -319,3 +319,17 @@ Worked examples with the default size list:
 | 300×251 | 300×250 | 0% | fitted |
 | 640×480 | 300×250 | 10% | rejected, lists the sizes |
 | 1200×628 | 300×250 | 37% | rejected |
+
+---
+
+## Reinstalling, wiping data, and address reuse (1.2.2)
+
+Balances are tracked per **address**, not per banner. Deleting the plugin data drops every table *and* the `dwads_next_index` counter, so the next install starts again at index 0 of whichever key you paste. If that is the same key as before, banners 1, 2, 3… are issued the same addresses that banners 1, 2, 3… had last time — and the money that was already sent to them is still on-chain. The plugin cannot tell old money from new, so it is credited to the new banner. Nothing is lost; the balance is simply inherited.
+
+To start clean you do **not** need a new seed. Any one of these works:
+
+1. **A different account.** Export the xpub of another account from the same wallet (e.g. the next `m/84'/0'/<n>`). Different address space, same seed, same backup.
+2. **A higher starting index.** Crypto Ads → Diagnostics → *Start the next banner at index* → set something above every index used before (say 1000). Then *Check if the next address is unused* and confirm it reports no history. This is the cheap option when you keep one account.
+3. **A new wallet or seed**, if you want the old funds and the new campaign to be unrelated in every way.
+
+The plugin now says this in three places: under the xpub field, in the wallet help panel, and on the Diagnostics screen where the index can be changed. Raising the index can never go below an index already used by an existing banner — the form refuses it.

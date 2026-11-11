@@ -445,7 +445,7 @@ final class DWADS_Admin {
 
 		echo '<h2 class="title">' . esc_html__( 'Bitcoin wallet', 'dwads' ) . '</h2>';
 		echo '<table class="form-table" role="presentation">';
-		self::field_text( 'xpub', __( 'Extended public key (watch-only)', 'dwads' ), __( 'Paste an xpub, ypub or zpub. The plugin derives one address per banner and never stores a private key. Use an account-level key that is not used for anything else.', 'dwads' ), 'dwads-mono' );
+		self::field_text( 'xpub', __( 'Extended public key (watch-only)', 'dwads' ), __( 'Paste an xpub, ypub or zpub. The plugin derives one address per banner and never stores a private key. Use an account-level key that is not used for anything else. Note: address numbering restarts at 0 when the plugin data is deleted, so re-using the same key after a wipe hands old, already-funded addresses to new banners. Use a different account (new xpub) or raise the address index in Diagnostics before uploading again.', 'dwads' ), 'dwads-mono' );
 		self::field_text( 'derivation_path', __( 'Derivation path template', 'dwads' ), __( 'Default 0/{i} for the external chain. Use {i} where the banner index goes.', 'dwads' ) );
 		self::field_select(
 			'address_type',
@@ -736,6 +736,7 @@ final class DWADS_Admin {
 			</ol>
 			<p><?php echo wp_kses_post( __( '<strong>Gap limit:</strong> wallets scan only about 20 unused addresses ahead of the last one they know. Each banner uses up an index even when it is never funded, so raise the limit (Sparrow → Settings → Gap limit, Electrum <code>wallet.gap_limit</code>) before you have many banners, or keep ads in a dedicated account with a modest banner count. Coins on an address your wallet has not scanned are not lost; a higher gap or a rescan will reveal them.', 'dwads' ) ); ?></p>
 			<p><?php esc_html_e( 'Back up the database together with the wallet: the database holds the banner-to-address map and the click accounting. Losing it does not lose the coins, but it does lose the records.', 'dwads' ); ?></p>
+			<p><?php echo wp_kses_post( __( '<strong>Wiping the data.</strong> Deleting the plugin data resets the address counter, so the next banner starts again at index 0 of the same key. Any money that already sits on those addresses is on-chain and will be credited to the new banner. To start clean either use a different account (a new xpub from the same wallet is enough, the seed can stay), or set a higher starting index on the Diagnostics screen before uploading.', 'dwads' ) ); ?></p>
 		</div>
 		<?php
 		return (string) ob_get_clean();
@@ -778,6 +779,20 @@ final class DWADS_Admin {
 		echo '<h2 class="title">' . esc_html__( 'Key and addresses', 'dwads' ) . '</h2>';
 		echo '<table class="widefat striped dwads-kv"><tbody>';
 		self::kv( __( 'Next address index', 'dwads' ), (string) DWADS_Xpub::peek_index() );
+		echo '<tr><th scope="row">' . esc_html__( 'Address numbering', 'dwads' ) . '</th><td>';
+		echo '<form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '" class="dwads-inline">';
+		wp_nonce_field( 'dwads_diag' );
+		echo '<input type="hidden" name="action" value="dwads_diag"><input type="hidden" name="do" value="setindex">';
+		echo '<label>' . esc_html__( 'Start the next banner at index', 'dwads' ) . ' <input type="number" min="0" step="1" name="next_index" value="' . (int) DWADS_Xpub::peek_index() . '" class="small-text"></label> ';
+		echo '<button type="submit" class="button">' . esc_html__( 'Set', 'dwads' ) . '</button>';
+		echo '</form> ';
+		echo '<form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '" class="dwads-inline">';
+		wp_nonce_field( 'dwads_diag' );
+		echo '<input type="hidden" name="action" value="dwads_diag"><input type="hidden" name="do" value="checkaddr">';
+		echo '<button type="submit" class="button">' . esc_html__( 'Check if the next address is unused', 'dwads' ) . '</button>';
+		echo '</form>';
+		echo '<p class="description">' . esc_html__( 'Raising the index skips addresses. Do it after a data wipe when you keep the same key, so new banners do not inherit the addresses (and the money) of an earlier install. Never lower it below an index that has already been used.', 'dwads' ) . '</p>';
+		echo '</td></tr>';
 		$preview = DWADS_Xpub::preview( 5, DWADS_Xpub::peek_index() );
 		if ( is_wp_error( $preview ) ) {
 			self::kv( __( 'Derivation', 'dwads' ), $preview->get_error_message() );
@@ -895,6 +910,47 @@ final class DWADS_Admin {
 				self::flash( sprintf( /* translators: %s: timestamp */ __( 'Database writes work: option value %s was stored and read back. The problem is in the form submission, not the database.', 'dwads' ), (string) $stamp ) );
 			} else {
 				self::flash( sprintf( /* translators: 1: written, 2: read back */ __( 'Database writes FAILED: wrote %1$s but read back %2$s. The database user is probably not allowed to write, or an object cache is serving stale data.', 'dwads' ), (string) $stamp, (string) $read ), 'error' );
+			}
+			self::back( 'dwads-diagnostics' );
+		} elseif ( 'setindex' === $do ) {
+			global $wpdb;
+			$requested = isset( $_POST['next_index'] ) && is_scalar( $_POST['next_index'] ) ? (int) $_POST['next_index'] : -1;
+			$max_used  = (int) $wpdb->get_var( 'SELECT COALESCE( MAX(derivation_index), -1 ) FROM ' . DWADS_Banners::table() ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+
+			if ( $requested < 0 || $requested > 2147483647 ) {
+				self::flash( __( 'That index is out of range.', 'dwads' ), 'error' );
+			} elseif ( $requested <= $max_used ) {
+				self::flash( sprintf( /* translators: %d: highest index in use */ __( 'Index %d or lower is already used by an existing banner. Choose a higher number.', 'dwads' ), $max_used ), 'error' );
+			} else {
+				update_option( 'dwads_next_index', $requested, 'no' );
+				wp_cache_delete( 'dwads_next_index', 'options' );
+				wp_cache_delete( 'alloptions', 'options' );
+				DWADS_Log::add( sprintf( 'Next address index set to %d by the site owner.', $requested ) );
+				self::flash( sprintf( /* translators: %d: index */ __( 'The next banner will start at index %d.', 'dwads' ), $requested ) );
+			}
+			self::back( 'dwads-diagnostics' );
+		} elseif ( 'checkaddr' === $do ) {
+			$preview = DWADS_Xpub::preview( 1, DWADS_Xpub::peek_index() );
+			if ( is_wp_error( $preview ) ) {
+				self::flash( $preview->get_error_message(), 'error' );
+				self::back( 'dwads-diagnostics' );
+			}
+			$summary = DWADS_Payments::address_summary( $preview[0]['address'] );
+			if ( is_wp_error( $summary ) ) {
+				self::flash( $summary->get_error_message(), 'error' );
+			} elseif ( $summary['tx_count'] > 0 ) {
+				self::flash(
+					sprintf(
+						/* translators: 1: address, 2: transaction count, 3: satoshis */
+						__( 'Heads up: %1$s already has %2$d transaction(s) and has received %3$s. A new banner using this address would inherit that history. Raise the index or use a different account.', 'dwads' ),
+						$summary['address'],
+						(int) $summary['tx_count'],
+						DWADS_Price::format_btc( (int) $summary['funded_sats'] )
+					),
+					'error'
+				);
+			} else {
+				self::flash( sprintf( /* translators: %s: address */ __( 'Good: %s has no on-chain history, so it is safe to use next.', 'dwads' ), $summary['address'] ) );
 			}
 			self::back( 'dwads-diagnostics' );
 		} elseif ( 'clearlog' === $do ) {
