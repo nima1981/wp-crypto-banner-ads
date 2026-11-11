@@ -47,6 +47,22 @@ final class DWADS_Serve {
 						'required' => false,
 						'type'     => 'string',
 					),
+					'foot'       => array(
+						'required' => false,
+						'type'     => 'string',
+					),
+					'foot_text'  => array(
+						'required' => false,
+						'type'     => 'string',
+					),
+					'foot_url'   => array(
+						'required' => false,
+						'type'     => 'string',
+					),
+					'foot_align' => array(
+						'required' => false,
+						'type'     => 'string',
+					),
 				),
 			)
 		);
@@ -86,6 +102,15 @@ final class DWADS_Serve {
 			$alt = get_bloginfo( 'name' );
 		}
 
+		$footer = DWADS_Settings::footer_link(
+			array(
+				'mode'  => (string) $request->get_param( 'foot' ),
+				'text'  => (string) $request->get_param( 'foot_text' ),
+				'url'   => (string) $request->get_param( 'foot_url' ),
+				'align' => (string) $request->get_param( 'foot_align' ),
+			)
+		);
+
 		$payload = array(
 			'id'     => (int) $banner['id'],
 			'img'    => DWADS_Banners::image_url( $banner ),
@@ -97,6 +122,12 @@ final class DWADS_Serve {
 			'rel'    => (string) DWADS_Settings::get( 'rel_attributes', 'nofollow sponsored noopener' ),
 			'label'  => DWADS_Settings::get( 'ad_label_enabled', 1 ) ? (string) DWADS_Settings::get( 'ad_label_text', 'Sponsored' ) : '',
 		);
+
+		// Only sent when the link should be rendered, so an empty payload key
+		// cannot accidentally produce a stray anchor.
+		if ( $footer ) {
+			$payload['foot'] = $footer;
+		}
 
 		$response = new WP_REST_Response( $payload, 200 );
 		self::cors( $response );

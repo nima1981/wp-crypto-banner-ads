@@ -71,11 +71,25 @@ final class DWADS_Shortcodes {
 	 */
 	public static function shortcode( $atts ) {
 		$atts = shortcode_atts(
-			array( 'slot' => '300x250' ),
+			array(
+				'slot'       => '300x250',
+				'foot'       => '',
+				'foot_text'  => '',
+				'foot_url'   => '',
+				'foot_align' => '',
+			),
 			$atts,
 			'dwads'
 		);
-		return self::placeholder( $atts['slot'] );
+		return self::placeholder(
+			$atts['slot'],
+			array(
+				'mode'  => $atts['foot'],
+				'text'  => $atts['foot_text'],
+				'url'   => $atts['foot_url'],
+				'align' => $atts['foot_align'],
+			)
+		);
 	}
 
 	/**
@@ -95,18 +109,33 @@ final class DWADS_Shortcodes {
 	 * The empty slot markup. It has no intrinsic size, so a page with no
 	 * eligible banners simply shows nothing.
 	 *
-	 * @param string $slot Slot such as "300x250".
+	 * @param string $slot  Slot such as "300x250".
+	 * @param array  $extra Optional per-placement overrides (footer link).
 	 * @return string
 	 */
-	public static function placeholder( $slot ) {
+	public static function placeholder( $slot, $extra = array() ) {
 		$size = DWADS_Settings::size_for_slot( $slot );
 		if ( ! $size ) {
 			return '';
 		}
 		self::enqueue();
+
+		$attrs = '';
+		foreach ( array(
+			'mode'  => 'data-dwads-foot',
+			'text'  => 'data-dwads-foot-text',
+			'url'   => 'data-dwads-foot-url',
+			'align' => 'data-dwads-foot-align',
+		) as $key => $attribute ) {
+			$value = isset( $extra[ $key ] ) ? trim( (string) $extra[ $key ] ) : '';
+			if ( '' !== $value ) {
+				$attrs .= ' ' . $attribute . '="' . esc_attr( $value ) . '"';
+			}
+		}
+
 		// Emit the canonical WxH form so the attribute always matches a
 		// configured size, even if the author typed "300 X 250".
-		return '<div class="dwads-slot" data-dwads-slot="' . esc_attr( $size['w'] . 'x' . $size['h'] ) . '"></div>';
+		return '<div class="dwads-slot" data-dwads-slot="' . esc_attr( $size['w'] . 'x' . $size['h'] ) . '"' . $attrs . '></div>';
 	}
 
 	/**
@@ -185,7 +214,15 @@ class DWADS_Widget extends WP_Widget {
 	 */
 	public function widget( $args, $instance ) {
 		$slot = isset( $instance['slot'] ) ? (string) $instance['slot'] : '300x250';
-		$html = DWADS_Shortcodes::placeholder( $slot );
+		$html = DWADS_Shortcodes::placeholder(
+			$slot,
+			array(
+				'mode'  => isset( $instance['foot_mode'] ) ? (string) $instance['foot_mode'] : '',
+				'text'  => isset( $instance['foot_text'] ) ? (string) $instance['foot_text'] : '',
+				'url'   => isset( $instance['foot_url'] ) ? (string) $instance['foot_url'] : '',
+				'align' => isset( $instance['foot_align'] ) ? (string) $instance['foot_align'] : '',
+			)
+		);
 		if ( '' === $html ) {
 			return;
 		}
@@ -221,6 +258,37 @@ class DWADS_Widget extends WP_Widget {
 			</select>
 		</p>
 		<?php
+		$mode  = isset( $instance['foot_mode'] ) ? (string) $instance['foot_mode'] : 'inherit';
+		$ftext = isset( $instance['foot_text'] ) ? (string) $instance['foot_text'] : '';
+		$furl  = isset( $instance['foot_url'] ) ? (string) $instance['foot_url'] : '';
+		$fal   = isset( $instance['foot_align'] ) ? (string) $instance['foot_align'] : '';
+		?>
+		<p>
+			<label for="<?php echo esc_attr( $this->get_field_id( 'foot_mode' ) ); ?>"><?php esc_html_e( 'Link under the banner', 'dwads' ); ?></label>
+			<select class="widefat" id="<?php echo esc_attr( $this->get_field_id( 'foot_mode' ) ); ?>" name="<?php echo esc_attr( $this->get_field_name( 'foot_mode' ) ); ?>">
+				<option value="inherit" <?php selected( $mode, 'inherit' ); ?>><?php esc_html_e( 'Use the site setting', 'dwads' ); ?></option>
+				<option value="on" <?php selected( $mode, 'on' ); ?>><?php esc_html_e( 'Show a link here', 'dwads' ); ?></option>
+				<option value="off" <?php selected( $mode, 'off' ); ?>><?php esc_html_e( 'Never show it here', 'dwads' ); ?></option>
+			</select>
+		</p>
+		<p>
+			<label for="<?php echo esc_attr( $this->get_field_id( 'foot_text' ) ); ?>"><?php esc_html_e( 'Link text', 'dwads' ); ?></label>
+			<input class="widefat" id="<?php echo esc_attr( $this->get_field_id( 'foot_text' ) ); ?>" name="<?php echo esc_attr( $this->get_field_name( 'foot_text' ) ); ?>" type="text" value="<?php echo esc_attr( $ftext ); ?>" placeholder="<?php esc_attr_e( 'Site setting', 'dwads' ); ?>">
+		</p>
+		<p>
+			<label for="<?php echo esc_attr( $this->get_field_id( 'foot_url' ) ); ?>"><?php esc_html_e( 'Link address', 'dwads' ); ?></label>
+			<input class="widefat" id="<?php echo esc_attr( $this->get_field_id( 'foot_url' ) ); ?>" name="<?php echo esc_attr( $this->get_field_name( 'foot_url' ) ); ?>" type="text" value="<?php echo esc_attr( $furl ); ?>" placeholder="<?php esc_attr_e( 'Site setting', 'dwads' ); ?>">
+		</p>
+		<p>
+			<label for="<?php echo esc_attr( $this->get_field_id( 'foot_align' ) ); ?>"><?php esc_html_e( 'Alignment', 'dwads' ); ?></label>
+			<select class="widefat" id="<?php echo esc_attr( $this->get_field_id( 'foot_align' ) ); ?>" name="<?php echo esc_attr( $this->get_field_name( 'foot_align' ) ); ?>">
+				<option value="" <?php selected( $fal, '' ); ?>><?php esc_html_e( 'Site setting', 'dwads' ); ?></option>
+				<option value="left" <?php selected( $fal, 'left' ); ?>><?php esc_html_e( 'Left', 'dwads' ); ?></option>
+				<option value="center" <?php selected( $fal, 'center' ); ?>><?php esc_html_e( 'Center', 'dwads' ); ?></option>
+				<option value="right" <?php selected( $fal, 'right' ); ?>><?php esc_html_e( 'Right', 'dwads' ); ?></option>
+			</select>
+		</p>
+		<?php
 	}
 
 	/**
@@ -231,9 +299,22 @@ class DWADS_Widget extends WP_Widget {
 	 * @return array
 	 */
 	public function update( $new_instance, $old_instance ) {
+		$mode = isset( $new_instance['foot_mode'] ) ? sanitize_text_field( $new_instance['foot_mode'] ) : 'inherit';
+		if ( ! in_array( $mode, array( 'inherit', 'on', 'off' ), true ) ) {
+			$mode = 'inherit';
+		}
+		$align = isset( $new_instance['foot_align'] ) ? sanitize_text_field( $new_instance['foot_align'] ) : '';
+		if ( ! in_array( $align, array( '', 'left', 'center', 'right' ), true ) ) {
+			$align = '';
+		}
+
 		return array(
-			'title' => sanitize_text_field( isset( $new_instance['title'] ) ? $new_instance['title'] : '' ),
-			'slot'  => sanitize_text_field( isset( $new_instance['slot'] ) ? $new_instance['slot'] : '300x250' ),
+			'title'      => sanitize_text_field( isset( $new_instance['title'] ) ? $new_instance['title'] : '' ),
+			'slot'       => sanitize_text_field( isset( $new_instance['slot'] ) ? $new_instance['slot'] : '300x250' ),
+			'foot_mode'  => $mode,
+			'foot_text'  => mb_substr( sanitize_text_field( isset( $new_instance['foot_text'] ) ? $new_instance['foot_text'] : '' ), 0, 60 ),
+			'foot_url'   => esc_url_raw( isset( $new_instance['foot_url'] ) ? $new_instance['foot_url'] : '' ),
+			'foot_align' => $align,
 		);
 	}
 }

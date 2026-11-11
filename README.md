@@ -333,3 +333,24 @@ To start clean you do **not** need a new seed. Any one of these works:
 3. **A new wallet or seed**, if you want the old funds and the new campaign to be unrelated in every way.
 
 The plugin now says this in three places: under the xpub field, in the wallet help panel, and on the Diagnostics screen where the index can be changed. Raising the index can never go below an index already used by an existing banner — the form refuses it.
+
+## Link under the banner (1.2.3)
+
+The disclosure label sits on the creative's corner; this is the opposite: a real
+link in the page flow, below the image, pointing wherever you like — usually
+your own "advertise here" page.
+
+Settings → **Link under the banner**: enable it, set the text (default
+*Advertise here*), the address, and the alignment. Alignment is measured against
+the **image**, not the column, so "left" starts at the creative's left edge even
+in a wide sidebar.
+
+- Leave the address empty and the plugin uses the page that contains the
+  `[dwads_upload]` shortcode, if it finds one.
+- Type `none` in the address to switch the link off without clearing your fields.
+- Per placement, the widget offers *use the site setting / show a link here /
+  never show it here*, plus text, address and alignment overrides. Blank fields
+  inherit the site setting. The shortcode takes the same options:
+  `[dwads slot="300x250" foot="on" foot_text="Advertise here" foot_align="right"]`.
+- The link is plain text in the flow, `rel="nofollow noopener"`, never counted as
+  a click, and it does not appear when the slot is empty.

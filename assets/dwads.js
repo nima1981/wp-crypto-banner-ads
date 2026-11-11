@@ -92,8 +92,24 @@
 		});
 
 		link.appendChild(img);
+
+		// The frame is exactly as wide as the creative, so the link underneath
+		// can be aligned to the image's edges rather than to the column.
+		var frame = document.createElement('div');
+		frame.className = 'dwads-frame';
+		frame.appendChild(link);
+
+		if (data.foot && data.foot.url && data.foot.text) {
+			var foot = document.createElement('a');
+			foot.className = 'dwads-foot dwads-foot-' + (data.foot.align || 'center');
+			foot.href = data.foot.url;
+			foot.rel = 'nofollow noopener';
+			foot.textContent = data.foot.text;
+			frame.appendChild(foot);
+		}
+
 		slot.innerHTML = '';
-		slot.appendChild(link);
+		slot.appendChild(frame);
 
 		// The slot is a flex box; give it the banner height so the creative is
 		// centred vertically. Empty slots keep no height at all.
@@ -140,6 +156,12 @@
 		if (site) {
 			url.searchParams.set('site', site);
 		}
+		['foot', 'foot_text', 'foot_url', 'foot_align'].forEach(function (key) {
+			var value = slot.getAttribute('data-dwads-' + key.replace('_', '-'));
+			if (value) {
+				url.searchParams.set(key, value);
+			}
+		});
 
 		fetch(url.toString(), { credentials: 'omit', mode: 'cors', cache: 'no-store' })
 			.then(function (response) {

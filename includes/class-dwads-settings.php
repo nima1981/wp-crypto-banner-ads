@@ -37,6 +37,10 @@ final class DWADS_Settings {
 			'rel_attributes'           => 'nofollow sponsored noopener',
 			'ad_label_enabled'         => 1,
 			'ad_label_text'            => 'Sponsored',
+			'footer_link_enabled'      => 0,
+			'footer_link_text'         => '',
+			'footer_link_url'          => '',
+			'footer_link_align'        => 'center',
 			'notify_advertiser'        => 1,
 			// Bitcoin.
 			'xpub'                     => '',
@@ -324,6 +328,92 @@ final class DWADS_Settings {
 			return '';
 		}
 		return $value;
+	}
+
+	/**
+	 * Resolve the small link that sits under a banner.
+	 *
+	 * Overrides come from a single placement (widget instance or shortcode) and
+	 * only win where they are non-empty, so a blank widget field inherits the
+	 * site setting instead of blanking it.
+	 *
+	 * @param array $overrides mode, text, url, align.
+	 * @return array Empty when the link should not be rendered.
+	 */
+	public static function footer_link( $overrides = array() ) {
+		$mode = isset( $overrides['mode'] ) ? strtolower( trim( (string) $overrides['mode'] ) ) : '';
+		if ( 'off' === $mode ) {
+			return array();
+		}
+		$forced_on = ( 'on' === $mode );
+
+		if ( ! $forced_on && ! (bool) self::get( 'footer_link_enabled', 0 ) ) {
+			return array();
+		}
+
+		$text = isset( $overrides['text'] ) ? trim( (string) $overrides['text'] ) : '';
+		if ( '' === $text ) {
+			$text = trim( (string) self::get( 'footer_link_text', '' ) );
+		}
+
+		$url = isset( $overrides['url'] ) ? trim( (string) $overrides['url'] ) : '';
+		if ( '' === $url ) {
+			$url = trim( (string) self::get( 'footer_link_url', '' ) );
+		}
+		if ( '' === $url ) {
+			// The natural destination is the page holding the upload form.
+			$url = self::upload_page_url();
+		}
+		if ( 0 === strcasecmp( $url, 'none' ) ) {
+			return array();
+		}
+		$url = esc_url_raw( $url );
+		if ( '' === $url || ! preg_match( '#^https?://#i', $url ) ) {
+			return array();
+		}
+
+		$align = isset( $overrides['align'] ) ? strtolower( trim( (string) $overrides['align'] ) ) : '';
+		if ( ! in_array( $align, array( 'left', 'center', 'right' ), true ) ) {
+			$align = strtolower( (string) self::get( 'footer_link_align', 'center' ) );
+		}
+		if ( ! in_array( $align, array( 'left', 'center', 'right' ), true ) ) {
+			$align = 'center';
+		}
+
+		if ( '' === $text || 0 === strcasecmp( $text, 'none' ) ) {
+			$text = __( 'Advertise here', 'dwads' );
+		}
+		$text = mb_substr( sanitize_text_field( $text ), 0, 60 );
+
+		return array(
+			'text'  => $text,
+			'url'   => $url,
+			'align' => $align,
+		);
+	}
+
+	/**
+	 * URL of the page that contains the upload shortcode, when there is one.
+	 *
+	 * Cached because it is a LIKE query and the answer changes about never.
+	 *
+	 * @return string Empty when no page holds the shortcode.
+	 */
+	public static function upload_page_url() {
+		$cached = get_transient( 'dwads_upload_page_url' );
+		if ( false !== $cached ) {
+			return (string) $cached;
+		}
+		global $wpdb;
+		$id = $wpdb->get_var( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+			$wpdb->prepare(
+				"SELECT ID FROM {$wpdb->posts} WHERE post_status = 'publish' AND post_type IN ( 'page', 'post' ) AND post_content LIKE %s ORDER BY ID ASC LIMIT 1",
+				'%[dwads_upload%'
+			)
+		);
+		$url = $id ? (string) get_permalink( (int) $id ) : '';
+		set_transient( 'dwads_upload_page_url', $url, HOUR_IN_SECONDS );
+		return $url;
 	}
 
 	/**

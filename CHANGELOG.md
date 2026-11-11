@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.2.3
+- Optional link underneath each banner: real text in the page flow, aligned to
+  the image (left, centre or right), site-wide or overridden per widget and per
+  shortcode. Empty slots still render nothing.
+- The link falls back to the page containing `[dwads_upload]` when no address is
+  set, and `none` switches it off without clearing the other fields.
+
+## 1.2.2
+- Warning under the extended public key field, in the wallet help and on the
+  Diagnostics screen: deleting plugin data resets the address counter, so
+  re-using the same key hands already-funded addresses to new banners.
+- Diagnostics gains a starting address index and a check that reports whether
+  the next address already has on-chain history.
+
 ## 1.2.1
 - Near-miss uploads are fitted to the closest allowed size by aspect ratio,
   scaled and centre-cropped, with a hard limit of 8% crop. Original dimensions

@@ -412,6 +412,23 @@ final class DWADS_Admin {
 		self::field_checkbox( 'notify_advertiser', __( 'Email advertisers their link and approval status', 'dwads' ), __( 'Only applies when an email address was supplied at upload. This is the recovery path when a link is lost.', 'dwads' ) );
 		echo '</table>';
 
+		echo '<h2 class="title">' . esc_html__( 'Link under the banner', 'dwads' ) . '</h2>';
+		echo '<table class="form-table" role="presentation">';
+		self::field_checkbox( 'footer_link_enabled', __( 'Show a small link underneath each banner', 'dwads' ), __( 'It sits below the creative, in the page flow rather than over the image, and it never appears when a slot is empty. Useful for pointing readers at your own “advertise here” page.', 'dwads' ) );
+		self::field_text( 'footer_link_text', __( 'Link text', 'dwads' ), __( 'Short and plain. Leave empty to use “Advertise here”.', 'dwads' ) );
+		self::field_text( 'footer_link_url', __( 'Link address', 'dwads' ), __( 'Leave empty to use the page that contains the [dwads_upload] shortcode, when one can be found. Type none to switch the link off without clearing the other fields.', 'dwads' ) );
+		self::field_select(
+			'footer_link_align',
+			__( 'Alignment', 'dwads' ),
+			__( 'Alignment is relative to the banner image itself, so “left” lines up with the creative’s left edge even when the column is wider.', 'dwads' ),
+			array(
+				'left'   => __( 'Left', 'dwads' ),
+				'center' => __( 'Center', 'dwads' ),
+				'right'  => __( 'Right', 'dwads' ),
+			)
+		);
+		echo '</table>';
+
 		echo '<h2 class="title">' . esc_html__( 'Uploads', 'dwads' ) . '</h2>';
 		echo '<table class="form-table" role="presentation">';
 		self::field_textarea( 'sizes', __( 'Allowed sizes (one per line)', 'dwads' ), __( 'Format: WxH, then optional | label | short note, then the word recommended for the ones you want to push. Example: 300x250 | Medium rectangle | in-content | recommended', 'dwads' ) );
@@ -563,13 +580,23 @@ final class DWADS_Admin {
 
 		$new['click_price_usd'] = number_format( max( 0.000001, (float) $scalar( 'click_price_usd', '0.02' ) ), 6, '.', '' );
 
-		foreach ( array( 'approval_required', 'target_new_tab', 'credit_mempool', 'record_impressions', 'notify_admin_uploads', 'notify_advertiser', 'ad_label_enabled', 'auto_fit_uploads', 'delete_data_on_uninstall' ) as $flag ) {
+		foreach ( array( 'approval_required', 'target_new_tab', 'credit_mempool', 'record_impressions', 'notify_admin_uploads', 'notify_advertiser', 'ad_label_enabled', 'auto_fit_uploads', 'footer_link_enabled', 'delete_data_on_uninstall' ) as $flag ) {
 			$new[ $flag ] = empty( $input[ $flag ] ) ? 0 : 1;
 		}
 
 		$new['rel_attributes'] = sanitize_text_field( $scalar( 'rel_attributes', 'nofollow sponsored noopener' ) );
 		$label                 = sanitize_text_field( $scalar( 'ad_label_text', 'Sponsored' ) );
 		$new['ad_label_text']  = ( '' === $label ) ? 'Sponsored' : mb_substr( $label, 0, 20 );
+
+		$foot_text                  = sanitize_text_field( $scalar( 'footer_link_text', '' ) );
+		$new['footer_link_text']    = mb_substr( $foot_text, 0, 60 );
+		$foot_url                   = trim( $scalar( 'footer_link_url', '' ) );
+		$new['footer_link_url']     = ( 0 === strcasecmp( $foot_url, 'none' ) ) ? 'none' : esc_url_raw( $foot_url );
+		$foot_align                 = strtolower( $scalar( 'footer_link_align', 'center' ) );
+		$new['footer_link_align']   = in_array( $foot_align, array( 'left', 'center', 'right' ), true ) ? $foot_align : 'center';
+		if ( '' !== $foot_url && 0 !== strcasecmp( $foot_url, 'none' ) && '' === $new['footer_link_url'] ) {
+			$errors[] = __( 'The footer link address was not a readable URL, so it was cleared. Use a full http or https address.', 'dwads' );
+		}
 
 		$sizes_raw    = $scalar( 'sizes', '' );
 		$sizes_parsed = DWADS_Settings::parse_sizes( $sizes_raw );

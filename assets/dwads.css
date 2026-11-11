@@ -12,6 +12,12 @@
 	display: none;
 }
 
+.dwads-slot .dwads-frame {
+	display: inline-block;
+	max-width: 100%;
+	line-height: 0;
+}
+
 .dwads-slot .dwads-link {
 	position: relative;
 	display: inline-flex;
@@ -55,4 +61,43 @@
 		color: #1a1d23;
 		background: rgba(255, 255, 255, .82);
 	}
+}
+
+/* Link underneath the creative: real text in the flow, aligned to the image
+   box rather than the column, and quiet enough not to compete with the ad. */
+
+.dwads-foot {
+	display: block;
+	margin-top: 4px;
+	font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+	font-size: 11px;
+	line-height: 1.4;
+	letter-spacing: .01em;
+	color: inherit;
+	opacity: .62;
+	text-decoration: none;
+	transition: opacity .15s ease;
+}
+
+.dwads-foot:hover,
+.dwads-foot:focus {
+	opacity: 1;
+	text-decoration: underline;
+}
+
+.dwads-foot:focus-visible {
+	outline: 1px solid currentColor;
+	outline-offset: 2px;
+}
+
+.dwads-foot-left {
+	text-align: left;
+}
+
+.dwads-foot-center {
+	text-align: center;
+}
+
+.dwads-foot-right {
+	text-align: right;
 }
