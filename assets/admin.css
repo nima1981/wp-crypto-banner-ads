@@ -1,0 +1,132 @@
+/* Crypto Banner Ads - admin screens */
+.dwads-admin .dwads-banners-table td {
+	vertical-align: top;
+}
+
+.dwads-thumb img {
+	max-width: 140px;
+	height: auto;
+	border: 1px solid #dcdcde;
+	border-radius: 4px;
+	background: #fff;
+}
+
+.dwads-meta {
+	font-size: 12px;
+	color: #646970;
+	margin-top: 3px;
+	word-break: break-word;
+}
+
+.dwads-mono {
+	font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+	word-break: break-all;
+}
+
+.dwads-inline {
+	display: inline-block;
+	margin: 0 4px 4px 0;
+}
+
+.dwads-actions {
+	min-width: 180px;
+}
+
+.dwads-badge {
+	display: inline-block;
+	padding: 2px 8px;
+	border-radius: 10px;
+	font-size: 11px;
+	text-transform: uppercase;
+	letter-spacing: .03em;
+	background: #f0f0f1;
+	color: #3c434a;
+}
+
+.dwads-badge-active {
+	background: #edfaef;
+	color: #1a7f37;
+}
+
+.dwads-badge-pending {
+	background: #fdf6e3;
+	color: #8a6d1f;
+}
+
+.dwads-badge-rejected {
+	background: #fdf1f1;
+	color: #a02222;
+}
+
+.dwads-badge-paused,
+.dwads-badge-archived {
+	background: #f0f0f1;
+	color: #50575e;
+}
+
+.dwads-kv th {
+	font-weight: 600;
+}
+
+.dwads-log {
+	background: #fff;
+	border: 1px solid #dcdcde;
+	padding: 10px 12px;
+	max-height: 260px;
+	overflow: auto;
+	font-size: 12px;
+	white-space: pre-wrap;
+}
+
+.dwads-diag-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin-bottom: 8px;
+}
+
+.dwads-next-address {
+	background: #fff;
+	border: 1px solid #dcdcde;
+	border-left: 4px solid #2271b1;
+	border-radius: 4px;
+	padding: 10px 12px;
+	max-width: 900px;
+}
+
+.dwads-next-address code {
+	font-size: 13px;
+	word-break: break-all;
+}
+
+.dwads-help {
+	background: #fff;
+	border: 1px solid #dcdcde;
+	border-radius: 6px;
+	padding: 4px 18px 14px;
+	margin: 18px 0 8px;
+	max-width: 900px;
+}
+
+.dwads-help h3 {
+	margin: 16px 0 6px;
+	font-size: 14px;
+}
+
+.dwads-help p,
+.dwads-help li {
+	max-width: 78ch;
+}
+
+.dwads-help ol,
+.dwads-help ul {
+	margin: 6px 0 10px 20px;
+}
+
+.dwads-manage-link {
+	width: 100%;
+	max-width: 420px;
+	margin: 3px 0;
+	font-size: 11px;
+	padding: 3px 6px;
+}

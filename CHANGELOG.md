@@ -1,0 +1,33 @@
+# Changelog
+
+## 1.2.1
+- Near-miss uploads are fitted to the closest allowed size by aspect ratio,
+  scaled and centre-cropped, with a hard limit of 8% crop. Original dimensions
+  are stored and shown to both advertiser and admin.
+
+## 1.2.0
+- Size list carries labels, notes and a "recommended" marker, and drives the
+  guidance shown on the upload page.
+- Editable upload page introduction.
+
+## 1.1.3
+- Added 336x280 and 320x100 to the default sizes.
+
+## 1.1.2
+- Added the 250x250 square to the default sizes.
+
+## 1.1.1
+- Advertisement label anchored to the creative instead of the slot.
+
+## 1.1.0
+- Advertisement label, centring, read-only management page, keywords at upload,
+  recoverable management links, advertiser emails and a click log.
+- Real client address behind Cloudflare / reverse proxies (de-duplication fix).
+
+## 1.0.3
+- Settings are read from the database and verified after save, so a stale object
+  cache or a refused write is reported instead of silently redisplaying.
+
+## 1.0.0
+- First working build: xpub derivation, pay-per-click balances, snippet loader,
+  upload and management pages.

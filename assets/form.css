@@ -1,0 +1,278 @@
+/* Crypto Banner Ads - public upload form.
+   Everything is scoped to .dwads-upload so it cannot leak into the theme. */
+
+.dwads-upload {
+	max-width: 640px;
+	margin: 0 auto 1.5em;
+	padding: 26px 24px 22px;
+	border: 1px solid rgba(0, 0, 0, .12);
+	border-radius: 12px;
+	background: #fff;
+	box-shadow: 0 1px 2px rgba(0, 0, 0, .04);
+	font-size: 16px;
+	line-height: 1.55;
+	color: #16181d;
+}
+
+.dwads-upload * {
+	box-sizing: border-box;
+}
+
+.dwads-upload .dwads-form {
+	margin: 0;
+}
+
+.dwads-upload h3 {
+	margin: 26px 0 10px;
+	padding-top: 18px;
+	border-top: 1px solid rgba(0, 0, 0, .08);
+	font-size: 13px;
+	font-weight: 600;
+	letter-spacing: .06em;
+	text-transform: uppercase;
+	color: #6a7180;
+}
+
+.dwads-upload p {
+	margin: 0 0 14px;
+}
+
+.dwads-upload label {
+	display: block;
+	margin: 0;
+	font-size: 13px;
+	font-weight: 600;
+	color: #3c434f;
+}
+
+.dwads-upload input[type="text"],
+.dwads-upload input[type="url"],
+.dwads-upload input[type="email"],
+.dwads-upload input[type="file"] {
+	display: block;
+	width: 100%;
+	margin: 6px 0 0;
+	padding: 10px 12px;
+	border: 1px solid #cbd2dc;
+	border-radius: 8px;
+	background: #fff;
+	color: inherit;
+	font: inherit;
+	font-size: 15px;
+	line-height: 1.4;
+	transition: border-color .15s ease, box-shadow .15s ease;
+}
+
+.dwads-upload input[type="file"] {
+	padding: 8px 10px;
+	background: #fbfcfd;
+}
+
+.dwads-upload input:focus {
+	outline: none;
+	border-color: #1d4ed8;
+	box-shadow: 0 0 0 3px rgba(29, 78, 216, .14);
+}
+
+.dwads-upload .dwads-hint,
+.dwads-upload .dwads-muted {
+	display: block;
+	margin-top: 5px;
+	font-size: 12.5px;
+	color: #6a7180;
+}
+
+.dwads-upload .dwads-intro {
+	margin: 0 0 18px;
+	font-size: 15px;
+	line-height: 1.6;
+}
+
+.dwads-upload .dwads-intro p {
+	margin: 0 0 10px;
+}
+
+.dwads-upload .dwads-sizes {
+	margin: 0 0 20px;
+	padding: 14px 16px;
+	border: 1px solid rgba(0, 0, 0, .08);
+	border-radius: 10px;
+	background: rgba(0, 0, 0, .02);
+}
+
+.dwads-upload .dwads-sizes-title {
+	margin: 0 0 8px;
+	font-size: 11px;
+	font-weight: 700;
+	letter-spacing: .08em;
+	text-transform: uppercase;
+	color: #6a7180;
+}
+
+.dwads-upload .dwads-sizes ul {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+	gap: 6px 14px;
+}
+
+.dwads-upload .dwads-sizes li {
+	margin: 0;
+	font-size: 13px;
+	line-height: 1.6;
+}
+
+.dwads-upload .dwads-size-label {
+	color: #3c434f;
+}
+
+.dwads-upload .dwads-size-note {
+	display: block;
+	font-size: 12px;
+	color: #7a8290;
+}
+
+.dwads-upload .dwads-size-rec {
+	display: inline-block;
+	margin-left: 6px;
+	padding: 0 5px;
+	border-radius: 4px;
+	background: #e6f6ec;
+	color: #1a7f37;
+	font-size: 10px;
+	font-weight: 700;
+	letter-spacing: .05em;
+	text-transform: uppercase;
+	vertical-align: 1px;
+}
+
+.dwads-upload .dwads-row {
+	padding: 18px 0 6px;
+	border-top: 1px dashed rgba(0, 0, 0, .12);
+}
+
+.dwads-upload .dwads-row:first-child {
+	padding-top: 6px;
+	border-top: 0;
+}
+
+.dwads-upload .dwads-btn {
+	display: inline-block;
+	padding: 11px 20px;
+	border: 0;
+	border-radius: 8px;
+	background: #1d4ed8;
+	color: #fff;
+	font: inherit;
+	font-size: 15px;
+	font-weight: 600;
+	line-height: 1.2;
+	cursor: pointer;
+	transition: background .15s ease;
+}
+
+.dwads-upload .dwads-btn:hover {
+	background: #1a44bd;
+}
+
+.dwads-upload .dwads-btn-secondary {
+	background: #eef1f6;
+	color: #1a1d23;
+}
+
+.dwads-upload .dwads-btn-secondary:hover {
+	background: #e2e7ef;
+}
+
+.dwads-upload .dwads-btn[disabled] {
+	opacity: .5;
+	cursor: default;
+}
+
+.dwads-upload .dwads-notice {
+	margin: 0 0 18px;
+	padding: 12px 14px;
+	border: 1px solid #c9d6e6;
+	border-radius: 10px;
+	background: #f6f9fd;
+	font-size: 14px;
+}
+
+.dwads-upload .dwads-notice-error {
+	border-color: #e3b4b4;
+	background: #fdf3f3;
+}
+
+.dwads-upload .dwads-notice-success {
+	border-color: #b9dcc4;
+	background: #f2fbf5;
+}
+
+.dwads-upload .dwads-links {
+	margin: 8px 0 0;
+	padding-left: 18px;
+}
+
+.dwads-upload .dwads-links a {
+	word-break: break-all;
+}
+
+/* Dark themes: keep the card readable without overriding the site palette. */
+@media (prefers-color-scheme: dark) {
+	.dwads-upload {
+		background: #171b22;
+		border-color: rgba(255, 255, 255, .14);
+		box-shadow: none;
+		color: #e8eaf0;
+	}
+
+	.dwads-upload h3,
+	.dwads-upload label {
+		color: #aab2c0;
+	}
+
+	.dwads-upload input[type="text"],
+	.dwads-upload input[type="url"],
+	.dwads-upload input[type="email"],
+	.dwads-upload input[type="file"] {
+		background: #0f1318;
+		border-color: #2f3745;
+		color: #e8eaf0;
+	}
+
+	.dwads-upload .dwads-sizes {
+		background: rgba(255, 255, 255, .03);
+		border-color: rgba(255, 255, 255, .1);
+	}
+
+	.dwads-upload .dwads-size-label {
+		color: #c3cad6;
+	}
+
+	.dwads-upload .dwads-size-rec {
+		background: #173a22;
+		color: #7ee2a0;
+	}
+
+	.dwads-upload .dwads-btn-secondary {
+		background: #222833;
+		color: #e8eaf0;
+	}
+
+	.dwads-upload .dwads-notice {
+		background: #1b2129;
+		border-color: #2c3543;
+	}
+
+	.dwads-upload .dwads-notice-error {
+		background: #241a1a;
+		border-color: #5a3232;
+	}
+
+	.dwads-upload .dwads-notice-success {
+		background: #17241b;
+		border-color: #2f4a37;
+	}
+}

@@ -1,0 +1,58 @@
+/* Crypto Banner Ads - front end.
+   An empty slot must not affect layout, and a filled slot centres the creative. */
+.dwads-slot {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	line-height: 0;
+	max-width: 100%;
+}
+
+.dwads-slot:empty {
+	display: none;
+}
+
+.dwads-slot .dwads-link {
+	position: relative;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	max-width: 100%;
+	line-height: 0;
+}
+
+.dwads-slot .dwads-img {
+	display: block;
+	max-width: 100%;
+	height: auto;
+	border: 0;
+}
+
+/* Disclosure label: anchored to the creative's own corner, the way the large
+   networks do it, so it lines up even when the image is narrower than the slot. */
+
+.dwads-adlabel {
+	position: absolute;
+	top: 0;
+	left: 0;
+	z-index: 2;
+	padding: 2px 5px 1px;
+	font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+	font-size: 9px;
+	font-weight: 600;
+	line-height: 1.3;
+	letter-spacing: .07em;
+	text-transform: uppercase;
+	color: #fff;
+	background: rgba(0, 0, 0, .55);
+	border-radius: 0 0 3px 0;
+	pointer-events: none;
+	opacity: .9;
+}
+
+@media (prefers-color-scheme: light) {
+	.dwads-adlabel {
+		color: #1a1d23;
+		background: rgba(255, 255, 255, .82);
+	}
+}
