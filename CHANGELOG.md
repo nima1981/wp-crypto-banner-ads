@@ -1,5 +1,35 @@
 # Changelog
 
+## 1.5.0
+- **Impressions are viewable impressions.** The ad script reports when at least
+  half the creative has been on screen for a second, and only then does the
+  counter move. Turn `impression_viewable` off for the old
+  count-on-request behaviour.
+- **A click must follow a visible banner.** A token that was never seen, or was
+  clicked within `click_min_dwell_ms` (default 400) of becoming visible, is
+  redirected but not charged.
+- **Real browser metadata required.** `Sec-Fetch-*` presence is checked on the
+  beacon and `Sec-Fetch-Mode: navigate` on the click; scrapers send neither.
+- **Pointer or key press required** before a click is billable
+  (`require_gesture`).
+- **Invisible decoy link** in every slot (`honeypot_enabled`); anything that
+  follows it is flagged and never billed again.
+- **Caps that bound the loss:** charged clicks per visitor per day (3), per
+  address per day (15), and per banner per day (50). The hourly per-address cap
+  drops from 40 to 10.
+- **Click-rate brake:** above `click_rate_ceiling_percent` (20) with at least
+  `click_rate_min_impressions` views, the banner stops billing for the rest of
+  the rolling day.
+- **Fixed a counting bug from 1.4.0** where the de-duplication query matched the
+  row the same request had just written, so an impression could never be
+  counted at all. The check now only looks at rows this visitor actually saw,
+  and never at the current one.
+- Schema 1.4.0: the impressions table gains `seen_at` and `armed_at`, plus a
+  `(banner_id,seen_at,created_at)` index.
+- New endpoints `POST /wp-json/dwads/v1/seen` and `/armed`.
+- The management page note now says impressions require the banner to have been
+  on screen.
+
 ## 1.4.0
 - Impression counting is no longer "requests answered". A serve now counts
   once per visitor per de-duplication window (setting

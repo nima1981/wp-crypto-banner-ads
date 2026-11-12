@@ -633,7 +633,7 @@ final class DWADS_Public_Pages {
 			$body .= '<p class="dwads-muted">' . esc_html(
 				sprintf(
 					/* translators: %d: number of hours */
-					__( 'An impression is counted once per visitor every %d hours, and crawlers are ignored, so the figure tracks people rather than page loads. A click is only charged once per visitor in the same period, which is why it can be lower than the raw click count.', 'dwads' ),
+					__( 'An impression counts once per visitor every %d hours, only once the banner has actually been on screen, and never for a crawler — so the figure tracks people rather than page loads. A click is charged once per visitor in the same period, only after the banner was visible for a moment, which is why it is lower than the raw click count.', 'dwads' ),
 					$dedupe_hours
 				)
 			) . '</p>';

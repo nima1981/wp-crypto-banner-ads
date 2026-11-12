@@ -517,3 +517,63 @@ below the impression figure, and the click rate is charged clicks ÷ impressions
 
 The management page shows three separate figures — *Clicks charged*, *Impressions*
 and *Click rate* — so the two numbers are no longer stacked in one tile.
+
+## What counts as a person (1.5.0)
+
+The counter is only useful if it is close to true, so several checks now sit
+between a banner and a charge. All of them are on by default, and all of them
+would rather drop a legitimate click than bill for a machine.
+
+**Impressions.** A serve request no longer counts. The ad script reports when at
+least half of the creative has been on screen for a full second — the same
+"viewable impression" rule the ad industry uses — and only then does the
+advertiser's counter move. A 728x90 in a sidebar that nobody scrolls to now
+counts for nothing. Turn off *Only count an impression when the banner is
+actually on screen* to go back to counting requests.
+
+**Clicks.** A click is billable only when all of these hold:
+
+1. The request is a real navigation (`Sec-Fetch-Mode: navigate`), which scripts
+   asking for the URL cannot send.
+2. The user agent is present and does not match your bot pattern.
+3. The creative was reported on screen, at least `click_min_dwell_ms`
+   (400 ms) before the click. The timestamp is written by the server, so it
+   cannot be backdated.
+4. A pointer, key press or context menu touched the creative.
+5. The token has not been used before, and this visitor has not already been
+   charged for this banner inside the dedupe window.
+6. Every cap below has room.
+
+The decoy link is invisible, off screen and untabbable. Nothing a person can see
+or reach by keyboard leads to it, so following it is proof of a machine; that
+visitor is flagged for 30 days and never billed.
+
+**Caps.** A rolling day limits charged clicks to 3 per visitor (across all
+banners), 15 per address, and 50 per banner. The per-banner figure is the hard
+ceiling on what a single balance can lose in a day, whatever the traffic looks
+like. Set any of them to `0` to disable that one.
+
+**Click-rate brake.** Real audiences click a banner a fraction of a percent of
+the time. Above *Pause billing above this click rate* (20%) with at least 20
+viewable impressions behind it, the banner stops billing until the rolling day
+resets. It keeps serving normally; it just stops charging.
+
+### Honest limits
+
+Two of these checks, the gesture and the decoy, are claims made by the browser.
+They stop every scraper and every agent that does not render the page, which is
+most abuse. They cannot stop a determined farm that runs a real browser and
+sends the same signals — nothing in JavaScript can, because the client is
+attacker-controlled.
+
+What does hold against that is arithmetic, not identity: the per-banner daily
+cap, the per-visitor cap and the click-rate brake mean a farm can only ever
+extract a bounded, predictable amount per banner per day. If you would rather
+lose more, tighten those three; they are the settings that actually cost a
+fraudster money.
+
+### Measurement note
+
+These rules tighten counting, so numbers fall. Totals recorded before 1.5.0
+keep their old inflated history; only new activity follows the new rules.
+

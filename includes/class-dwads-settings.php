@@ -58,11 +58,24 @@ final class DWADS_Settings {
 			// Click accounting.
 			'dedupe_hours'             => 24,
 			'bot_uas'                  => 'bot|crawl|spider|slurp|bingpreview|facebookexternalhit|headlesschrome|phantomjs|python-requests|python-urllib|curl/|wget|go-http-client|okhttp|java/|libwww|scrapy|ahrefs|semrush|mj12|dotbot|petalbot|yandex|baidu',
-			'max_clicks_per_ip_hour'   => 40,
+			'max_clicks_per_ip_hour'   => 10,
 			'max_uploads_per_ip_hour'  => 5,
 			'impression_ttl_minutes'   => 30,
 			'impression_dedupe_hours'  => 24,
 			'record_impressions'       => 1,
+			// Human-visitor checks. All of these are on by default: the plugin
+			// would rather lose a handful of legitimate clicks than bill for a
+			// machine.
+			'impression_viewable'      => 1,
+			'click_min_dwell_ms'       => 400,
+			'require_gesture'          => 1,
+			'require_browser_headers'  => 1,
+			'honeypot_enabled'         => 1,
+			'max_clicks_per_visitor_day' => 3,
+			'max_clicks_per_ip_day'    => 15,
+			'max_clicks_per_banner_day' => 50,
+			'click_rate_ceiling_percent' => 20,
+			'click_rate_min_impressions' => 20,
 			// URLs.
 			'click_base'               => 'ads-go',
 			'manage_base'              => 'ads/manage',

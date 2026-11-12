@@ -527,6 +527,21 @@ final class DWADS_Admin {
 		self::field_textarea( 'bot_uas', __( 'Bot user-agent pattern', 'dwads' ), __( 'Case-insensitive regular expression. Matching clicks are redirected but not charged.', 'dwads' ) );
 		echo '</table>';
 
+		echo '<h2 class="title">' . esc_html__( 'Human visitor checks', 'dwads' ) . '</h2>';
+		echo '<p class="description">' . esc_html__( 'These settings decide what counts as a person rather than a machine. They are deliberately strict: a legitimate click that fails a check is not charged, so money is left on the table rather than handed to a crawler. Turning them off makes the numbers larger and less true.', 'dwads' ) . '</p>';
+		echo '<table class="form-table" role="presentation">';
+		self::field_checkbox( 'impression_viewable', __( 'Only count an impression when the banner is actually on screen', 'dwads' ), __( 'The ad script reports when at least half of the creative has been visible for a second. Off counts the moment the banner is requested, which includes slots nobody scrolled to.', 'dwads' ) );
+		self::field_number( 'click_min_dwell_ms', __( 'Minimum time on screen before a click can be charged (milliseconds)', 'dwads' ), __( 'A person cannot see a banner and click it in a few milliseconds. 400 is conservative and unnoticeable.', 'dwads' ), '50' );
+		self::field_checkbox( 'require_gesture', __( 'Require a real pointer or key press on the banner', 'dwads' ), __( 'A click is only billed when the browser first reported a pointer, keyboard or context-menu event on the creative. Catches anything that scrapes links out of the page without rendering it.', 'dwads' ) );
+		self::field_checkbox( 'require_browser_headers', __( 'Require real browser fetch metadata', 'dwads' ), __( 'Chrome, Firefox and Safari all send Sec-Fetch-* headers on every request; scripts and scrapers do not. Very old browsers omit them and will not be billed.', 'dwads' ) );
+		self::field_checkbox( 'honeypot_enabled', __( 'Add an invisible decoy link to every slot', 'dwads' ), __( 'Hidden from people and from the keyboard. Anything that follows it is a link-following machine, and is never billed again.', 'dwads' ) );
+		self::field_number( 'max_clicks_per_visitor_day', __( 'Maximum charged clicks per visitor per day (all banners)', 'dwads' ), __( 'One person clicking every banner on the site is not a person browsing. 0 in any daily cap means the cap is off.', 'dwads' ), '1' );
+		self::field_number( 'max_clicks_per_ip_day', __( 'Maximum charged clicks per address per day', 'dwads' ), '', '1' );
+		self::field_number( 'max_clicks_per_banner_day', __( 'Maximum charged clicks per banner per day', 'dwads' ), __( 'The hard ceiling on what any single banner can be charged in a rolling day, whatever the traffic looks like. 0 disables it.', 'dwads' ), '1' );
+		self::field_number( 'click_rate_ceiling_percent', __( 'Pause billing above this click rate (%)', 'dwads' ), __( 'Real audiences click a banner a fraction of a percent of the time. Once a banner passes this rate it stops billing until the rolling day resets. 0 disables the brake.', 'dwads' ), '1' );
+		self::field_number( 'click_rate_min_impressions', __( 'Impressions needed before the click-rate brake applies', 'dwads' ), __( 'Prevents a brand new banner from tripping the brake on its first few views.', 'dwads' ), '1' );
+		echo '</table>';
+
 		echo '<h2 class="title">' . esc_html__( 'Housekeeping', 'dwads' ) . '</h2>';
 		echo '<table class="form-table" role="presentation">';
 		self::field_checkbox( 'delete_data_on_uninstall', __( 'Delete all banner data when the plugin is uninstalled', 'dwads' ), __( 'Off by default so an accidental uninstall does not destroy paid balances.', 'dwads' ) );
@@ -652,7 +667,17 @@ final class DWADS_Admin {
 		$new['max_upload_kb']            = max( 16, (int) $scalar( 'max_upload_kb', '512' ) );
 		$new['max_banners_per_upload']   = max( 1, min( 20, (int) $scalar( 'max_banners_per_upload', '3' ) ) );
 		$new['dedupe_hours']             = max( 1, (int) $scalar( 'dedupe_hours', '24' ) );
-		$new['max_clicks_per_ip_hour']   = max( 1, (int) $scalar( 'max_clicks_per_ip_hour', '40' ) );
+		$new['max_clicks_per_ip_hour']   = max( 1, (int) $scalar( 'max_clicks_per_ip_hour', '10' ) );
+		$new['click_min_dwell_ms']       = max( 0, min( 10000, (int) $scalar( 'click_min_dwell_ms', '400' ) ) );
+		$new['max_clicks_per_visitor_day']    = max( 0, (int) $scalar( 'max_clicks_per_visitor_day', '3' ) );
+		$new['max_clicks_per_ip_day']         = max( 0, (int) $scalar( 'max_clicks_per_ip_day', '15' ) );
+		$new['max_clicks_per_banner_day']     = max( 0, (int) $scalar( 'max_clicks_per_banner_day', '50' ) );
+		$new['click_rate_ceiling_percent']    = max( 0, min( 100, (int) $scalar( 'click_rate_ceiling_percent', '20' ) ) );
+		$new['click_rate_min_impressions']    = max( 1, (int) $scalar( 'click_rate_min_impressions', '20' ) );
+		$new['impression_viewable']      = empty( $scalar( 'impression_viewable', '' ) ) ? 0 : 1;
+		$new['require_gesture']          = empty( $scalar( 'require_gesture', '' ) ) ? 0 : 1;
+		$new['require_browser_headers']  = empty( $scalar( 'require_browser_headers', '' ) ) ? 0 : 1;
+		$new['honeypot_enabled']         = empty( $scalar( 'honeypot_enabled', '' ) ) ? 0 : 1;
 		$new['max_uploads_per_ip_hour']  = max( 1, (int) $scalar( 'max_uploads_per_ip_hour', '5' ) );
 		$new['impression_ttl_minutes']   = max( 5, (int) $scalar( 'impression_ttl_minutes', '30' ) );
 		$new['impression_dedupe_hours']  = max( 0, min( 48, (int) $scalar( 'impression_dedupe_hours', '24' ) ) );

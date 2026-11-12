@@ -234,7 +234,7 @@ final class DWADS_Clicks {
 	 * @param int    $hours     Window in hours.
 	 * @return bool
 	 */
-	public static function recent_impression_exists( $banner_id, $visitor, $hours ) {
+	public static function recent_impression_exists( $banner_id, $visitor, $hours, $exclude_nonce = '' ) {
 		global $wpdb;
 
 		$visitor = (string) $visitor;
@@ -243,11 +243,185 @@ final class DWADS_Clicks {
 		}
 
 		$since = gmdate( 'Y-m-d H:i:s', time() - max( 1, (int) $hours ) * HOUR_IN_SECONDS );
+
+		// Only a row this visitor actually SAW can suppress the next one, and the
+		// row belonging to the current request never counts as "an earlier view".
+		// Without both conditions the check finds the row it was just handed and
+		// silently counts nothing at all.
 		$found = $wpdb->get_var(
 			$wpdb->prepare(
-				'SELECT id FROM ' . self::impressions_table() . ' WHERE banner_id = %d AND visitor = %s AND created_at >= %s LIMIT 1',
+				'SELECT id FROM ' . self::impressions_table() . ' WHERE banner_id = %d AND visitor = %s AND seen_at IS NOT NULL AND created_at >= %s AND nonce <> %s LIMIT 1',
 				(int) $banner_id,
 				$visitor,
+				$since,
+				(string) $exclude_nonce
+			)
+		);
+
+		return null !== $found;
+	}
+
+	/**
+	 * The impression row a click token points at.
+	 *
+	 * @param string $nonce Token nonce.
+	 * @return array|null
+	 */
+	public static function impression_row( $nonce ) {
+		global $wpdb;
+
+		$nonce = (string) $nonce;
+		if ( '' === $nonce ) {
+			return null;
+		}
+
+		$row = $wpdb->get_row(
+			$wpdb->prepare( 'SELECT * FROM ' . self::impressions_table() . ' WHERE nonce = %s LIMIT 1', $nonce ),
+			ARRAY_A
+		);
+
+		return $row ? $row : null;
+	}
+
+	/**
+	 * Record that the creative was actually on screen.
+	 *
+	 * The timestamp comes from the server clock and can only be written once per
+	 * token, so unlike anything the browser claims it cannot be backdated.
+	 *
+	 * @param string $nonce Token nonce.
+	 * @return int 1 when this call marked it, 0 when it was already marked.
+	 */
+	public static function mark_seen( $nonce ) {
+		global $wpdb;
+		$now = gmdate( 'Y-m-d H:i:s' );
+
+		return (int) $wpdb->query(
+			$wpdb->prepare(
+				'UPDATE ' . self::impressions_table() . ' SET seen_at = %s WHERE nonce = %s AND seen_at IS NULL AND expires_at >= %s',
+				$now,
+				(string) $nonce,
+				$now
+			)
+		);
+	}
+
+	/**
+	 * Record that a pointer or key touched the creative.
+	 *
+	 * @param string $nonce Token nonce.
+	 * @return int
+	 */
+	public static function mark_armed( $nonce ) {
+		global $wpdb;
+		$now = gmdate( 'Y-m-d H:i:s' );
+
+		return (int) $wpdb->query(
+			$wpdb->prepare(
+				'UPDATE ' . self::impressions_table() . ' SET armed_at = %s WHERE nonce = %s AND armed_at IS NULL AND expires_at >= %s',
+				$now,
+				(string) $nonce,
+				$now
+			)
+		);
+	}
+
+	/**
+	 * Whether the request carries the fetch metadata a real browser sends.
+	 *
+	 * Chrome, Firefox and Safari all attach Sec-Fetch-* to every request.
+	 * Scripts, scrapers and HTML parsers do not, which is the class this stops.
+	 *
+	 * @param string $expect 'navigate' for a link click, 'fetch' for a beacon.
+	 * @return bool
+	 */
+	public static function browser_headers_ok( $expect = 'fetch' ) {
+		$mode = isset( $_SERVER['HTTP_SEC_FETCH_MODE'] ) ? strtolower( trim( (string) $_SERVER['HTTP_SEC_FETCH_MODE'] ) ) : '';
+		$dest = isset( $_SERVER['HTTP_SEC_FETCH_DEST'] ) ? strtolower( trim( (string) $_SERVER['HTTP_SEC_FETCH_DEST'] ) ) : '';
+
+		if ( '' === $mode || '' === $dest ) {
+			return false;
+		}
+
+		if ( 'navigate' === $expect ) {
+			return 'navigate' === $mode;
+		}
+
+		return in_array( $mode, array( 'cors', 'no-cors', 'same-origin' ), true );
+	}
+
+	/**
+	 * Charged clicks matching one column inside a window.
+	 *
+	 * @param string $column One of visitor_hash, ip_hash, banner_id.
+	 * @param mixed  $value  Value to match.
+	 * @param string $since  MySQL datetime.
+	 * @return int
+	 */
+	public static function charged_clicks_since( $column, $value, $since ) {
+		global $wpdb;
+
+		if ( ! in_array( $column, array( 'visitor_hash', 'ip_hash', 'banner_id' ), true ) ) {
+			return 0;
+		}
+
+		if ( 'banner_id' === $column ) {
+			return (int) $wpdb->get_var(
+				$wpdb->prepare(
+					'SELECT COUNT(*) FROM ' . self::table() . ' WHERE banner_id = %d AND charged = 1 AND created_at >= %s',
+					(int) $value,
+					(string) $since
+				)
+			);
+		}
+
+		return (int) $wpdb->get_var(
+			$wpdb->prepare(
+				'SELECT COUNT(*) FROM ' . self::table() . ' WHERE ' . $column . ' = %s AND charged = 1 AND created_at >= %s',
+				(string) $value,
+				(string) $since
+			)
+		);
+	}
+
+	/**
+	 * Impressions of one banner that a visitor genuinely saw.
+	 *
+	 * @param int    $banner_id Banner id.
+	 * @param string $since     MySQL datetime.
+	 * @return int
+	 */
+	public static function viewable_impressions_since( $banner_id, $since ) {
+		global $wpdb;
+
+		return (int) $wpdb->get_var(
+			$wpdb->prepare(
+				'SELECT COUNT(*) FROM ' . self::impressions_table() . ' WHERE banner_id = %d AND seen_at IS NOT NULL AND created_at >= %s',
+				(int) $banner_id,
+				(string) $since
+			)
+		);
+	}
+
+	/**
+	 * Whether this visitor ever walked into the hidden decoy link.
+	 *
+	 * @param string $visitor_hash Visitor hash.
+	 * @return bool
+	 */
+	public static function is_honeypot_visitor( $visitor_hash ) {
+		global $wpdb;
+
+		$visitor_hash = (string) $visitor_hash;
+		if ( '' === $visitor_hash ) {
+			return false;
+		}
+
+		$since = gmdate( 'Y-m-d H:i:s', time() - 30 * DAY_IN_SECONDS );
+		$found = $wpdb->get_var(
+			$wpdb->prepare(
+				'SELECT id FROM ' . self::table() . " WHERE visitor_hash = %s AND reason = 'honeypot' AND created_at >= %s LIMIT 1",
+				$visitor_hash,
 				$since
 			)
 		);
@@ -290,8 +464,40 @@ final class DWADS_Clicks {
 		$ip     = self::client_ip();
 		$ua     = isset( $_SERVER['HTTP_USER_AGENT'] ) ? substr( (string) $_SERVER['HTTP_USER_AGENT'], 0, 400 ) : '';
 
+		$visitor_hash = self::visitor_hash( $banner['id'], $ip, $ua );
+		$ip_hash      = self::ip_hash( $ip );
+		$ua_hash      = hash_hmac( 'sha256', 'dwads-ua|' . $ua, DWADS_Banners::secret() );
+
+		// The decoy link. Anything that follows a link it cannot see is a
+		// machine, so the visitor is flagged and never billed again.
+		if ( ! empty( $_GET['dwads_hp'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			global $wpdb;
+			$wpdb->insert(
+				self::table(),
+				array(
+					'banner_id'    => (int) $banner['id'],
+					'site_id'      => (int) $payload['s'],
+					'page_id'      => (int) $payload['p'],
+					'created_at'   => $now,
+					'visitor_hash' => $visitor_hash,
+					'ip_hash'      => $ip_hash,
+					'ua_hash'      => $ua_hash,
+					'price_usd'    => '0.000000',
+					'sats_charged' => 0,
+					'charged'      => 0,
+					'reason'       => 'honeypot',
+				),
+				array( '%d', '%d', '%d', '%s', '%s', '%s', '%s', '%s', '%d', '%d', '%s' )
+			);
+			wp_safe_redirect( home_url( '/' ), 302 );
+			exit;
+		}
+
+		$record = (bool) DWADS_Settings::get( 'record_impressions', 1 );
+		$row    = $record ? self::impression_row( (string) $payload['n'] ) : null;
+
 		// One click per served impression.
-		if ( DWADS_Settings::get( 'record_impressions', 1 ) ) {
+		if ( $record ) {
 			global $wpdb;
 			$used = $wpdb->query(
 				$wpdb->prepare(
@@ -310,22 +516,83 @@ final class DWADS_Clicks {
 			$reason = 'method';
 		}
 
+		// A real navigation carries "navigate". A script asking for the URL
+		// carries nothing at all.
+		if ( '' === $reason && DWADS_Settings::get( 'require_browser_headers', 1 ) && ! self::browser_headers_ok( 'navigate' ) ) {
+			$reason = 'headers';
+		}
+
 		$bot_pattern = (string) DWADS_Settings::get( 'bot_uas', '' );
 		if ( '' === $reason && ( '' === trim( $ua ) || ( '' !== $bot_pattern && @preg_match( '#' . str_replace( '#', '\#', $bot_pattern ) . '#i', $ua ) ) ) ) {
 			$reason = 'bot';
 		}
 
-		$visitor_hash = self::visitor_hash( $banner['id'], $ip, $ua );
-		$ip_hash      = self::ip_hash( $ip );
-		$ua_hash      = hash_hmac( 'sha256', 'dwads-ua|' . $ua, DWADS_Banners::secret() );
+		if ( '' === $reason && DWADS_Settings::get( 'honeypot_enabled', 1 ) && self::is_honeypot_visitor( $visitor_hash ) ) {
+			$reason = 'honeypot';
+		}
+
+		// The creative has to have been on screen, for long enough that a person
+		// could have seen it, before a click is billable.
+		if ( '' === $reason && $record && DWADS_Settings::get( 'impression_viewable', 1 ) ) {
+			if ( ! $row || empty( $row['seen_at'] ) ) {
+				$reason = 'not_seen';
+			} else {
+				$dwell_ms = max( 0, (int) DWADS_Settings::get( 'click_min_dwell_ms', 400 ) );
+				$seen_ts  = strtotime( $row['seen_at'] . ' UTC' );
+				if ( $dwell_ms > 0 && ( time() - (int) $seen_ts ) * 1000 < $dwell_ms ) {
+					$reason = 'too_fast';
+				}
+			}
+		}
+
+		// A pointer, key or context menu touched the creative. Both the island
+		// beacon and the link marker are written by our own handler in the same
+		// event that opens the link, so no ordering race can drop a real click.
+		if ( '' === $reason && DWADS_Settings::get( 'require_gesture', 1 ) && $record ) {
+			$armed = ( is_array( $row ) && ! empty( $row['armed_at'] ) ) || ! empty( $_GET['dwads_g'] ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			if ( ! $armed ) {
+				$reason = 'no_gesture';
+			}
+		}
 
 		if ( '' === $reason && self::recent_click_exists( $banner['id'], $visitor_hash ) ) {
 			$reason = 'duplicate';
 		}
 
-		$max_per_hour = max( 1, (int) DWADS_Settings::get( 'max_clicks_per_ip_hour', 40 ) );
+		$since_day   = gmdate( 'Y-m-d H:i:s', time() - DAY_IN_SECONDS );
+		$since_hour  = gmdate( 'Y-m-d H:i:s', time() - HOUR_IN_SECONDS );
+		$max_per_hour = max( 1, (int) DWADS_Settings::get( 'max_clicks_per_ip_hour', 10 ) );
+		$max_ip_day   = max( 1, (int) DWADS_Settings::get( 'max_clicks_per_ip_day', 15 ) );
+		$max_vis_day  = max( 1, (int) DWADS_Settings::get( 'max_clicks_per_visitor_day', 3 ) );
+		$max_ban_day  = max( 0, (int) DWADS_Settings::get( 'max_clicks_per_banner_day', 50 ) );
+
 		if ( '' === $reason && self::clicks_from_ip_last_hour( $ip_hash ) >= $max_per_hour ) {
 			$reason = 'rate_limited';
+		}
+
+		if ( '' === $reason && self::charged_clicks_since( 'ip_hash', $ip_hash, $since_day ) >= $max_ip_day ) {
+			$reason = 'ip_daily_cap';
+		}
+
+		if ( '' === $reason && self::charged_clicks_since( 'visitor_hash', $visitor_hash, $since_day ) >= $max_vis_day ) {
+			$reason = 'visitor_daily_cap';
+		}
+
+		if ( '' === $reason && $max_ban_day > 0 && self::charged_clicks_since( 'banner_id', (int) $banner['id'], $since_day ) >= $max_ban_day ) {
+			$reason = 'banner_daily_cap';
+		}
+
+		// An audience that clicks one ad in five is not an audience. Once a banner
+		// passes the ceiling it stops billing until the rolling day rolls over,
+		// which caps the damage a click farm can do to that balance.
+		$ceiling_pct = max( 0, (int) DWADS_Settings::get( 'click_rate_ceiling_percent', 20 ) );
+		$min_sample  = max( 1, (int) DWADS_Settings::get( 'click_rate_min_impressions', 20 ) );
+		if ( '' === $reason && $ceiling_pct > 0 && $record ) {
+			$views   = self::viewable_impressions_since( (int) $banner['id'], $since_day );
+			$billed  = self::charged_clicks_since( 'banner_id', (int) $banner['id'], $since_day );
+			if ( $views >= $min_sample && ( $billed * 100 ) > ( $views * $ceiling_pct ) ) {
+				$reason = 'rate_ceiling';
+			}
 		}
 
 		$price_usd = DWADS_Settings::click_price_for( $banner );

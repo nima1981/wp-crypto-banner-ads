@@ -77,6 +77,134 @@
 		}
 	}
 
+	/**
+	 * Report to a sibling endpoint (/seen, /armed) built from the serve address.
+	 * The token travels in the query string so the request is a simple no-body
+	 * POST: no preflight, and sendBeacon can carry it unchanged.
+	 */
+	function report(name, token) {
+		if (!token) {
+			return;
+		}
+		var base = cfg[name + 'Api'];
+		if (!base) {
+			var serve = cfg.api;
+			if (!serve) {
+				var script = document.currentScript || lastScript();
+				if (script && script.src) {
+					try {
+						serve = new URL('/wp-json/dwads/v1/serve', script.src).toString();
+					} catch (e) {
+						serve = null;
+					}
+				}
+			}
+			if (!serve) {
+				return;
+			}
+			base = String(serve).replace(/serve(?:[?#].*)?$/, name);
+		}
+
+		var url = base + (base.indexOf('?') === -1 ? '?' : '&') + 'token=' + encodeURIComponent(token);
+
+		try {
+			if (window.fetch) {
+				fetch(url, {
+					method: 'POST',
+					credentials: 'omit',
+					mode: 'cors',
+					keepalive: true,
+					cache: 'no-store'
+				}).catch(function () {});
+				return;
+			}
+			if (navigator.sendBeacon) {
+				navigator.sendBeacon(url);
+			}
+		} catch (e) {
+			// Silent: a lost report only means the click may not be billable.
+		}
+	}
+
+	/**
+	 * Tell the server when the creative is genuinely on screen.
+	 *
+	 * Half of it visible for a full second, so a slot that is technically
+	 * rendered but never scrolled to does not count as an impression.
+	 */
+	function watchVisibility(frame, token) {
+		var fired = false;
+		var timer = null;
+		var observer = null;
+
+		function fire() {
+			if (fired) {
+				return;
+			}
+			fired = true;
+			if (timer) {
+				clearTimeout(timer);
+				timer = null;
+			}
+			if (observer) {
+				observer.disconnect();
+			}
+			report('seen', token);
+		}
+
+		if (!('IntersectionObserver' in window)) {
+			// No way to measure, so fall back to "it has been a second".
+			window.setTimeout(fire, 1000);
+			return;
+		}
+
+		observer = new IntersectionObserver(function (entries) {
+			for (var i = 0; i < entries.length; i++) {
+				var entry = entries[i];
+				if (entry.isIntersecting && entry.intersectionRatio >= 0.5) {
+					if (!timer && !fired) {
+						timer = window.setTimeout(function () {
+							timer = null;
+							fire();
+						}, 1000);
+					}
+				} else if (timer) {
+					clearTimeout(timer);
+					timer = null;
+				}
+			}
+		}, { threshold: [0, 0.5, 1] });
+
+		observer.observe(frame);
+	}
+
+	/**
+	 * Note a pointer, key or context menu on the creative, and mark the link.
+	 *
+	 * The marker is written into the live href inside the same event that opens
+	 * the link, so a real activation always carries it. Nothing here delays the
+	 * navigation: the default action is left alone.
+	 */
+	function watchGesture(link, token) {
+		var armed = false;
+
+		function arm() {
+			if (armed) {
+				return;
+			}
+			armed = true;
+			if (link.href.indexOf('dwads_g=') === -1) {
+				link.href = link.href + (link.href.indexOf('?') === -1 ? '?' : '&') + 'dwads_g=1';
+			}
+			report('armed', token);
+		}
+
+		var events = ['pointerdown', 'mousedown', 'touchstart', 'keydown', 'contextmenu', 'focus'];
+		for (var i = 0; i < events.length; i++) {
+			link.addEventListener(events[i], arm);
+		}
+	}
+
 	function sizesFor(slot) {
 		return {
 			wide: (slot.getAttribute('data-dwads-slot') || '').trim(),
@@ -215,6 +343,25 @@
 			badge.className = 'dwads-adlabel';
 			badge.textContent = data.label;
 			link.appendChild(badge);
+		}
+
+		// Invisible decoy: off-screen rather than display:none, because a
+		// stylesheet-hidden link is often skipped while an off-screen one is
+		// followed. Nothing a person can see, reach by keyboard or click.
+		if (data.hp) {
+			var decoy = document.createElement('a');
+			decoy.className = 'dwads-decoy';
+			decoy.href = data.hp;
+			decoy.rel = 'nofollow noindex';
+			decoy.setAttribute('aria-hidden', 'true');
+			decoy.setAttribute('tabindex', '-1');
+			decoy.style.cssText = 'position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden;';
+			frame.appendChild(decoy);
+		}
+
+		if (data.token) {
+			watchVisibility(frame, data.token);
+			watchGesture(link, data.token);
 		}
 
 		slot.setAttribute('data-dwads-filled', '1');

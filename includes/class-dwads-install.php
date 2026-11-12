@@ -12,7 +12,7 @@ defined( 'ABSPATH' ) || exit;
  */
 final class DWADS_Install {
 
-	const SCHEMA = '1.3.0';
+	const SCHEMA = '1.4.0';
 
 	/**
 	 * Activate the plugin.
@@ -182,11 +182,14 @@ final class DWADS_Install {
 			visitor char(64) NOT NULL DEFAULT '',
 			created_at datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
 			expires_at datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
+			seen_at datetime DEFAULT NULL,
+			armed_at datetime DEFAULT NULL,
 			used_at datetime DEFAULT NULL,
 			PRIMARY KEY  (id),
 			UNIQUE KEY nonce (nonce),
 			KEY banner_time (banner_id,created_at),
 			KEY visitor_time (banner_id,visitor,created_at),
+			KEY seen_time (banner_id,seen_at,created_at),
 			KEY expiry (expires_at)
 		) {$charset};";
 
