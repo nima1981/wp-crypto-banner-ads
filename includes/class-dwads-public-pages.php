@@ -22,6 +22,31 @@ final class DWADS_Public_Pages {
 	public static function init() {
 		add_action( 'init', array( __CLASS__, 'maybe_handle_post' ), 5 );
 		add_action( 'init', array( __CLASS__, 'maybe_no_cache' ), 6 );
+		add_action( 'wp_footer', array( __CLASS__, 'footer_credit' ), 99 );
+	}
+
+	/**
+	 * Optional one-line credit at the bottom of every public page.
+	 *
+	 * The styles are printed inline rather than relying on the plugin's
+	 * stylesheet, which is only enqueued on pages that actually show a slot.
+	 *
+	 * @return void
+	 */
+	public static function footer_credit() {
+		if ( ! DWADS_Settings::get( 'credit_enabled', 1 ) ) {
+			return;
+		}
+
+		$line = sprintf(
+			/* translators: 1: plugin name, linked to its repository. 2: company name, linked to its site. */
+			esc_html__( 'Powered by %1$s from %2$s', 'dwads' ),
+			'<a href="' . esc_url( 'https://github.com/nima1981/wp-crypto-banner-ads' ) . '" rel="noopener">' . esc_html__( 'Crypto Banner Ads', 'dwads' ) . '</a>',
+			'<a href="' . esc_url( 'https://reza.consulting' ) . '" rel="noopener">' . esc_html__( 'Reza Consulting', 'dwads' ) . '</a>'
+		);
+
+		echo '<style>.dwads-credit{clear:both;margin:1.5em 0 1em;padding:0 .75em;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-size:11px;line-height:1.5;text-align:center;color:inherit;opacity:.55}.dwads-credit a{color:inherit;text-decoration:none;border-bottom:1px solid rgba(128,128,128,.45)}.dwads-credit a:hover,.dwads-credit a:focus{border-bottom-color:currentColor}.dwads-credit a:focus-visible{outline:1px solid currentColor;outline-offset:2px}</style>';
+		echo '<p class="dwads-credit">' . $line . '</p>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Both links are escaped above.
 	}
 
 	/**

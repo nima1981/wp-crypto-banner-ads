@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.2.7
+- Optional credit line on every public page: “Powered by Crypto Banner Ads
+  from Reza Consulting”, with the plugin name linked to the repository and the
+  company name linked to reza.consulting. Settings → Display → *Show a small
+  credit line in the footer*, on by default.
+
 ## 1.2.6
 - Responsive slots: `[dwads slot="728x90" slot_mobile="320x100"]`, or
   `data-dwads-slot-mobile` on a raw div, names a second size for narrow

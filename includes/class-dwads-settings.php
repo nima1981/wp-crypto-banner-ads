@@ -37,6 +37,7 @@ final class DWADS_Settings {
 			'rel_attributes'           => 'nofollow sponsored noopener',
 			'ad_label_enabled'         => 1,
 			'ad_label_text'            => 'Sponsored',
+			'credit_enabled'           => 1,
 			'footer_link_enabled'      => 0,
 			'footer_link_text'         => '',
 			'footer_link_url'          => '',

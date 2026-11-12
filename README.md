@@ -390,3 +390,15 @@ window across the breakpoint simply swaps the creative for the one that fits.
 
 Two creatives means two balances: a `320x100` banner is a separate banner with
 its own funding, exactly like any other size.
+
+## Footer credit (1.2.7)
+
+Settings → Display → **Show a small credit line in the footer** prints one quiet
+line at the bottom of every public page:
+
+> Powered by [Crypto Banner Ads](https://github.com/nima1981/wp-crypto-banner-ads) from [Reza Consulting](https://reza.consulting)
+
+It is on by default and can be switched off completely. The styles are printed
+inline with the markup, so the line looks the same on pages that never enqueue
+the banner stylesheet. It is plain text in the flow — 11px, centred, inherited
+colour at 55% opacity — so it does not compete with the page or with the ads.

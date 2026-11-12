@@ -408,6 +408,7 @@ final class DWADS_Admin {
 		self::field_checkbox( 'target_new_tab', __( 'Open advertiser links in a new tab', 'dwads' ) );
 		self::field_text( 'rel_attributes', __( 'rel attributes on banner links', 'dwads' ), __( 'Recommended: nofollow sponsored noopener', 'dwads' ) );
 		self::field_checkbox( 'ad_label_enabled', __( 'Show an advertisement label on banners', 'dwads' ), __( 'A small corner tag, the way the large ad networks disclose paid placements.', 'dwads' ) );
+		self::field_checkbox( 'credit_enabled', __( 'Show a small credit line in the footer', 'dwads' ), __( 'A single quiet line on every public page: “Powered by Crypto Banner Ads from Reza Consulting”, with both names linked. Turn it off to remove it completely.', 'dwads' ) );
 		self::field_text( 'ad_label_text', __( 'Label text', 'dwads' ), __( 'Keep it short and honest. “Sponsored” is the usual choice; “Ad” is the shortest.', 'dwads' ) );
 		self::field_checkbox( 'notify_advertiser', __( 'Email advertisers their link and approval status', 'dwads' ), __( 'Only applies when an email address was supplied at upload. This is the recovery path when a link is lost.', 'dwads' ) );
 		echo '</table>';
@@ -596,7 +597,7 @@ final class DWADS_Admin {
 
 		$new['click_price_usd'] = number_format( max( 0.000001, (float) $scalar( 'click_price_usd', '0.02' ) ), 6, '.', '' );
 
-		foreach ( array( 'approval_required', 'target_new_tab', 'credit_mempool', 'record_impressions', 'notify_admin_uploads', 'notify_advertiser', 'ad_label_enabled', 'auto_fit_uploads', 'footer_link_enabled', 'delete_data_on_uninstall' ) as $flag ) {
+		foreach ( array( 'approval_required', 'target_new_tab', 'credit_mempool', 'record_impressions', 'notify_admin_uploads', 'notify_advertiser', 'ad_label_enabled', 'auto_fit_uploads', 'footer_link_enabled', 'credit_enabled', 'delete_data_on_uninstall' ) as $flag ) {
 			$new[ $flag ] = empty( $input[ $flag ] ) ? 0 : 1;
 		}
 
