@@ -523,6 +523,7 @@ final class DWADS_Admin {
 			__( 'Paste whatever your swap provider gives you: a plain URL, an iframe, or their complete embed block including any script tag. Any provider works — the field is not tied to one brand. Tokens are replaced before it renders: {ADDRESS} (the banner deposit address), {LINK_ID} (affiliate or account id), {BANNER_ID}, {SITE_URL}, {SITE_NAME} and {HEIGHT}. Make sure {ADDRESS} appears somewhere, or the widget cannot know where to send the funds. An empty field uses the shipped ChangeNOW default; type none to show no widget at all. Because this field can contain markup, it is only editable by an administrator, and a script tag additionally needs the unfiltered_html capability.', 'dwads' ),
 			DWADS_Settings::exchange_template()
 		);
+		self::field_text( 'exchange_widget_link_id', __( 'Exchange account link id', 'dwads' ), __( 'The account or affiliate id your swap provider credits. Whatever you type here replaces {LINK_ID} inside the embed above. Pre-filled with the plugin default (bc1c9b656c7061), which routes a share of the exchange fees to the plugin author — replace it with your own, or type none to send no id at all (the link_id parameter is then dropped).', 'dwads' ) );
 		self::field_number( 'exchange_widget_height', __( 'Widget height (px)', 'dwads' ), __( 'Used when you paste a plain URL, so the plugin can size the frame it creates. A pasted iframe keeps whatever height it already carries. Also available as {HEIGHT}.', 'dwads' ), '1' );
 		self::field_text( 'qr_service', __( 'QR image template', 'dwads' ), __( 'Use {ADDRESS} as the placeholder. An empty field uses the default service; type none to hide the QR code.', 'dwads' ) );
 		echo '</table>';
@@ -733,7 +734,8 @@ final class DWADS_Admin {
 				$widget   = isset( $current['exchange_widget'] ) ? (string) $current['exchange_widget'] : '';
 			}
 		}
-		$new['exchange_widget']        = $widget;
+		$new['exchange_widget']          = $widget;
+		$new['exchange_widget_link_id']  = sanitize_text_field( $scalar( 'exchange_widget_link_id', '' ) );
 		$new['exchange_widget_height'] = max( 120, min( 1200, (int) $scalar( 'exchange_widget_height', '356' ) ) );
 		$address_type                    = $scalar( 'address_type', 'auto' );
 		$new['address_type']             = in_array( $address_type, array( 'auto', 'p2pkh', 'p2sh-p2wpkh', 'p2wpkh' ), true ) ? $address_type : 'auto';

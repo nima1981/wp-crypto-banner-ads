@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.6.1
+- **The exchange account link id is a field again.** 1.6.0 folded it into the
+  snippet and left no obvious place to set it. It is now a small field under the
+  embed, and it is what `{LINK_ID}` resolves to.
+- Typing `none` in that field now removes the `link_id` parameter from the
+  embed instead of leaving an empty one behind, and keeps the query string valid
+  when `link_id` is the first parameter.
+
 ## 1.6.0
 - **One field for the swap provider.** The old URL field, affiliate-id field and
   custom-HTML field are replaced by **Settings → Top-up page → Swap provider

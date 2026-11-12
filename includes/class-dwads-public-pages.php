@@ -548,6 +548,17 @@ final class DWADS_Public_Pages {
 		$height  = max( 120, min( 1200, (int) DWADS_Settings::get( 'exchange_widget_height', 356 ) ) );
 		$link_id = (string) DWADS_Settings::exchange_link_id();
 
+		// "none" means send no affiliate id at all, so the parameter goes rather
+		// than arriving empty. Only a parameter literally named link_id is
+		// touched; every other provider parameter is left alone.
+		if ( '' === $link_id ) {
+			$template = str_replace( '{{LINK_ID}}', '{LINK_ID}', $template );
+			// Three shapes, so the surviving URL still starts its query cleanly:
+			// first of several parameters, one of several, or the only one.
+			$template = preg_replace( '#\?link_id=\{LINK_ID\}&#', '?', $template );
+			$template = preg_replace( '#[?&]link_id=\{LINK_ID\}#', '', $template );
+		}
+
 		$snippet = strtr(
 			$template,
 			array(

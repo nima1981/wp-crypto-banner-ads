@@ -196,7 +196,7 @@ Amounts are integers in satoshis. Each click also records the dollar price it wa
 
 ## Known limits
 
-- **The swap provider is one snippet, with a working default.** The field holds a `link_id` (affiliate/account id) inside the text, so it ships pre-filled with the maintainer's id and a fresh install has a working widget. Replace `{LINK_ID}` with your own account id (or delete the `link_id=` parameter), or type `none` as the whole field to remove the widget. A pasted script tag needs the `unfiltered_html` capability; an iframe or a plain URL does not.
+- **The swap provider is one snippet, plus an account id.** The embed field takes any provider's URL, iframe or full block; a small **Exchange account link id** field below it supplies `{LINK_ID}`, pre-filled with the maintainer's id so a fresh install has a working widget. Replace it with your own, or type `none` to drop the `link_id` parameter entirely. A pasted script tag needs the `unfiltered_html` capability; an iframe or a plain URL does not.
 - **QR images come from an external service by default** (`api.qrserver.com`) because a bundled QR encoder would be far more code than the rest of the plugin. The code encodes a `bitcoin:` URI, so a wallet app can scan it directly. The address is public information; change the template to your own endpoint, or type `none` to hide it — the page still has a copy button and an “Open in wallet” link.
 - **REST must be reachable.** If a security plugin blocks `/wp-json/`, the snippet cannot fetch banners.
 - **Animated GIFs are flattened** to PNG on upload.
@@ -601,7 +601,7 @@ Tokens, replaced before output:
 | Token | Becomes |
 |---|---|
 | `{ADDRESS}` | the banner's deposit address, URL-encoded |
-| `{LINK_ID}` | affiliate / account id (empty when the field says `none`) |
+| `{LINK_ID}` | the **Exchange account link id** field (dropped entirely when that field says `none`) |
 | `{BANNER_ID}` | the numeric banner id |
 | `{SITE_URL}` | this site's home URL |
 | `{SITE_NAME}` | this site's name |
