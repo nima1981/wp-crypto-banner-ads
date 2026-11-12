@@ -1,5 +1,23 @@
 # Changelog
 
+## 1.8.1
+- Documentation only, no behaviour change. The Settings screen gains a **Use
+  this wallet for nothing else** section and the README a matching one, because
+  the plugin credits a banner by reading the address's whole history and cannot
+  tell a payment from a payment-shaped accident:
+  - a dedicated wallet account, never used for anything else;
+  - descriptor wallets (Electrum 4.6+, Sparrow, Bitcoin Core) keep change on
+    `m/1/i`, which the plugin never derives, so change cannot land on a banner;
+    standard/legacy wallets, which Electrum 4.5 could still create, put change
+    on the next unused address of the *same* chain — the sequence banners are
+    numbered from;
+  - sweep the entire balance, never a partial amount, so no change output is
+    created at all;
+  - press "Check if the next address is unused" after changing wallet, restoring
+    a backup, or wiping plugin data.
+- The Electrum entry in the key table now says to check the wallet type, and the
+  address-index field on Diagnostics points at the same section.
+
 ## 1.8.0
 - **A click is never written off.** A click that reaches the charge statement is
   billed even when the balance cannot cover the price; the balance is allowed to

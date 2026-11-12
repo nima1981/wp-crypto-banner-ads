@@ -82,7 +82,7 @@ Export the key at **account level** — the node three hardened steps below the 
 | Wallet | Where to get it | Notes |
 |---|---|---|
 | **Sparrow** (recommended, also for Coldcard / Ledger / Trezor) | Open the ad wallet → Settings → Keystore tab → copy the xpub/zpub | Shows the script type; a zpub produces `bc1…` addresses. Has a Gap limit setting. |
-| **Electrum** (desktop or mobile) | Wallet → Information → “Master public key” | For a standard Electrum wallet the receive chain is `m/0/i`, exactly what `0/{i}` produces from that key. |
+| **Electrum** (desktop or mobile) | Wallet → Information → “Master public key” | The receive chain is `m/0/i`, exactly what `0/{i}` produces. Check the wallet type on the same screen: descriptor wallets keep change on a separate chain, standard ones do not — see **One wallet, one job**. |
 | **Bitcoin Core** (descriptor wallet) | `listdescriptors`, take the external descriptor | e.g. `wpkh([f1ngerpr1nt/84h/0h/0h]xpub6C…/0/*)` — use the xpub portion, path `0/{i}`. |
 | **Ledger Live / Trezor Suite** | Not exposed | Connect the device to Sparrow or Electrum and export the account key there. |
 | **BTCPay Server** | Store → Wallet → derivation scheme | Same kind of account key. |
@@ -103,6 +103,23 @@ Wallets do not scan addresses forever. They scan a fixed number of *unused* addr
 - Raise the limit before it matters: Sparrow → Settings → Gap limit; Electrum → set `wallet.gap_limit` in the config and restart; Bitcoin Core descriptor wallets are unaffected.
 - Or keep it small: give ads their own account and keep the banner count modest, so a re-scan with a higher gap is quick.
 - Recovery is always possible: import the address or the descriptor with a high gap, or rescan the wallet with a larger limit.
+
+### One wallet, one job
+
+The plugin credits a banner by reading the **entire history** of that banner's address, not just what arrived after the banner was created. It has no way to tell a payment from a payment-shaped accident. Money that already sits on an index is invisible while that index is unused — and the moment the index is handed to a banner, that money becomes the advertiser's balance.
+
+So: **give the plugin its own wallet account and use it for nothing else.** No incoming payments, no manual addresses, no second plugin or store on the same key. A separate account from the same seed (a new xpub) is enough, and it is the simplest arrangement that cannot go wrong. After changing wallets, restoring a backup, or wiping plugin data, press **Check if the next address is unused** on the Diagnostics screen before uploading again.
+
+**Change addresses.** A wallet that spends from banner addresses may need to send change somewhere.
+
+- **Descriptor wallets** — default in Electrum 4.6+, Sparrow, Bitcoin Core: change goes to a separate internal chain (`m/1/i`). The plugin derives `0/{i}` only, so change can never land on a banner address. Safe.
+- **Standard / legacy wallets** — which Electrum 4.5 could still create: change goes to the next unused address of the *same* receive chain, which is exactly the sequence banners are numbered from. If a change output lands on index `N`, and a later banner is assigned index `N`, that banner is credited with money nobody paid it.
+
+Check the wallet type. In Electrum it is on **Wallet → Information**, next to the master public key. If it says *standard*, move to a descriptor wallet or treat change as a hazard.
+
+**Sweep everything, never a partial amount.** Sending the full balance spends every coin and produces no change output at all, so there is nothing to misplace. Do not send a round figure and leave the remainder. Sweeping does not affect any advertiser balance: the plugin counts what arrived and never reads what an address spent.
+
+These rules matter most on a legacy wallet and barely matter on a descriptor one — but they cost nothing to follow, and they cover wallets this plugin was not built against.
 
 ### Sweeping and custody
 
