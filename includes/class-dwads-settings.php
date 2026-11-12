@@ -80,17 +80,12 @@ final class DWADS_Settings {
 			'click_base'               => 'ads-go',
 			'manage_base'              => 'ads/manage',
 			// Top up.
-			// One field holds whatever the swap provider gives you: a plain URL, an
-			// iframe, or their whole embed block. Empty means "use the shipped
-			// ChangeNOW default"; the literal "none" hides the widget.
-			'exchange_widget'          => '',
-			'exchange_widget_url'      => 'https://changenow.io/embeds/exchange-widget/v2/widget.html?FAQ=true&amount=0.01&amountFiat=6.50&backgroundColor=FFFFFF&darkMode=false&from=xmr&fromFiat=usd&horizontal=false&isFiat&lang=en-US&link_id={LINK_ID}&locales=true&logo=false&primaryColor=00C26F&to=btc&toFiat=eth&toTheMoon=true&topUpAddress={ADDRESS}&topUpCurrency=btc&topUpExtraId&topUpMode=true&topUpNetwork=btc',
-			// Ships with the maintainer's affiliate id so a fresh install has a
-			// working widget; replace it with your own, or clear the field to
-			// drop the parameter entirely.
-			'exchange_widget_link_id'  => 'bc1c9b656c7061',
-			'exchange_widget_height'   => 356,
-			'exchange_widget_html'     => '',
+			// One field holds the swap provider's complete embed code, pasted as
+			// given. Nothing is detected or wrapped: whatever is here is what
+			// prints, with {ADDRESS} swapped for the banner's deposit address.
+			// Empty falls back to the shipped default; "none" hides the widget.
+			'exchange_widget'          => '<iframe id="iframe-widget" src="https://changenow.io/embeds/exchange-widget/v2/widget.html?FAQ=true&amount=0.01&amountFiat=6.50&backgroundColor=FFFFFF&darkMode=false&from=xmr&fromFiat=usd&horizontal=false&isFiat&lang=en-US&link_id=bc1c9b656c7061&locales=true&logo=false&primaryColor=00C26F&to=btc&toFiat=eth&toTheMoon=true&topUpAddress={ADDRESS}&topUpCurrency=btc&topUpExtraId&topUpMode=true&topUpNetwork=btc" style="height:356px;width:100%;border:none" title="ChangeNOW widget"></iframe>'
+				. "\n" . '<script defer src="https://changenow.io/embeds/exchange-widget/v2/stepper-connector.js"></script>',
 			'qr_service'               => 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&margin=8&data=bitcoin:{ADDRESS}',
 			// Housekeeping.
 			'notify_admin_uploads'     => 1,
@@ -307,60 +302,12 @@ final class DWADS_Settings {
 	 * @return array{0:string,1:string}
 	 */
 	/**
-	 * Affiliate id used by the exchange widget.
-	 *
-	 * Empty means "not configured", which falls back to the shipped default id,
-	 * so an install that never touched the field still gets a working widget.
-	 * The literal value "none" is the explicit opt-out and returns an empty
-	 * string, which makes the widget drop the parameter entirely.
-	 *
-	 * @return string Empty when no affiliate id should be sent.
-	 */
-	public static function exchange_link_id() {
-		// No second argument: an explicit fallback would win over the settings
-		// default and turn an unset field into "no affiliate id" instead of
-		// "use the shipped default".
-		$value = trim( (string) self::get( 'exchange_widget_link_id' ) );
-		if ( 0 === strcasecmp( $value, 'none' ) ) {
-			return '';
-		}
-		return $value;
-	}
-
-	/**
-	 * The swap-provider snippet to render, exactly as the administrator stored it.
-	 *
-	 * One field replaces the old URL / affiliate-id / raw-HTML trio. The value may
-	 * be a bare URL, an iframe, or a provider's complete embed block.
-	 *
-	 * Order of preference keeps existing installs working without a migration:
-	 * the new field, then the old raw-HTML override, then the old URL field (whose
-	 * default is the shipped ChangeNOW URL). An empty new field therefore still
-	 * means "use what was configured before", and "none" is the opt-out.
-	 *
-	 * @return string Empty when the widget is disabled.
-	 */
-	public static function exchange_template() {
-		$value = trim( (string) self::get( 'exchange_widget' ) );
-		if ( '' !== $value ) {
-			return 0 === strcasecmp( $value, 'none' ) ? '' : $value;
-		}
-
-		$legacy_html = trim( (string) self::get( 'exchange_widget_html', '' ) );
-		if ( '' !== $legacy_html ) {
-			return $legacy_html;
-		}
-
-		return self::exchange_widget_url();
-	}
-
-	/**
-	 * Exchange widget URL template, or an empty string when disabled.
+	 * The swap provider embed, or an empty string when it should not render.
 	 *
 	 * @return string
 	 */
-	public static function exchange_widget_url() {
-		$value = trim( (string) self::get( 'exchange_widget_url' ) );
+	public static function exchange_template() {
+		$value = trim( (string) self::get( 'exchange_widget' ) );
 		if ( 0 === strcasecmp( $value, 'none' ) ) {
 			return '';
 		}

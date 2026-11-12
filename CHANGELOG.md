@@ -1,5 +1,23 @@
 # Changelog
 
+## 1.7.0
+- **The swap provider field is now just the provider's embed code.** Paste the
+  complete snippet — iframe, script tag, both — and it prints unchanged. The
+  plugin no longer inspects the value, wraps a bare URL in a frame of its own,
+  or adds a connector script.
+- **The account link id, widget height and the extra tokens are gone.**
+  `link_id` lives inside the pasted embed (the default carries the plugin's id),
+  height comes from the embed's own `style`/`height`, and `{BANNER_ID}`,
+  `{SITE_URL}`, `{SITE_NAME}`, `{HEIGHT}`, `{LINK_ID}` were all values anyone
+  could type directly, so they only added a second way to say the same thing.
+  `{ADDRESS}` stays: each banner has its own address, so it cannot be typed.
+- A pasted embed without `{ADDRESS}` is still refused at save time, with the
+  previous value kept.
+- The top-up page now presents the two payment routes in the order people want
+  them: convert something else with the widget first, then the address for a
+  direct Bitcoin send. The old copy pointed at a widget that was rendered below
+  it.
+
 ## 1.6.1
 - **The exchange account link id is a field again.** 1.6.0 folded it into the
   snippet and left no obvious place to set it. It is now a small field under the

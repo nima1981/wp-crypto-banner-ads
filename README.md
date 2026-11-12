@@ -56,7 +56,7 @@ The plugin warns you on the Plugins screen if a requirement is missing.
 
    **The slot value is a size filter, not a CSS size.** It must be one of the configured sizes — by default `728x90`, `320x100`, `300x250`, `336x280`, `250x250`, `160x600`, `300x600`, `970x250` — and a banner of exactly those pixels will fill it. A slot that is blank, misspelled or no longer configured renders nothing at all, and the endpoint answers HTTP 400 (the loader logs a console warning in that case). Add your own sizes under **Settings → Uploads → Allowed sizes**; they then appear in the snippet picker, the upload form and the widget.
 
-4. **Swap provider (optional).** One field takes whatever your provider gives you: a plain URL, an iframe, or their complete embed block including a script tag. It ships pre-filled with the ChangeNOW embed, so it works without any setup. Tokens are replaced before it renders — `{ADDRESS}` (the banner's deposit address), `{LINK_ID}`, `{BANNER_ID}`, `{SITE_URL}`, `{SITE_NAME}`, `{HEIGHT}`. `{ADDRESS}` must appear somewhere or the widget cannot know where to send funds; an unknown token is dropped rather than printed. Type `none` to show no widget, or empty to fall back to the shipped default. See **Trying a different swap provider** below for the details.
+4. **Swap provider (optional).** One field holds the provider's complete embed code, pasted exactly as they give it. It ships pre-filled with the ChangeNOW embed, so it works without any setup. The only thing the plugin changes is `{ADDRESS}`: it becomes that banner's own deposit address, which no visitor could type in by hand. No URL detection, no wrapping, no height setting — whatever you paste is what renders. Type `none` to show no widget.
 5. **Cron.** WP-Cron only runs on traffic. For a quiet site add a real cron job:
 
    ```
@@ -196,7 +196,7 @@ Amounts are integers in satoshis. Each click also records the dollar price it wa
 
 ## Known limits
 
-- **The swap provider is one snippet, plus an account id.** The embed field takes any provider's URL, iframe or full block; a small **Exchange account link id** field below it supplies `{LINK_ID}`, pre-filled with the maintainer's id so a fresh install has a working widget. Replace it with your own, or type `none` to drop the `link_id` parameter entirely. A pasted script tag needs the `unfiltered_html` capability; an iframe or a plain URL does not.
+- **The swap provider is one pasted embed.** The field holds the provider's code verbatim, including the `link_id` inside it — the shipped default carries the maintainer's id so a fresh install works, and you change it by editing the text. Nothing is sanitised or rewritten beyond the `{ADDRESS}` substitution, so the field is administrator-only.
 - **QR images come from an external service by default** (`api.qrserver.com`) because a bundled QR encoder would be far more code than the rest of the plugin. The code encodes a `bitcoin:` URI, so a wallet app can scan it directly. The address is public information; change the template to your own endpoint, or type `none` to hide it — the page still has a copy button and an “Open in wallet” link.
 - **REST must be reachable.** If a security plugin blocks `/wp-json/`, the snippet cannot fetch banners.
 - **Animated GIFs are flattened** to PNG on upload.
@@ -584,31 +584,23 @@ and the click-rate brake read) and nothing else — clicks charged, the balance,
 the money spent and the click log all stay. Only an administrator can run it, and
 it asks for confirmation.
 
-## Trying a different swap provider (1.6.0)
+## Swapping the provider (1.7.0)
 
-**Settings → Top-up page → Swap provider embed** takes one snippet, from any
-provider, and renders it as-is. The plugin does not care whose widget it is.
+**Settings → Top-up page → Swap provider embed** holds the provider's own embed
+code. Paste it, save, done. There is no URL field, no affiliate-id field, no
+height field and no detection: if the provider gives you an `<iframe>` and a
+`<script>`, both go in the box and both come out unchanged.
 
-- **A plain URL** is wrapped in a frame the plugin sizes, using the *Widget
-  height* setting. If the URL points at `changenow.io`, the stepper connector
-  script is added for you.
-- **Anything else** — an `<iframe>`, a `<div>` plus a `<script>` — is printed
-  exactly as pasted. That is how a provider that ships a full embed block
-  works, and why the field is administrator-only.
+The single exception is `{ADDRESS}`, which is replaced with the banner's own
+deposit address before printing. It has to be — every banner has a different
+address, so it cannot be typed into the embed by hand. A save is refused if the
+embed does not contain it, because the widget would have nowhere to send funds.
 
-Tokens, replaced before output:
+To change the affiliate id, edit the `link_id=` value inside the pasted code.
+To use a different provider, replace the whole box with theirs.
 
-| Token | Becomes |
-|---|---|
-| `{ADDRESS}` | the banner's deposit address, URL-encoded |
-| `{LINK_ID}` | the **Exchange account link id** field (dropped entirely when that field says `none`) |
-| `{BANNER_ID}` | the numeric banner id |
-| `{SITE_URL}` | this site's home URL |
-| `{SITE_NAME}` | this site's name |
-| `{HEIGHT}` | the Widget height setting |
-
-A token the plugin does not recognise is dropped rather than printed, so a typo
-cannot leak `{ADRES}` into a payment URL.
+The field is administrator-only and its contents are trusted as pasted, since a
+provider embed is markup and any sanitiser would break it.
 
 ### Paying in other coins and in fiat
 
