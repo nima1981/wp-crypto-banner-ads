@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.2.6
+- Responsive slots: `[dwads slot="728x90" slot_mobile="320x100"]`, or
+  `data-dwads-slot-mobile` on a raw div, names a second size for narrow
+  screens. The loader asks for the size that fits the viewport and swaps it
+  when the window crosses the breakpoint (600px by default, filterable with
+  `dwads_mobile_breakpoint`).
+- If the narrow size has no banner, the wide creative is served so the slot is
+  not left empty; `fallback="off"` disables that.
+- Widget gains a "Size on phones" option and the admin snippet builder emits
+  both attributes.
+- A creative that has to shrink to fit its column no longer leaves the slot
+  reserving its natural height.
+
 ## 1.2.5
 - Management links shown right after an upload open in a new tab, so the
   advertiser does not lose the upload screen when checking a banner.

@@ -72,11 +72,13 @@ final class DWADS_Shortcodes {
 	public static function shortcode( $atts ) {
 		$atts = shortcode_atts(
 			array(
-				'slot'       => '300x250',
-				'foot'       => '',
-				'foot_text'  => '',
-				'foot_url'   => '',
-				'foot_align' => '',
+				'slot'        => '300x250',
+				'slot_mobile' => '',
+				'fallback'    => '',
+				'foot'        => '',
+				'foot_text'   => '',
+				'foot_url'    => '',
+				'foot_align'  => '',
 			),
 			$atts,
 			'dwads'
@@ -84,10 +86,12 @@ final class DWADS_Shortcodes {
 		return self::placeholder(
 			$atts['slot'],
 			array(
-				'mode'  => $atts['foot'],
-				'text'  => $atts['foot_text'],
-				'url'   => $atts['foot_url'],
-				'align' => $atts['foot_align'],
+				'mobile'   => $atts['slot_mobile'],
+				'fallback' => $atts['fallback'],
+				'mode'     => $atts['foot'],
+				'text'     => $atts['foot_text'],
+				'url'      => $atts['foot_url'],
+				'align'    => $atts['foot_align'],
 			)
 		);
 	}
@@ -120,7 +124,27 @@ final class DWADS_Shortcodes {
 		}
 		self::enqueue();
 
-		$attrs = '';
+		// Emit the canonical WxH form so the attribute always matches a
+		// configured size, even if the author typed "300 X 250".
+		$canonical = $size['w'] . 'x' . $size['h'];
+		$attrs     = '';
+
+		// Responsive slot: a second size used below the mobile breakpoint. It
+		// has to be one of the configured sizes too, otherwise no banner could
+		// ever match it, so an unknown value is dropped rather than shipped.
+		$mobile = isset( $extra['mobile'] ) ? DWADS_Settings::size_for_slot( (string) $extra['mobile'] ) : null;
+		if ( $mobile ) {
+			$mobile_key = $mobile['w'] . 'x' . $mobile['h'];
+			if ( $mobile_key !== $canonical ) {
+				$attrs .= ' data-dwads-slot-mobile="' . esc_attr( $mobile_key ) . '"';
+			}
+		}
+
+		$fallback = isset( $extra['fallback'] ) ? strtolower( trim( (string) $extra['fallback'] ) ) : '';
+		if ( in_array( $fallback, array( 'off', 'no', '0', 'false' ), true ) ) {
+			$attrs .= ' data-dwads-fallback="0"';
+		}
+
 		foreach ( array(
 			'mode'  => 'data-dwads-foot',
 			'text'  => 'data-dwads-foot-text',
@@ -133,9 +157,7 @@ final class DWADS_Shortcodes {
 			}
 		}
 
-		// Emit the canonical WxH form so the attribute always matches a
-		// configured size, even if the author typed "300 X 250".
-		return '<div class="dwads-slot" data-dwads-slot="' . esc_attr( $size['w'] . 'x' . $size['h'] ) . '"' . $attrs . '></div>';
+		return '<div class="dwads-slot" data-dwads-slot="' . esc_attr( $canonical ) . '"' . $attrs . '></div>';
 	}
 
 	/**
@@ -156,8 +178,9 @@ final class DWADS_Shortcodes {
 				'dwads',
 				'dwadsConfig',
 				array(
-					'api'    => rest_url( 'dwads/v1/serve' ),
-					'pageId' => self::current_page_id(),
+					'api'              => rest_url( 'dwads/v1/serve' ),
+					'pageId'           => self::current_page_id(),
+					'mobileBreakpoint' => (int) apply_filters( 'dwads_mobile_breakpoint', 600 ),
 				)
 			);
 		}
@@ -217,7 +240,8 @@ class DWADS_Widget extends WP_Widget {
 		$html = DWADS_Shortcodes::placeholder(
 			$slot,
 			array(
-				'mode'  => isset( $instance['foot_mode'] ) ? (string) $instance['foot_mode'] : '',
+				'mobile' => isset( $instance['slot_mobile'] ) ? (string) $instance['slot_mobile'] : '',
+				'mode'   => isset( $instance['foot_mode'] ) ? (string) $instance['foot_mode'] : '',
 				'text'  => isset( $instance['foot_text'] ) ? (string) $instance['foot_text'] : '',
 				'url'   => isset( $instance['foot_url'] ) ? (string) $instance['foot_url'] : '',
 				'align' => isset( $instance['foot_align'] ) ? (string) $instance['foot_align'] : '',
@@ -256,6 +280,19 @@ class DWADS_Widget extends WP_Widget {
 					<option value="<?php echo esc_attr( $key ); ?>" <?php selected( $slot, $key ); ?>><?php echo esc_html( $key ); ?></option>
 				<?php endforeach; ?>
 			</select>
+		</p>
+		<?php
+		$mobile = isset( $instance['slot_mobile'] ) ? (string) $instance['slot_mobile'] : '';
+		?>
+		<p>
+			<label for="<?php echo esc_attr( $this->get_field_id( 'slot_mobile' ) ); ?>"><?php esc_html_e( 'Size on phones (optional)', 'dwads' ); ?></label>
+			<select class="widefat" id="<?php echo esc_attr( $this->get_field_id( 'slot_mobile' ) ); ?>" name="<?php echo esc_attr( $this->get_field_name( 'slot_mobile' ) ); ?>">
+				<option value="" <?php selected( $mobile, '' ); ?>><?php esc_html_e( 'Same size everywhere', 'dwads' ); ?></option>
+				<?php foreach ( $sizes as $key => $size ) : ?>
+					<option value="<?php echo esc_attr( $key ); ?>" <?php selected( $mobile, $key ); ?>><?php echo esc_html( $key ); ?></option>
+				<?php endforeach; ?>
+			</select>
+			<span class="description"><?php esc_html_e( 'Banners of this size replace the one above on narrow screens. Never wider than the slot, or it will scale down.', 'dwads' ); ?></span>
 		</p>
 		<?php
 		$mode  = isset( $instance['foot_mode'] ) ? (string) $instance['foot_mode'] : 'inherit';
@@ -308,9 +345,15 @@ class DWADS_Widget extends WP_Widget {
 			$align = '';
 		}
 
+		$mobile = sanitize_text_field( isset( $new_instance['slot_mobile'] ) ? $new_instance['slot_mobile'] : '' );
+		if ( '' !== $mobile && ! DWADS_Settings::size_for_slot( $mobile ) ) {
+			$mobile = '';
+		}
+
 		return array(
-			'title'      => sanitize_text_field( isset( $new_instance['title'] ) ? $new_instance['title'] : '' ),
-			'slot'       => sanitize_text_field( isset( $new_instance['slot'] ) ? $new_instance['slot'] : '300x250' ),
+			'title'       => sanitize_text_field( isset( $new_instance['title'] ) ? $new_instance['title'] : '' ),
+			'slot'        => sanitize_text_field( isset( $new_instance['slot'] ) ? $new_instance['slot'] : '300x250' ),
+			'slot_mobile' => $mobile,
 			'foot_mode'  => $mode,
 			'foot_text'  => mb_substr( sanitize_text_field( isset( $new_instance['foot_text'] ) ? $new_instance['foot_text'] : '' ), 0, 60 ),
 			'foot_url'   => esc_url_raw( isset( $new_instance['foot_url'] ) ? $new_instance['foot_url'] : '' ),

@@ -4,12 +4,34 @@
  * Finds every empty slot, asks the server for one banner, and inserts it.
  * If the server answers "no banner", the slot is left untouched and therefore
  * takes up no space on the page.
+ *
+ * Responsive slots
+ * ----------------
+ * A slot may name a second size for narrow screens:
+ *
+ *   <div data-dwads-slot="970x250" data-dwads-slot-mobile="320x100"></div>
+ *
+ * One size is chosen per viewport, the way a media query would choose a
+ * stylesheet: the narrow size below the breakpoint, the wide size at or above
+ * it. Nothing is rendered twice, so there is no device targeting involved —
+ * the same visitor moving the window across the breakpoint simply gets the
+ * creative that fits the space.
+ *
+ * If the narrow size has no inventory at all, the wide creative is requested
+ * instead so the space is not left empty at mobile width. Add
+ * data-dwads-fallback="0" to a slot to disable that and leave it blank
+ * instead.
  */
 (function () {
 	'use strict';
 
 	var cfg = window.dwadsConfig || {};
-	var pending = typeof WeakSet === 'function' ? new WeakSet() : null;
+
+	var breakpoint = parseInt(cfg.mobileBreakpoint, 10);
+	if (isNaN(breakpoint) || breakpoint <= 0) {
+		breakpoint = 600;
+	}
+
 	var warned = {};
 
 	function warnBadSlot(slotName) {
@@ -55,17 +77,37 @@
 		}
 	}
 
-	function already(slot) {
-		if (pending && pending.has(slot)) {
-			return true;
-		}
-		if (pending) {
-			pending.add(slot);
-		}
-		return false;
+	function sizesFor(slot) {
+		return {
+			wide: (slot.getAttribute('data-dwads-slot') || '').trim(),
+			narrow: (slot.getAttribute('data-dwads-slot-mobile') || '').trim()
+		};
 	}
 
-	function build(slot, data) {
+	function isNarrowView() {
+		if (!window.matchMedia) {
+			return window.innerWidth <= breakpoint;
+		}
+		return window.matchMedia('(max-width: ' + breakpoint + 'px)').matches;
+	}
+
+	/** The one size this slot wants right now. */
+	function wishSize(slot) {
+		var sizes = sizesFor(slot);
+		if (sizes.narrow && isNarrowView()) {
+			return sizes.narrow;
+		}
+		return sizes.wide;
+	}
+
+	function clear(slot) {
+		slot.innerHTML = '';
+		slot.style.minHeight = '';
+		slot.removeAttribute('data-dwads-filled');
+		slot.removeAttribute('data-dwads-size');
+	}
+
+	function build(slot, data, sizeName) {
 		var link = document.createElement('a');
 		link.className = 'dwads-link';
 		link.href = data.click;
@@ -87,8 +129,14 @@
 		img.loading = 'lazy';
 		img.decoding = 'async';
 		img.addEventListener('error', function () {
-			slot.innerHTML = '';
-			slot.removeAttribute('data-dwads-filled');
+			clear(slot);
+		});
+		// A creative that had to shrink to fit the column should not leave the
+		// slot reserving its natural height.
+		img.addEventListener('load', function () {
+			if (img.naturalWidth && img.clientWidth < img.naturalWidth) {
+				slot.style.minHeight = '';
+			}
 		});
 
 		link.appendChild(img);
@@ -127,28 +175,24 @@
 		}
 
 		slot.setAttribute('data-dwads-filled', '1');
+		slot.setAttribute('data-dwads-size', sizeName);
 	}
 
-	function fill(slot) {
-		if (slot.getAttribute('data-dwads-filled')) {
-			return;
-		}
+	/** Ask the server for one banner of exactly this size. Resolves to null. */
+	function requestSize(slot, sizeName) {
 		var endpoint = apiFor(slot);
 		if (!endpoint) {
-			return;
-		}
-		if (already(slot)) {
-			return;
+			return Promise.resolve(null);
 		}
 
 		var url;
 		try {
 			url = new URL(endpoint, window.location.href);
 		} catch (e) {
-			return;
+			return Promise.resolve(null);
 		}
 
-		url.searchParams.set('slot', (slot.getAttribute('data-dwads-slot') || '').trim());
+		url.searchParams.set('slot', sizeName);
 		if (cfg.pageId) {
 			url.searchParams.set('page_id', String(cfg.pageId));
 		}
@@ -163,24 +207,77 @@
 			}
 		});
 
-		fetch(url.toString(), { credentials: 'omit', mode: 'cors', cache: 'no-store' })
+		return fetch(url.toString(), { credentials: 'omit', mode: 'cors', cache: 'no-store' })
 			.then(function (response) {
 				if (response.status === 200) {
 					return response.json();
 				}
 				if (response.status === 400) {
-					warnBadSlot((slot.getAttribute('data-dwads-slot') || '').trim());
+					warnBadSlot(sizeName);
 				}
 				return null;
 			})
 			.then(function (data) {
 				if (!data || !data.img || !data.click) {
-					return;
+					return null;
 				}
-				build(slot, data);
+				return data;
 			})
 			.catch(function () {
 				// Silent: an unfilled slot simply shows nothing.
+				return null;
+			});
+	}
+
+	function fill(slot, force) {
+		if (!force && slot.getAttribute('data-dwads-filled')) {
+			return;
+		}
+		if (slot.getAttribute('data-dwads-busy')) {
+			return;
+		}
+
+		var sizes = sizesFor(slot);
+		var want = wishSize(slot);
+		if (!want) {
+			return;
+		}
+
+		// Only a narrow request can fall back, and only when it is a different
+		// size than the wide one it would fall back to.
+		var fallback = '';
+		if (sizes.narrow && want === sizes.narrow && sizes.wide && sizes.wide !== sizes.narrow &&
+			slot.getAttribute('data-dwads-fallback') !== '0') {
+			fallback = sizes.wide;
+		}
+
+		slot.setAttribute('data-dwads-busy', '1');
+
+		requestSize(slot, want)
+			.then(function (data) {
+				if (data) {
+					build(slot, data, want);
+					return;
+				}
+				if (!fallback) {
+					// Nothing to show at this width: drop whatever was there so a
+					// stale creative cannot outlive its viewport.
+					clear(slot);
+					return;
+				}
+				return requestSize(slot, fallback).then(function (wide) {
+					if (wide) {
+						build(slot, wide, fallback);
+					} else {
+						clear(slot);
+					}
+				});
+			})
+			.catch(function () {
+				// Silent by design.
+			})
+			.then(function () {
+				slot.removeAttribute('data-dwads-busy');
 			});
 	}
 
@@ -194,6 +291,42 @@
 		for (var i = 0; i < nodes.length; i++) {
 			fill(nodes[i]);
 		}
+	}
+
+	// A horizontal resize across the breakpoint changes which size a slot
+	// wants, so swap the creative for the size that now fits.
+	var resizeTimer = null;
+
+	function onViewportChange() {
+		if (resizeTimer) {
+			clearTimeout(resizeTimer);
+		}
+		resizeTimer = setTimeout(function () {
+			resizeTimer = null;
+			var nodes;
+			try {
+				nodes = document.querySelectorAll('[data-dwads-slot][data-dwads-slot-mobile]');
+			} catch (e) {
+				return;
+			}
+			for (var i = 0; i < nodes.length; i++) {
+				var slot = nodes[i];
+				// Only swap what is actually on the page.
+				if (!slot.getAttribute('data-dwads-filled') && !slot.getAttribute('data-dwads-size')) {
+					continue;
+				}
+				if (slot.getAttribute('data-dwads-size') === wishSize(slot)) {
+					continue;
+				}
+				slot.removeAttribute('data-dwads-filled');
+				fill(slot, true);
+			}
+		}, 250);
+	}
+
+	if (window.addEventListener) {
+		window.addEventListener('resize', onViewportChange);
+		window.addEventListener('orientationchange', onViewportChange);
 	}
 
 	if (document.readyState === 'loading') {

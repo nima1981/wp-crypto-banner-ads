@@ -354,3 +354,39 @@ in a wide sidebar.
   `[dwads slot="300x250" foot="on" foot_text="Advertise here" foot_align="right"]`.
 - The link is plain text in the flow, `rel="nofollow noopener"`, never counted as
   a click, and it does not appear when the slot is empty.
+
+## Responsive slots (1.2.6)
+
+A wide creative in a phone column gets scaled down with the browser's image
+scaling, and small text inside it becomes unreadable. A responsive slot fixes
+that by naming **two** sizes: one for wide screens, one for narrow ones.
+
+```
+[dwads slot="728x90" slot_mobile="320x100"]
+```
+
+or, as a raw div on a template page:
+
+```html
+<div data-dwads-slot="728x90" data-dwads-slot-mobile="320x100"></div>
+```
+
+The loader picks one size per viewport and asks the server for exactly that
+size — the same way a media query picks a stylesheet. Below the breakpoint
+(600px wide by default) the narrow size is requested; at or above it, the wide
+size. Nothing is rendered twice and no device is fingerprinted: resizing the
+window across the breakpoint simply swaps the creative for the one that fits.
+
+- **The mobile size must be one of the allowed sizes**, or it is dropped when the
+  slot is printed (no banner could ever match it).
+- **If the narrow size has no inventory**, the wide creative is requested
+  instead, so the space is not left blank at phone width. Add `fallback="off"`
+  (or `data-dwads-fallback="0"`) to leave it empty instead.
+- Only `728x90` and `970x250` genuinely need this. `320x100`, `300x250`,
+  `336x280`, `250x250`, `300x600` and `160x600` fit a 358px phone column
+  natively and need no partner size.
+- The breakpoint is filterable, not a setting: `add_filter( 'dwads_mobile_breakpoint', fn() => 782 );`
+- The widget has the same option: *Size on phones (optional)*.
+
+Two creatives means two balances: a `320x100` banner is a separate banner with
+its own funding, exactly like any other size.

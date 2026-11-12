@@ -529,6 +529,14 @@ final class DWADS_Admin {
 		}
 		echo '</select> <span class="description">' . esc_html__( 'These are the sizes from the “Allowed sizes” field above. Add your own there and they show up here, in the upload form and in the widget.', 'dwads' ) . '</span></p>';
 
+		echo '<p><label for="dwads-slot-mobile-picker"><strong>' . esc_html__( 'Size on phones (optional)', 'dwads' ) . '</strong></label><br>';
+		echo '<select id="dwads-slot-mobile-picker">';
+		echo '<option value="">' . esc_html__( 'Same size everywhere', 'dwads' ) . '</option>';
+		foreach ( $slot_options as $slot_option ) {
+			echo '<option value="' . esc_attr( $slot_option ) . '">' . esc_html( $slot_option ) . '</option>';
+		}
+		echo '</select> <span class="description">' . esc_html__( 'Adds a second size for narrow screens, so a phone gets a banner that fits instead of a wide one scaled down to unreadable. It must be one of the allowed sizes.', 'dwads' ) . '</span></p>';
+
 		echo '<textarea id="dwads-snippet" readonly rows="5" class="large-text code dwads-mono">' . esc_textarea( self::snippet_code( $default_slot ) ) . '</textarea>';
 		echo '<p><label for="dwads-shortcode"><strong>' . esc_html__( 'Shortcode equivalent', 'dwads' ) . '</strong></label><br>';
 		echo '<input type="text" readonly id="dwads-shortcode" class="regular-text code dwads-mono" value="' . esc_attr( '[dwads slot="' . $default_slot . '"]' ) . '"></p>';
@@ -540,6 +548,8 @@ final class DWADS_Admin {
 		echo '<li>' . wp_kses_post( __( 'The value is not a CSS size: it is a filter that picks which banners compete for the spot. The image is inserted at its natural size, so a slot never reserves space it cannot fill.', 'dwads' ) ) . '</li>';
 		echo '<li>' . wp_kses_post( __( 'Spacing and capitalisation are forgiving (<code>300 X 250</code> works), but the numbers must match a configured size exactly.', 'dwads' ) ) . '</li>';
 		echo '<li>' . wp_kses_post( __( 'Several slots on one page are fine and rotate independently. The script tag only needs to be on the page once.', 'dwads' ) ) . '</li>';
+		echo '<li>' . wp_kses_post( __( 'A slot can name a second size for narrow screens: <code>[dwads slot="728x90" slot_mobile="320x100"]</code>. Below 600px wide the mobile size is served instead, so nothing is scaled down. If no banner exists at the mobile size, the wide creative is used so the space is not left empty; add <code>fallback="off"</code> to leave it blank instead.', 'dwads' ) ) . '</li>';
+		echo '<li>' . wp_kses_post( __( 'Sizes that fit a 358px phone column natively: <code>320x100</code>, <code>300x250</code>, <code>336x280</code>, <code>250x250</code>, <code>300x600</code> and <code>160x600</code>. Only <code>728x90</code> and <code>970x250</code> need a mobile partner.', 'dwads' ) ) . '</li>';
 		echo '</ul>';
 		echo '</div>';
 		echo '</div>';
@@ -551,12 +561,18 @@ final class DWADS_Admin {
 	 * @param string $slot Slot.
 	 * @return string
 	 */
-	public static function snippet_code( $slot = '300x250' ) {
+	public static function snippet_code( $slot = '300x250', $mobile = '' ) {
 		$script = DWADS_URL . 'assets/dwads.js';
 		$api    = rest_url( 'dwads/v1/serve' );
+
+		$mobile_attr = '';
+		if ( '' !== (string) $mobile && (string) $mobile !== (string) $slot ) {
+			$mobile_attr = ' data-dwads-slot-mobile="' . esc_attr( $mobile ) . '"';
+		}
+
 		return "<script async src=\"{$script}\"></script>\n"
 			. "<!-- Repeat this div wherever a banner should appear -->\n"
-			. '<div data-dwads-slot="' . $slot . '" data-dwads-api="' . $api . '"></div>';
+			. '<div data-dwads-slot="' . $slot . '"' . $mobile_attr . ' data-dwads-api="' . $api . '"></div>';
 	}
 
 	/**
