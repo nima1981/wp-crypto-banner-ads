@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.8.4
+- **Every cap now honours 0 = disabled.** The per-address hourly, per-address
+  daily and per-visitor daily caps were clamped with max(1, ...), so setting 0
+  silently became 1 and the cap could not be turned off — despite the help text
+  saying it could. All caps now skip their check when set to 0.
+- **The cap fields explain themselves.** The per-address-hour field had no
+  description, the per-address-day field had none, and the section did not say
+  that 0 disables or that caps stop billing rather than serving. Each cap now
+  says what it protects and how to disable it, and the section intro explains
+  that per-visitor/per-address caps stop a single person or script draining
+  balances while the per-banner cap and click-rate brake protect each
+  advertiser's money.
+
 ## 1.8.3
 - **Legacy and testnet keys are refused at save time.** The plugin only accepts
   zpub (native segwit) and ypub (wrapped segwit) account keys now. An xpub is a

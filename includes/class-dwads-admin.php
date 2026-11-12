@@ -543,7 +543,7 @@ final class DWADS_Admin {
 		echo '<h2 class="title">' . esc_html__( 'Anti-fraud', 'dwads' ) . '</h2>';
 		echo '<table class="form-table" role="presentation">';
 		self::field_number( 'dedupe_hours', __( 'Charge a visitor once per banner every N hours', 'dwads' ), '', '1' );
-		self::field_number( 'max_clicks_per_ip_hour', __( 'Maximum charged clicks per address per hour', 'dwads' ), '', '1' );
+		self::field_number( 'max_clicks_per_ip_hour', __( 'Maximum charged clicks per address per hour', 'dwads' ), __( 'Backstop against one address rotating user-agents to dodge the per-visitor limit. A shared address — an office NAT, a phone carrier — can look like this, so on a high-traffic site raise it or set 0 to disable.', 'dwads' ), '1' );
 		self::field_number( 'max_uploads_per_ip_hour', __( 'Maximum uploads per address per hour', 'dwads' ), '', '1' );
 		self::field_number( 'impression_ttl_minutes', __( 'Click token lifetime (minutes)', 'dwads' ), '', '1' );
 		self::field_checkbox( 'record_impressions', __( 'Record impressions (needed for replay protection)', 'dwads' ) );
@@ -553,15 +553,16 @@ final class DWADS_Admin {
 
 		echo '<h2 class="title">' . esc_html__( 'Human visitor checks', 'dwads' ) . '</h2>';
 		echo '<p class="description">' . esc_html__( 'These settings decide what counts as a person rather than a machine. They are deliberately strict: a legitimate click that fails a check is not charged, so money is left on the table rather than handed to a crawler. Turning them off makes the numbers larger and less true.', 'dwads' ) . '</p>';
+		echo '<p class="description">' . esc_html__( 'Every cap below stops billing, never serving: a banner that hits one keeps being shown, it just stops charging until the window rolls over. Set any cap to 0 to disable it. The per-visitor and per-address caps stop one person or script draining balances across the site; the per-banner cap and the click-rate brake protect each advertiser’s money.', 'dwads' ) . '</p>';
 		echo '<table class="form-table" role="presentation">';
 		self::field_checkbox( 'impression_viewable', __( 'Only count an impression when the banner is actually on screen', 'dwads' ), __( 'The ad script reports when at least half of the creative has been visible for a second. Off counts the moment the banner is requested, which includes slots nobody scrolled to.', 'dwads' ) );
 		self::field_number( 'click_min_dwell_ms', __( 'Minimum time on screen before a click can be charged (milliseconds)', 'dwads' ), __( 'A person cannot see a banner and click it in a few milliseconds. 400 is conservative and unnoticeable.', 'dwads' ), '50' );
 		self::field_checkbox( 'require_gesture', __( 'Require a real pointer or key press on the banner', 'dwads' ), __( 'A click is only billed when the browser first reported a pointer, keyboard or context-menu event on the creative. Catches anything that scrapes links out of the page without rendering it.', 'dwads' ) );
 		self::field_checkbox( 'require_browser_headers', __( 'Require real browser fetch metadata', 'dwads' ), __( 'Chrome, Firefox and Safari all send Sec-Fetch-* headers on every request; scripts and scrapers do not. Very old browsers omit them and will not be billed.', 'dwads' ) );
 		self::field_checkbox( 'honeypot_enabled', __( 'Add an invisible decoy link to every slot', 'dwads' ), __( 'Hidden from people and from the keyboard. Anything that follows it is a link-following machine, and is never billed again.', 'dwads' ) );
-		self::field_number( 'max_clicks_per_visitor_day', __( 'Maximum charged clicks per visitor per day (all banners)', 'dwads' ), __( 'One person clicking every banner on the site is not a person browsing. 0 in any daily cap means the cap is off.', 'dwads' ), '1' );
-		self::field_number( 'max_clicks_per_ip_day', __( 'Maximum charged clicks per address per day', 'dwads' ), '', '1' );
-		self::field_number( 'max_clicks_per_banner_day', __( 'Maximum charged clicks per banner per day', 'dwads' ), __( 'The hard ceiling on what any single banner can be charged in a rolling day, whatever the traffic looks like. 0 disables it.', 'dwads' ), '1' );
+		self::field_number( 'max_clicks_per_visitor_day', __( 'Maximum charged clicks per visitor per day (all banners)', 'dwads' ), __( 'One visitor is billed at most this many times across all banners in a rolling day. A real person browsing clicks rarely; anything above this is automation or an extremely unusual visitor. 0 disables.', 'dwads' ), '1' );
+		self::field_number( 'max_clicks_per_ip_day', __( 'Maximum charged clicks per address per day', 'dwads' ), __( 'The day-long version of the per-address limit, guarding against one address evading the per-visitor cap by rotating user-agents. On a high-traffic site behind shared or carrier addresses this is usually the first cap to raise or set to 0 — the per-banner cap and the click-rate brake are the real money guards.', 'dwads' ), '1' );
+		self::field_number( 'max_clicks_per_banner_day', __( 'Maximum charged clicks per banner per day', 'dwads' ), __( 'The ceiling on what one advertiser’s balance can be charged in a rolling day, whatever the traffic looks like. This is the cap that protects each advertiser’s money. 0 disables.', 'dwads' ), '1' );
 		self::field_number( 'click_rate_ceiling_percent', __( 'Pause billing above this click rate (%)', 'dwads' ), __( 'Real audiences click a banner a fraction of a percent of the time. Once a banner passes this rate it stops billing until the rolling day resets. 0 disables the brake.', 'dwads' ), '1' );
 		self::field_number( 'click_rate_min_impressions', __( 'Impressions needed before the click-rate brake applies', 'dwads' ), __( 'Prevents a brand new banner from tripping the brake on its first few views.', 'dwads' ), '1' );
 		echo '</table>';
@@ -691,7 +692,7 @@ final class DWADS_Admin {
 		$new['max_upload_kb']            = max( 16, (int) $scalar( 'max_upload_kb', '512' ) );
 		$new['max_banners_per_upload']   = max( 1, min( 20, (int) $scalar( 'max_banners_per_upload', '3' ) ) );
 		$new['dedupe_hours']             = max( 1, (int) $scalar( 'dedupe_hours', '24' ) );
-		$new['max_clicks_per_ip_hour']   = max( 1, (int) $scalar( 'max_clicks_per_ip_hour', '10' ) );
+		$new['max_clicks_per_ip_hour']   = max( 0, (int) $scalar( 'max_clicks_per_ip_hour', '10' ) );
 		$new['click_min_dwell_ms']       = max( 0, min( 10000, (int) $scalar( 'click_min_dwell_ms', '400' ) ) );
 		$new['max_clicks_per_visitor_day']    = max( 0, (int) $scalar( 'max_clicks_per_visitor_day', '3' ) );
 		$new['max_clicks_per_ip_day']         = max( 0, (int) $scalar( 'max_clicks_per_ip_day', '15' ) );

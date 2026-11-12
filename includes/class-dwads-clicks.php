@@ -569,20 +569,22 @@ final class DWADS_Clicks {
 		if ( ! empty( $banner['reset_at'] ) && (string) $banner['reset_at'] > $since_day ) {
 			$since_banner = (string) $banner['reset_at'];
 		}
-		$max_per_hour = max( 1, (int) DWADS_Settings::get( 'max_clicks_per_ip_hour', 10 ) );
-		$max_ip_day   = max( 1, (int) DWADS_Settings::get( 'max_clicks_per_ip_day', 15 ) );
-		$max_vis_day  = max( 1, (int) DWADS_Settings::get( 'max_clicks_per_visitor_day', 3 ) );
+		// Every cap honours 0 = disabled. Only a positive value is enforced, so
+		// an administrator who turns a cap off cannot be silently clamped back on.
+		$max_per_hour = max( 0, (int) DWADS_Settings::get( 'max_clicks_per_ip_hour', 10 ) );
+		$max_ip_day   = max( 0, (int) DWADS_Settings::get( 'max_clicks_per_ip_day', 15 ) );
+		$max_vis_day  = max( 0, (int) DWADS_Settings::get( 'max_clicks_per_visitor_day', 3 ) );
 		$max_ban_day  = max( 0, (int) DWADS_Settings::get( 'max_clicks_per_banner_day', 50 ) );
 
-		if ( '' === $reason && self::clicks_from_ip_last_hour( $ip_hash ) >= $max_per_hour ) {
+		if ( '' === $reason && $max_per_hour > 0 && self::clicks_from_ip_last_hour( $ip_hash ) >= $max_per_hour ) {
 			$reason = 'rate_limited';
 		}
 
-		if ( '' === $reason && self::charged_clicks_since( 'ip_hash', $ip_hash, $since_day ) >= $max_ip_day ) {
+		if ( '' === $reason && $max_ip_day > 0 && self::charged_clicks_since( 'ip_hash', $ip_hash, $since_day ) >= $max_ip_day ) {
 			$reason = 'ip_daily_cap';
 		}
 
-		if ( '' === $reason && self::charged_clicks_since( 'visitor_hash', $visitor_hash, $since_day ) >= $max_vis_day ) {
+		if ( '' === $reason && $max_vis_day > 0 && self::charged_clicks_since( 'visitor_hash', $visitor_hash, $since_day ) >= $max_vis_day ) {
 			$reason = 'visitor_daily_cap';
 		}
 
