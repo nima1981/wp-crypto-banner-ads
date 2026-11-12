@@ -28,7 +28,7 @@ final class DWADS_Settings {
 			'click_price_usd'          => '0.02',
 			'approval_required'        => 1,
 			'sizes'                    => "728x90 | Leaderboard | top of every page\n320x100 | Large mobile banner | phones\n300x250 | Medium rectangle | in-content, best performing | recommended\n336x280 | Large rectangle | in-content\n250x250 | Square | sidebar\n160x600 | Wide skyscraper | tall sidebar\n300x600 | Half page | end of article\n970x250 | Billboard | wide header | recommended",
-			'upload_intro'             => "Pick an image, add the link it should open, and upload. No account is needed: right after uploading you receive a private management link with a payment address. Load the balance there with your cryptocurrency or regular money of choice — the swap widget converts it for you — and each click on your banner uses a small amount of it.",
+			'upload_intro'             => "Pick an image, add the link it should open, and upload. No account is needed: right after uploading you receive a management link with a payment address. Load the balance there with your cryptocurrency or regular money of choice — the swap widget converts it for you — and each click on your banner uses a small amount of it.",
 			'max_upload_kb'            => 512,
 			'max_banners_per_upload'   => 5,
 			'auto_fit_uploads'         => 1,

@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.8.7
+- **Copy: no more "private" management-link framing anywhere user-facing.**
+  The upload page introduction, the upload result page ("Save these
+  management links...") and the README no longer call the link private. The
+  remaining "private"/"privacy" uses in docs are about the wallet key (an
+  xpub is still a privacy link) and about keeping the management pages out of
+  public view — both accurate and intentional.
+
 ## 1.8.6
 - **Every outgoing email is editable.** New Settings → Email copy section with
   the subject and body of all five emails: upload confirmation, approved,

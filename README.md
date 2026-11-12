@@ -2,7 +2,7 @@
 
 A self-contained WordPress plugin for **cookie-free, account-free paid banner ads**.
 
-- Visitors upload one or more banners, fund that banner's own address with their cryptocurrency or regular money of choice, and get a private management link.
+- Visitors upload one or more banners, fund that banner's own address with their cryptocurrency or regular money of choice, and get a management link.
 - Every click on a banner deducts a configurable dollar amount (default **$0.02**) worth of the balance.
 - The site owner just pastes a snippet wherever a banner should appear. If no banner has money left, the slot stays completely empty.
 - Sweeping the wallet does not affect the plugin: a banner's balance is *money that ever arrived* minus *money deducted by clicks*. Spending from the wallet is invisible to it.
