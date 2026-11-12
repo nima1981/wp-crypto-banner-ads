@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.8.2
+- Documentation only. The Electrum instructions now say the master public key of
+  a fresh native-segwit wallet is a **zpub** and that this is the key to paste
+  (Address type: Native segwit). The earlier text just said "master public key"
+  and left a user holding a zpub wondering whether it was the right thing.
+- Clarified in the README and the settings help that the "type" line in Electrum
+  (standard / 2FA / multisig) is not the descriptor-vs-legacy flag; since 4.6
+  every new standard wallet is a descriptor wallet, and the key prefix (zpub /
+  ypub / xpub) is what identifies the account type.
+- xpub remains fully supported: legacy accounts and older wallets legitimately
+  produce one, and existing banners keep their addresses.
+
 ## 1.8.1
 - Documentation only, no behaviour change. The Settings screen gains a **Use
   this wallet for nothing else** section and the README a matching one, because

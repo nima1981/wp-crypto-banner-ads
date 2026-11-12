@@ -82,7 +82,7 @@ Export the key at **account level** — the node three hardened steps below the 
 | Wallet | Where to get it | Notes |
 |---|---|---|
 | **Sparrow** (recommended, also for Coldcard / Ledger / Trezor) | Open the ad wallet → Settings → Keystore tab → copy the xpub/zpub | Shows the script type; a zpub produces `bc1…` addresses. Has a Gap limit setting. |
-| **Electrum** (desktop or mobile) | Wallet → Information → “Master public key” | The receive chain is `m/0/i`, exactly what `0/{i}` produces. Check the wallet type on the same screen: descriptor wallets keep change on a separate chain, standard ones do not — see **One wallet, one job**. |
+| **Electrum** (desktop or mobile) | Wallet → Information → “Master public key” | For a fresh native-segwit wallet the key is a `zpub` — that's the one to paste (Address type: Native segwit). Receive chain is `m/0/i`, exactly what `0/{i}` produces. The “type” line is Standard/2FA/multisig, not descriptor/legacy; every new standard wallet since 4.6 is a descriptor wallet (change on `m/1/i`). See **One wallet, one job**. |
 | **Bitcoin Core** (descriptor wallet) | `listdescriptors`, take the external descriptor | e.g. `wpkh([f1ngerpr1nt/84h/0h/0h]xpub6C…/0/*)` — use the xpub portion, path `0/{i}`. |
 | **Ledger Live / Trezor Suite** | Not exposed | Connect the device to Sparrow or Electrum and export the account key there. |
 | **BTCPay Server** | Store → Wallet → derivation scheme | Same kind of account key. |
@@ -112,10 +112,10 @@ So: **give the plugin its own wallet account and use it for nothing else.** No i
 
 **Change addresses.** A wallet that spends from banner addresses may need to send change somewhere.
 
-- **Descriptor wallets** — default in Electrum 4.6+, Sparrow, Bitcoin Core: change goes to a separate internal chain (`m/1/i`). The plugin derives `0/{i}` only, so change can never land on a banner address. Safe.
-- **Standard / legacy wallets** — which Electrum 4.5 could still create: change goes to the next unused address of the *same* receive chain, which is exactly the sequence banners are numbered from. If a change output lands on index `N`, and a later banner is assigned index `N`, that banner is credited with money nobody paid it.
+- **Descriptor wallets** — every new wallet in Electrum 4.6+, Sparrow, Bitcoin Core: change goes to a separate internal chain (`m/1/i`). The plugin derives `0/{i}` only, so change can never land on a banner address. Safe.
+- **Legacy wallets** — which Electrum 4.5 could still create: change goes to the next unused address of the *same* receive chain, which is exactly the sequence banners are numbered from. If a change output lands on index `N`, and a later banner is assigned index `N`, that banner is credited with money nobody paid it.
 
-Check the wallet type. In Electrum it is on **Wallet → Information**, next to the master public key. If it says *standard*, move to a descriptor wallet or treat change as a hazard.
+The “type” shown on Electrum's Wallet → Information (standard / 2FA / multisig) is not the descriptor-vs-legacy flag. The key prefix tells you: `zpub`/`ypub` = descriptor-style account, `xpub` = legacy account. An `xpub` from a fresh modern wallet would be surprising — all new standard wallets since 4.6 are descriptors — but the plugin still accepts it, because legacy accounts and older wallets legitimately produce one.
 
 **Sweep everything, never a partial amount.** Sending the full balance spends every coin and produces no change output at all, so there is nothing to misplace. Do not send a round figure and leave the remainder. Sweeping does not affect any advertiser balance: the plugin counts what arrived and never reads what an address spent.
 
