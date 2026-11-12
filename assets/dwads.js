@@ -147,17 +147,60 @@
 		frame.className = 'dwads-frame';
 		frame.appendChild(link);
 
-		if (data.foot && data.foot.url && data.foot.text) {
+		// Up to two quiet links below the creative: the site's own invitation and
+		// the banner's funding page. One link keeps the simple block layout; two
+		// share a row so they can sit on opposite sides.
+		var links = [];
+		var footBar = null;
+		[data.foot, data.fund].forEach(function (item) {
+			if (item && item.url && item.text) {
+				links.push(item);
+			}
+		});
+
+		function makeFoot(item) {
 			var foot = document.createElement('a');
-			foot.className = 'dwads-foot dwads-foot-' + (data.foot.align || 'center');
-			foot.href = data.foot.url;
+			foot.className = 'dwads-foot dwads-foot-' + (item.align || 'center');
+			foot.href = item.url;
 			foot.rel = 'nofollow noopener';
-			foot.textContent = data.foot.text;
-			frame.appendChild(foot);
+			foot.textContent = item.text;
+			return foot;
+		}
+
+		// The server already moves a colliding link to the far side; repeat the
+		// rule here so a stale payload can never stack both links on one edge.
+		if (links.length > 1 && links[1].align === links[0].align) {
+			links[1] = {
+				url: links[1].url,
+				text: links[1].text,
+				align: links[0].align === 'left' ? 'right' : (links[0].align === 'right' ? 'left' : 'right')
+			};
+		}
+
+		if (links.length === 1) {
+			frame.appendChild(makeFoot(links[0]));
+		} else if (links.length > 1) {
+			footBar = document.createElement('div');
+			footBar.className = 'dwads-footbar';
+			for (var k = 0; k < links.length; k++) {
+				footBar.appendChild(makeFoot(links[k]));
+			}
+			frame.appendChild(footBar);
 		}
 
 		slot.innerHTML = '';
 		slot.appendChild(frame);
+
+		// A narrow creative (a 160x600 skyscraper, say) cannot hold both links
+		// side by side. Measured after attach, when the image has a layout width:
+		// if the row is wider than the creative, stack them on two lines instead
+		// of letting them run past its edges.
+		if (footBar && img.clientWidth > 0 && footBar.scrollWidth > img.clientWidth + 1) {
+			frame.removeChild(footBar);
+			for (var n = 0; n < links.length; n++) {
+				frame.appendChild(makeFoot(links[n]));
+			}
+		}
 
 		// The slot is a flex box; give it the banner height so the creative is
 		// centred vertically. Empty slots keep no height at all.
@@ -200,7 +243,7 @@
 		if (site) {
 			url.searchParams.set('site', site);
 		}
-		['foot', 'foot_text', 'foot_url', 'foot_align'].forEach(function (key) {
+		['foot', 'foot_text', 'foot_url', 'foot_align', 'fund', 'fund_text', 'fund_align'].forEach(function (key) {
 			var value = slot.getAttribute('data-dwads-' + key.replace('_', '-'));
 			if (value) {
 				url.searchParams.set(key, value);

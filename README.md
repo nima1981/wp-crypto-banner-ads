@@ -402,3 +402,44 @@ It is on by default and can be switched off completely. The styles are printed
 inline with the markup, so the line looks the same on pages that never enqueue
 the banner stylesheet. It is plain text in the flow — 11px, centred, inherited
 colour at 55% opacity — so it does not compete with the page or with the ads.
+
+## “Fund this banner” link (1.2.8)
+
+A second optional link sits under each creative, in the same style as
+*Advertise here*, pointing at **that banner's own management page** so a reader
+can add funds to it.
+
+Settings → **“Fund this banner” link**: on by default, text defaults to
+*Fund this banner*, alignment defaults to *right*. Type `none` as the text to
+switch the link off without clearing the alignment.
+
+- The address is never a setting: it is the banner's management page, which
+  only exists once a banner has been served, so the link is per-banner.
+- Both links can appear at once, and they never share a side. If both ask for
+  the same alignment, the fund link moves to the opposite side
+  (left ↔ right, centre → right). Two links under one creative share a single
+  row, one at each edge.
+- On creatives too narrow to hold both — a `160x600` skyscraper — the two links
+  stack on separate lines instead of running past the image.
+- Per placement: the widget offers *use the site setting / show it here / never
+  show it here* plus text and alignment overrides. The shortcode takes the same
+  options: `[dwads slot="300x250" fund="on" fund_text="Top this up" fund_align="left"]`.
+- `rel="nofollow noopener"`, and it is never counted as a click.
+
+**Worth knowing before you leave it on:** the management page is a banner's
+only credential. Putting this link under every creative publishes it for every
+banner that serves, so anyone can open that page. They can see the balance and
+the top-up address, and add funds; they cannot change the destination, the
+image or the status, because that page is read-only. Turn the link off if you
+would rather keep those pages private.
+
+## Management page disclaimer (1.2.8)
+
+Settings → Uploads → **Management page disclaimer** prints at the very bottom
+of the page each advertiser uses to top up a banner. It is **empty by default**,
+which prints nothing. Plain text or simple HTML.
+
+The fixed sentence that used to sit there — "Balances are never refunded. Keep
+this link private…" — has been removed, since the fund link above deliberately
+publishes those pages. Put your own wording in the setting if you still want a
+note there.

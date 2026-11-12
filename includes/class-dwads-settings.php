@@ -42,6 +42,10 @@ final class DWADS_Settings {
 			'footer_link_text'         => '',
 			'footer_link_url'          => '',
 			'footer_link_align'        => 'center',
+			'fund_link_enabled'        => 1,
+			'fund_link_text'           => 'Fund this banner',
+			'fund_link_align'          => 'right',
+			'manage_disclaimer'        => '',
 			'notify_advertiser'        => 1,
 			// Bitcoin.
 			'xpub'                     => '',
@@ -389,6 +393,48 @@ final class DWADS_Settings {
 		return array(
 			'text'  => $text,
 			'url'   => $url,
+			'align' => $align,
+		);
+	}
+
+	/**
+	 * The "Fund this banner" link under a creative.
+	 *
+	 * Same shape as footer_link(), except the address is never a setting: it is
+	 * the banner's own management page, which only exists once a banner has
+	 * been served.
+	 *
+	 * @param array $overrides Per-placement overrides (mode, text, align).
+	 * @return array Empty when the link should not be shown.
+	 */
+	public static function fund_link( $overrides = array() ) {
+		$mode = isset( $overrides['mode'] ) ? strtolower( trim( (string) $overrides['mode'] ) ) : '';
+		if ( 'off' === $mode ) {
+			return array();
+		}
+		if ( 'on' !== $mode && ! (bool) self::get( 'fund_link_enabled', 1 ) ) {
+			return array();
+		}
+
+		$text = isset( $overrides['text'] ) ? trim( (string) $overrides['text'] ) : '';
+		if ( '' === $text ) {
+			$text = trim( (string) self::get( 'fund_link_text', 'Fund this banner' ) );
+		}
+		if ( '' === $text || 0 === strcasecmp( $text, 'none' ) || 0 === strcasecmp( $text, 'off' ) ) {
+			return array();
+		}
+		$text = mb_substr( sanitize_text_field( $text ), 0, 60 );
+
+		$align = isset( $overrides['align'] ) ? strtolower( trim( (string) $overrides['align'] ) ) : '';
+		if ( ! in_array( $align, array( 'left', 'center', 'right' ), true ) ) {
+			$align = strtolower( (string) self::get( 'fund_link_align', 'right' ) );
+		}
+		if ( ! in_array( $align, array( 'left', 'center', 'right' ), true ) ) {
+			$align = 'right';
+		}
+
+		return array(
+			'text'  => $text,
 			'align' => $align,
 		);
 	}

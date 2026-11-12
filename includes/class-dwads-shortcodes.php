@@ -79,6 +79,9 @@ final class DWADS_Shortcodes {
 				'foot_text'   => '',
 				'foot_url'    => '',
 				'foot_align'  => '',
+				'fund'        => '',
+				'fund_text'   => '',
+				'fund_align'  => '',
 			),
 			$atts,
 			'dwads'
@@ -86,12 +89,15 @@ final class DWADS_Shortcodes {
 		return self::placeholder(
 			$atts['slot'],
 			array(
-				'mobile'   => $atts['slot_mobile'],
-				'fallback' => $atts['fallback'],
-				'mode'     => $atts['foot'],
-				'text'     => $atts['foot_text'],
-				'url'      => $atts['foot_url'],
-				'align'    => $atts['foot_align'],
+				'mobile'    => $atts['slot_mobile'],
+				'fallback'  => $atts['fallback'],
+				'mode'      => $atts['foot'],
+				'text'      => $atts['foot_text'],
+				'url'       => $atts['foot_url'],
+				'align'     => $atts['foot_align'],
+				'fund_mode' => $atts['fund'],
+				'fund_text' => $atts['fund_text'],
+				'fund_align' => $atts['fund_align'],
 			)
 		);
 	}
@@ -146,10 +152,13 @@ final class DWADS_Shortcodes {
 		}
 
 		foreach ( array(
-			'mode'  => 'data-dwads-foot',
-			'text'  => 'data-dwads-foot-text',
-			'url'   => 'data-dwads-foot-url',
-			'align' => 'data-dwads-foot-align',
+			'mode'       => 'data-dwads-foot',
+			'text'       => 'data-dwads-foot-text',
+			'url'        => 'data-dwads-foot-url',
+			'align'      => 'data-dwads-foot-align',
+			'fund_mode'  => 'data-dwads-fund',
+			'fund_text'  => 'data-dwads-fund-text',
+			'fund_align' => 'data-dwads-fund-align',
 		) as $key => $attribute ) {
 			$value = isset( $extra[ $key ] ) ? trim( (string) $extra[ $key ] ) : '';
 			if ( '' !== $value ) {
@@ -240,8 +249,11 @@ class DWADS_Widget extends WP_Widget {
 		$html = DWADS_Shortcodes::placeholder(
 			$slot,
 			array(
-				'mobile' => isset( $instance['slot_mobile'] ) ? (string) $instance['slot_mobile'] : '',
-				'mode'   => isset( $instance['foot_mode'] ) ? (string) $instance['foot_mode'] : '',
+				'mobile'     => isset( $instance['slot_mobile'] ) ? (string) $instance['slot_mobile'] : '',
+				'fund_mode'  => isset( $instance['fund_mode'] ) ? (string) $instance['fund_mode'] : '',
+				'fund_text'  => isset( $instance['fund_text'] ) ? (string) $instance['fund_text'] : '',
+				'fund_align' => isset( $instance['fund_align'] ) ? (string) $instance['fund_align'] : '',
+				'mode'       => isset( $instance['foot_mode'] ) ? (string) $instance['foot_mode'] : '',
 				'text'  => isset( $instance['foot_text'] ) ? (string) $instance['foot_text'] : '',
 				'url'   => isset( $instance['foot_url'] ) ? (string) $instance['foot_url'] : '',
 				'align' => isset( $instance['foot_align'] ) ? (string) $instance['foot_align'] : '',
@@ -326,6 +338,33 @@ class DWADS_Widget extends WP_Widget {
 			</select>
 		</p>
 		<?php
+		$fmode = isset( $instance['fund_mode'] ) ? (string) $instance['fund_mode'] : 'inherit';
+		$ftext2 = isset( $instance['fund_text'] ) ? (string) $instance['fund_text'] : '';
+		$fal2  = isset( $instance['fund_align'] ) ? (string) $instance['fund_align'] : '';
+		?>
+		<p>
+			<label for="<?php echo esc_attr( $this->get_field_id( 'fund_mode' ) ); ?>"><?php esc_html_e( '“Fund this banner” link', 'dwads' ); ?></label>
+			<select class="widefat" id="<?php echo esc_attr( $this->get_field_id( 'fund_mode' ) ); ?>" name="<?php echo esc_attr( $this->get_field_name( 'fund_mode' ) ); ?>">
+				<option value="inherit" <?php selected( $fmode, 'inherit' ); ?>><?php esc_html_e( 'Use the site setting', 'dwads' ); ?></option>
+				<option value="on" <?php selected( $fmode, 'on' ); ?>><?php esc_html_e( 'Show it here', 'dwads' ); ?></option>
+				<option value="off" <?php selected( $fmode, 'off' ); ?>><?php esc_html_e( 'Never show it here', 'dwads' ); ?></option>
+			</select>
+			<span class="description"><?php esc_html_e( 'Opens the banner’s own management page, where anyone can add funds to it.', 'dwads' ); ?></span>
+		</p>
+		<p>
+			<label for="<?php echo esc_attr( $this->get_field_id( 'fund_text' ) ); ?>"><?php esc_html_e( 'Fund link text', 'dwads' ); ?></label>
+			<input class="widefat" id="<?php echo esc_attr( $this->get_field_id( 'fund_text' ) ); ?>" name="<?php echo esc_attr( $this->get_field_name( 'fund_text' ) ); ?>" type="text" value="<?php echo esc_attr( $ftext2 ); ?>" placeholder="<?php esc_attr_e( 'Site setting', 'dwads' ); ?>">
+		</p>
+		<p>
+			<label for="<?php echo esc_attr( $this->get_field_id( 'fund_align' ) ); ?>"><?php esc_html_e( 'Fund link alignment', 'dwads' ); ?></label>
+			<select class="widefat" id="<?php echo esc_attr( $this->get_field_id( 'fund_align' ) ); ?>" name="<?php echo esc_attr( $this->get_field_name( 'fund_align' ) ); ?>">
+				<option value="" <?php selected( $fal2, '' ); ?>><?php esc_html_e( 'Site setting', 'dwads' ); ?></option>
+				<option value="left" <?php selected( $fal2, 'left' ); ?>><?php esc_html_e( 'Left', 'dwads' ); ?></option>
+				<option value="center" <?php selected( $fal2, 'center' ); ?>><?php esc_html_e( 'Center', 'dwads' ); ?></option>
+				<option value="right" <?php selected( $fal2, 'right' ); ?>><?php esc_html_e( 'Right', 'dwads' ); ?></option>
+			</select>
+		</p>
+		<?php
 	}
 
 	/**
@@ -345,6 +384,15 @@ class DWADS_Widget extends WP_Widget {
 			$align = '';
 		}
 
+		$fmode = isset( $new_instance['fund_mode'] ) ? sanitize_text_field( $new_instance['fund_mode'] ) : 'inherit';
+		if ( ! in_array( $fmode, array( 'inherit', 'on', 'off' ), true ) ) {
+			$fmode = 'inherit';
+		}
+		$fal2 = isset( $new_instance['fund_align'] ) ? sanitize_text_field( $new_instance['fund_align'] ) : '';
+		if ( ! in_array( $fal2, array( '', 'left', 'center', 'right' ), true ) ) {
+			$fal2 = '';
+		}
+
 		$mobile = sanitize_text_field( isset( $new_instance['slot_mobile'] ) ? $new_instance['slot_mobile'] : '' );
 		if ( '' !== $mobile && ! DWADS_Settings::size_for_slot( $mobile ) ) {
 			$mobile = '';
@@ -358,6 +406,9 @@ class DWADS_Widget extends WP_Widget {
 			'foot_text'  => mb_substr( sanitize_text_field( isset( $new_instance['foot_text'] ) ? $new_instance['foot_text'] : '' ), 0, 60 ),
 			'foot_url'   => esc_url_raw( isset( $new_instance['foot_url'] ) ? $new_instance['foot_url'] : '' ),
 			'foot_align' => $align,
+			'fund_mode'  => $fmode,
+			'fund_text'  => mb_substr( sanitize_text_field( isset( $new_instance['fund_text'] ) ? $new_instance['fund_text'] : '' ), 0, 60 ),
+			'fund_align' => $fal2,
 		);
 	}
 }

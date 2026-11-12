@@ -430,6 +430,22 @@ final class DWADS_Admin {
 		);
 		echo '</table>';
 
+		echo '<h2 class="title">' . esc_html__( '“Fund this banner” link', 'dwads' ) . '</h2>';
+		echo '<table class="form-table" role="presentation">';
+		self::field_checkbox( 'fund_link_enabled', __( 'Show a second link underneath each banner', 'dwads' ), __( 'Same style as the link above, pointing at that banner’s own management page, where a reader can add funds to it. On by default.', 'dwads' ) );
+		self::field_text( 'fund_link_text', __( 'Link text', 'dwads' ), __( 'Leave empty to use “Fund this banner”. Type none to switch the link off without clearing the other fields.', 'dwads' ) );
+		self::field_select(
+			'fund_link_align',
+			__( 'Alignment', 'dwads' ),
+			__( 'If both links are shown and end up on the same side, this one moves to the opposite side automatically, so the two never overlap.', 'dwads' ),
+			array(
+				'left'   => __( 'Left', 'dwads' ),
+				'center' => __( 'Center', 'dwads' ),
+				'right'  => __( 'Right', 'dwads' ),
+			)
+		);
+		echo '</table>';
+
 		echo '<h2 class="title">' . esc_html__( 'Uploads', 'dwads' ) . '</h2>';
 		echo '<table class="form-table" role="presentation">';
 		self::field_textarea( 'sizes', __( 'Allowed sizes (one per line)', 'dwads' ), __( 'Format: WxH, then optional | label | short note, then the word recommended for the ones you want to push. Example: 300x250 | Medium rectangle | in-content | recommended', 'dwads' ) );
@@ -454,6 +470,7 @@ final class DWADS_Admin {
 		}
 
 		self::field_textarea( 'upload_intro', __( 'Upload page introduction', 'dwads' ), __( 'Shown above the form, so advertisers know what happens next. Plain text or simple HTML.', 'dwads' ) );
+		self::field_textarea( 'manage_disclaimer', __( 'Management page disclaimer', 'dwads' ), __( 'Shown at the very bottom of the page each advertiser uses to top up a banner. Empty by default, which prints nothing. Plain text or simple HTML.', 'dwads' ) );
 		self::field_number( 'max_upload_kb', __( 'Maximum file size (KB)', 'dwads' ), '', '1' );
 		self::field_number( 'max_banners_per_upload', __( 'Maximum banners per upload', 'dwads' ), '', '1' );
 		self::field_checkbox( 'auto_fit_uploads', __( 'Fit near-miss images automatically', 'dwads' ), __( 'If an image has almost the right shape for an allowed size, scale it and centre-crop the small overflow instead of rejecting it. Crops larger than 8% are refused, and the advertiser is told exactly what happened.', 'dwads' ) );
@@ -597,7 +614,7 @@ final class DWADS_Admin {
 
 		$new['click_price_usd'] = number_format( max( 0.000001, (float) $scalar( 'click_price_usd', '0.02' ) ), 6, '.', '' );
 
-		foreach ( array( 'approval_required', 'target_new_tab', 'credit_mempool', 'record_impressions', 'notify_admin_uploads', 'notify_advertiser', 'ad_label_enabled', 'auto_fit_uploads', 'footer_link_enabled', 'credit_enabled', 'delete_data_on_uninstall' ) as $flag ) {
+		foreach ( array( 'approval_required', 'target_new_tab', 'credit_mempool', 'record_impressions', 'notify_admin_uploads', 'notify_advertiser', 'ad_label_enabled', 'auto_fit_uploads', 'footer_link_enabled', 'fund_link_enabled', 'credit_enabled', 'delete_data_on_uninstall' ) as $flag ) {
 			$new[ $flag ] = empty( $input[ $flag ] ) ? 0 : 1;
 		}
 
@@ -623,7 +640,13 @@ final class DWADS_Admin {
 			$errors[] = __( 'The size list was empty or unreadable; the previous sizes were kept.', 'dwads' );
 		}
 
-		$new['upload_intro'] = wp_kses_post( $scalar( 'upload_intro', '' ) );
+		$new['upload_intro']      = wp_kses_post( $scalar( 'upload_intro', '' ) );
+		$new['manage_disclaimer'] = trim( wp_kses_post( $scalar( 'manage_disclaimer', '' ) ) );
+
+		$fund_text                = sanitize_text_field( $scalar( 'fund_link_text', 'Fund this banner' ) );
+		$new['fund_link_text']    = mb_substr( $fund_text, 0, 60 );
+		$fund_align               = strtolower( $scalar( 'fund_link_align', 'right' ) );
+		$new['fund_link_align']   = in_array( $fund_align, array( 'left', 'center', 'right' ), true ) ? $fund_align : 'right';
 
 		$new['max_upload_kb']            = max( 16, (int) $scalar( 'max_upload_kb', '512' ) );
 		$new['max_banners_per_upload']   = max( 1, min( 20, (int) $scalar( 'max_banners_per_upload', '3' ) ) );

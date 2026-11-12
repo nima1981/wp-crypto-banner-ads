@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.2.8
+- Optional second link under each creative: “Fund this banner”, opening that
+  banner's own management page. Same style as “Advertise here”; on by default,
+  text and alignment configurable, `none` disables it, and the widget and
+  shortcode take per-placement overrides (`fund`, `fund_text`, `fund_align`).
+- The two links never share a side: when their alignments collide the fund
+  link moves to the opposite side. On creatives too narrow for both, they
+  stack on separate lines rather than running past the image.
+- The disclaimer at the bottom of the management page is now a setting
+  (Uploads → Management page disclaimer) and defaults to empty; the fixed
+  “balances are never refunded / keep this link private” sentence is gone.
+
 ## 1.2.7
 - Optional credit line on every public page: “Powered by Crypto Banner Ads
   from Reza Consulting”, with the plugin name linked to the repository and the

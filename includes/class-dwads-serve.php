@@ -63,6 +63,18 @@ final class DWADS_Serve {
 						'required' => false,
 						'type'     => 'string',
 					),
+					'fund'       => array(
+						'required' => false,
+						'type'     => 'string',
+					),
+					'fund_text'  => array(
+						'required' => false,
+						'type'     => 'string',
+					),
+					'fund_align' => array(
+						'required' => false,
+						'type'     => 'string',
+					),
 				),
 			)
 		);
@@ -123,6 +135,29 @@ final class DWADS_Serve {
 			'label'  => DWADS_Settings::get( 'ad_label_enabled', 1 ) ? (string) DWADS_Settings::get( 'ad_label_text', 'Sponsored' ) : '',
 		);
 
+		// The second link points at the banner's own management page, where the
+		// balance and the top-up address live. That page only has a URL once the
+		// banner exists, so it is resolved here rather than in a setting.
+		$fund = DWADS_Settings::fund_link(
+			array(
+				'mode'  => (string) $request->get_param( 'fund' ),
+				'text'  => (string) $request->get_param( 'fund_text' ),
+				'align' => (string) $request->get_param( 'fund_align' ),
+			)
+		);
+		if ( $fund ) {
+			$manage = DWADS_Banners::manage_url_for( $banner );
+			if ( '' !== $manage ) {
+				$fund['url'] = $manage;
+				// Two links cannot occupy the same position: when the alignments
+				// collide, the fund link moves to the opposite side.
+				if ( $footer ) {
+					$fund['align'] = self::apart( $footer['align'], $fund['align'] );
+				}
+				$payload['fund'] = $fund;
+			}
+		}
+
 		// Only sent when the link should be rendered, so an empty payload key
 		// cannot accidentally produce a stray anchor.
 		if ( $footer ) {
@@ -132,6 +167,25 @@ final class DWADS_Serve {
 		$response = new WP_REST_Response( $payload, 200 );
 		self::cors( $response );
 		return $response;
+	}
+
+	/**
+	 * Keep two adjacent links from sharing the same alignment.
+	 *
+	 * @param string $taken Alignment already in use.
+	 * @param string $align Requested alignment.
+	 * @return string
+	 */
+	private static function apart( $taken, $align ) {
+		if ( $align !== $taken ) {
+			return $align;
+		}
+		$flip = array(
+			'left'   => 'right',
+			'right'  => 'left',
+			'center' => 'right',
+		);
+		return isset( $flip[ $align ] ) ? $flip[ $align ] : 'right';
 	}
 
 	/**

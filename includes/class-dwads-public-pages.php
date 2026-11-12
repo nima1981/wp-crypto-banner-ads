@@ -672,7 +672,10 @@ final class DWADS_Public_Pages {
 			$body .= '</tbody></table>';
 		}
 
-		$body .= '<p class="dwads-muted">' . esc_html__( 'Balances are never refunded. Keep this link private: anyone who has it can see the balance and the top-up address. It cannot be used to change or stop the banner.', 'dwads' ) . '</p>';
+		$disclaimer = trim( (string) DWADS_Settings::get( 'manage_disclaimer', '' ) );
+		if ( '' !== $disclaimer ) {
+			$body .= '<p class="dwads-muted">' . wp_kses_post( $disclaimer ) . '</p>';
+		}
 		$body .= '<script>(function(){var b=document.getElementById("dwads-copy");if(!b)return;b.addEventListener("click",function(){var a=b.getAttribute("data-address")||"";function ok(){b.textContent="Copied";setTimeout(function(){b.textContent="Copy address";},1500);}if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(a).then(ok,ok);}else{var t=document.createElement("textarea");t.value=a;document.body.appendChild(t);t.select();try{document.execCommand("copy");}catch(e){}document.body.removeChild(t);ok();}});})();</script>';
 
 		echo self::page_shell(  // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
