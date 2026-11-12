@@ -251,6 +251,19 @@ final class DWADS_Public_Pages {
 			$errors[] = __( 'Choose at least one banner image.', 'dwads' );
 		}
 
+		// PHP drops files beyond max_file_uploads without saying so. When the
+		// request arrives right at that ceiling the shortfall is almost
+		// certainly truncation, so say it instead of leaving banners missing.
+		$php_cap  = (int) ini_get( 'max_file_uploads' );
+		$received = isset( $files['name'] ) && is_array( $files['name'] ) ? count( $files['name'] ) : 0;
+		if ( $php_cap > 0 && $received >= $php_cap && $max_rows > $php_cap ) {
+			$errors[] = sprintf(
+				/* translators: %d: PHP max_file_uploads value */
+				__( 'Your server accepts at most %d files per request (PHP max_file_uploads); anything beyond that did not arrive. Upload the rest in another run.', 'dwads' ),
+				$php_cap
+			);
+		}
+
 		$key = bin2hex( random_bytes( 8 ) );
 		set_transient(
 			'dwads_result_' . $key,
@@ -427,13 +440,7 @@ final class DWADS_Public_Pages {
 		// so the POST shape and every server-side check stay untouched.
 		$html .= '<div class="dwads-drop" id="dwads-dropzone" tabindex="0" role="button" hidden>'
 			. '<p class="dwads-drop-title">' . esc_html__( 'Drop banner images here', 'dwads' ) . '</p>'
-			. '<p class="dwads-drop-hint">' . esc_html(
-				sprintf(
-					/* translators: %d: maximum banners per upload */
-					__( 'Or click to choose files. Drop as many as you like — they are grouped by size. Up to %d per upload.', 'dwads' ),
-					$max_rows
-				)
-			) . '</p>'
+			. '<p class="dwads-drop-hint">' . esc_html( self::drop_limit_text( $max_rows ) ) . '</p>'
 			. '<input type="file" id="dwads-drop-input" accept="image/png,image/jpeg,image/webp" multiple hidden>'
 			. '</div>'
 			. '<div class="dwads-drop-status" id="dwads-drop-status" role="status" aria-live="polite"></div>';
@@ -458,6 +465,7 @@ final class DWADS_Public_Pages {
 		}
 		$js_cfg = array(
 			'max'     => (int) $max_rows,
+			'phpMax'  => (int) ini_get( 'max_file_uploads' ),
 			'maxKb'   => (int) $max_kb,
 			'autofit' => (bool) DWADS_Settings::get( 'auto_fit_uploads', 1 ),
 			'sizes'   => $js_sizes,
@@ -470,6 +478,32 @@ final class DWADS_Public_Pages {
 		wp_enqueue_script( 'dwads-upload' );
 
 		return $html . '</div>';
+	}
+
+	/**
+	 * What the drop zone can honestly promise.
+	 *
+	 * The admin's setting is the intent; PHP's max_file_uploads is the ceiling
+	 * on how many files can arrive in one request. Quoting the smaller of the
+	 * two avoids promising a batch the request cannot carry.
+	 *
+	 * @param int $max_rows Configured maximum.
+	 * @return string
+	 */
+	private static function drop_limit_text( $max_rows ) {
+		$php_cap = (int) ini_get( 'max_file_uploads' );
+		if ( $php_cap > 0 && $php_cap < $max_rows ) {
+			return sprintf(
+				/* translators: 1: PHP max_file_uploads value */
+				__( 'Or click to choose files. Drop as many as you like — they are grouped by size. Your server accepts %1$d files per request, so that is the practical limit for one upload.', 'dwads' ),
+				$php_cap
+			);
+		}
+		return sprintf(
+			/* translators: %d: maximum banners per upload */
+			__( 'Or click to choose files. Drop as many as you like — they are grouped by size. Up to %d per upload.', 'dwads' ),
+			$max_rows
+		);
 	}
 
 	/**

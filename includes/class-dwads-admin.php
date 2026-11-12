@@ -493,7 +493,19 @@ final class DWADS_Admin {
 		self::field_textarea( 'upload_intro', __( 'Upload page introduction', 'dwads' ), __( 'Shown above the form, so advertisers know what happens next. Plain text or simple HTML.', 'dwads' ) );
 		self::field_textarea( 'manage_disclaimer', __( 'Management page disclaimer', 'dwads' ), __( 'Shown at the very bottom of the page each advertiser uses to top up a banner. Empty by default, which prints nothing. Plain text or simple HTML.', 'dwads' ) );
 		self::field_number( 'max_upload_kb', __( 'Maximum file size (KB)', 'dwads' ), '', '1' );
-		self::field_number( 'max_banners_per_upload', __( 'Maximum banners per upload', 'dwads' ), '', '1' );
+		$php_uploads = (int) ini_get( 'max_file_uploads' );
+		self::field_number(
+			'max_banners_per_upload',
+			__( 'Maximum banners per upload', 'dwads' ),
+			$php_uploads > 0
+				? sprintf(
+					/* translators: %d: PHP max_file_uploads value */
+					__( 'How many images one submission may contain. Your server accepts at most %d files in a single request (PHP max_file_uploads), so a larger number here cannot all arrive at once.', 'dwads' ),
+					$php_uploads
+				)
+				: __( 'How many images one submission may contain.', 'dwads' ),
+			'1'
+		);
 		self::field_checkbox( 'auto_fit_uploads', __( 'Fit near-miss images automatically', 'dwads' ), __( 'If an image has almost the right shape for an allowed size, scale it and centre-crop the small overflow instead of rejecting it. Crops larger than 8% are refused, and the advertiser is told exactly what happened.', 'dwads' ) );
 		self::field_checkbox( 'notify_admin_uploads', __( 'Email me when a new banner is uploaded', 'dwads' ) );
 		echo '</table>';
@@ -712,7 +724,7 @@ final class DWADS_Admin {
 		$new['fund_link_align']   = in_array( $fund_align, array( 'left', 'center', 'right' ), true ) ? $fund_align : 'right';
 
 		$new['max_upload_kb']            = max( 16, (int) $scalar( 'max_upload_kb', '512' ) );
-		$new['max_banners_per_upload']   = max( 1, min( 20, (int) $scalar( 'max_banners_per_upload', '3' ) ) );
+		$new['max_banners_per_upload']   = max( 1, min( 200, (int) $scalar( 'max_banners_per_upload', '3' ) ) );
 		$new['dedupe_hours']             = max( 1, (int) $scalar( 'dedupe_hours', '24' ) );
 		$new['max_clicks_per_ip_hour']   = max( 0, (int) $scalar( 'max_clicks_per_ip_hour', '10' ) );
 		$new['click_min_dwell_ms']       = max( 0, min( 10000, (int) $scalar( 'click_min_dwell_ms', '400' ) ) );

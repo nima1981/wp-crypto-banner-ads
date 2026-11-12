@@ -330,9 +330,16 @@ over.
   matches no allowed size is marked *no matching size* in red, so it is obvious
   which one will be rejected or cropped.
 - **The cap is the existing setting.** **Settings → Uploads → Maximum banners per
-  upload** still governs everything. Drop more than that and only the first ones
-  are added, with a message saying how many were left and to upload the rest in
-  another run. *Add another banner* keeps working for topping up the set by hand.
+  upload** still governs everything, and it now saves exactly what you type (the
+  old hardcoded ceiling of 20 is gone). Drop more than that and only the first
+  ones are added, with a message saying how many were left and to upload the rest
+  in another run. *Add another banner* keeps working for topping up by hand.
+- **One honest limit remains, and it is PHP's.** A single request cannot carry
+  more files than `max_file_uploads` allows (20 on a default install), so a
+  setting above that is capped by the server, not by the plugin: the drop box
+  says which number is in force before you drop anything, and the upload reports
+  it if a request arrives right at the ceiling. To genuinely accept 30 in one go,
+  raise `max_file_uploads` in `php.ini` (or `.user.ini`) to 30 or more.
 
 Under the hood this is only a shortcut: the dropped files are placed into the
 same per-row file inputs the form always had, so the POST shape, the cap and

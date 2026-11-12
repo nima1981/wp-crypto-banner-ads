@@ -12,6 +12,11 @@
 
 	var cfg = window.DWADS_UPLOAD || {};
 	var maxFiles = parseInt(cfg.max, 10) || 5;
+	/* The configured maximum is the intent; a single request can only carry
+	   what PHP's max_file_uploads allows. Take the smaller of the two so the
+	   count in the message is a number that can actually arrive. */
+	var phpMax = parseInt(cfg.phpMax, 10) || 0;
+	var limit = phpMax > 0 && phpMax < maxFiles ? phpMax : maxFiles;
 	var sizes = Array.isArray(cfg.sizes) ? cfg.sizes : [];
 	var autofit = cfg.autofit !== false;
 	var maxKb = parseInt(cfg.maxKb, 10) || 0;
@@ -68,7 +73,7 @@
 	}
 
 	function syncAddButton() {
-		addBtn.disabled = totalFiles() >= maxFiles || rows().length >= maxFiles;
+		addBtn.disabled = totalFiles() >= limit || rows().length >= limit;
 	}
 
 	function newRow() {
@@ -231,12 +236,12 @@
 			}
 		}
 
-		var free = Math.max(0, maxFiles - totalFiles());
+		var free = Math.max(0, limit - totalFiles());
 		var extra = files.length > free ? files.length - free : 0;
 		var take = files.slice(0, free);
 
 		if (!take.length) {
-			say('This upload already has the maximum of ' + maxFiles + ' banners. Upload these in another run.', 'warn');
+			say('This upload already has the maximum of ' + limit + ' banners. Upload these in another run.', 'warn');
 			return;
 		}
 
@@ -303,8 +308,11 @@
 					(failed === 1 ? 'it' : 'them') + ' with the file picker below.';
 			}
 			if (extra) {
-				message += ' ' + extra + ' more ' + (extra === 1 ? 'was' : 'were') + ' not added: the limit is ' +
-					maxFiles + ' banners per upload. Add the rest in another run.';
+				message += ' ' + extra + ' more ' + (extra === 1 ? 'was' : 'were') + ' not added: ' +
+					(limit < maxFiles
+						? 'your server takes ' + limit + ' files per request'
+						: 'the limit is ' + limit + ' banners per upload') +
+					'. Add the rest in another run.';
 			}
 
 			say(message, failed || extra || groups.unmatched ? 'warn' : 'ok');
@@ -384,10 +392,10 @@
 	/* --- add another banner ---------------------------------------------- */
 
 	addBtn.addEventListener('click', function () {
-		if (totalFiles() >= maxFiles || rows().length >= maxFiles) {
+		if (totalFiles() >= limit || rows().length >= limit) {
 			/* Rows without a file do not count toward the server cap, but one
 			   more empty row than the cap is only confusing, so stop here. */
-			say('The limit is ' + maxFiles + ' banners per upload. Finish this set, then upload more in another run.', 'warn');
+			say('The limit is ' + limit + ' banners per upload. Finish this set, then upload more in another run.', 'warn');
 			syncAddButton();
 			return;
 		}

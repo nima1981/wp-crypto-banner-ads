@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.9.1
+- **"Maximum banners per upload" now saves what you enter.** A hardcoded
+  `min( 20, ... )` in the save path had been silently rewriting any value above
+  20 down to 20 since 1.2.1. The ceiling is now 200, purely as a sanity bound.
+- **The real limit is PHP's, and the plugin now says so.** One request cannot
+  carry more files than `max_file_uploads` (20 by default). The field description
+  quotes that number, the drop box states which cap is actually in force, and a
+  request that arrives exactly at the ceiling reports the truncation instead of
+  letting banners vanish. Raising `max_file_uploads` in `php.ini` lifts it.
+
 ## 1.9.0
 - **Drop several banners at once.** A drop box above the upload fields takes one
   file or many; each image gets its own set of fields, sorted so the same sizes
