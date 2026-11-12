@@ -247,12 +247,22 @@ final class DWADS_Admin {
 			}
 			$buttons['delete'] = __( 'Delete', 'dwads' );
 
+			// Kept separate from the status buttons: it changes no state a reader
+			// can see, it only clears the two figures shown on the next column.
+			$buttons['reset_impressions'] = __( 'Reset impressions', 'dwads' );
+
 			foreach ( $buttons as $do => $text ) {
 				echo '<form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '" class="dwads-inline">';
 				wp_nonce_field( 'dwads_banner_action' );
 				echo '<input type="hidden" name="action" value="dwads_banner_action"><input type="hidden" name="do" value="' . esc_attr( $do ) . '"><input type="hidden" name="banner_id" value="' . (int) $banner['id'] . '">';
 				$class = 'delete' === $do ? 'button button-small button-link-delete' : 'button button-small';
-				echo '<button type="submit" class="' . esc_attr( $class ) . '"' . ( 'delete' === $do ? ' onclick="return confirm(\'' . esc_js( __( 'Delete this banner and its history?', 'dwads' ) ) . '\')"' : '' ) . '>' . esc_html( $text ) . '</button>';
+				$confirm = '';
+				if ( 'delete' === $do ) {
+					$confirm = ' onclick="return confirm(\'' . esc_js( __( 'Delete this banner and its history?', 'dwads' ) ) . '\')"';
+				} elseif ( 'reset_impressions' === $do ) {
+					$confirm = ' onclick="return confirm(\'' . esc_js( __( 'Reset the impression counter for this banner to zero? Clicks charged, the balance and the click log are kept.', 'dwads' ) ) . '\')"';
+				}
+				echo '<button type="submit" class="' . esc_attr( $class ) . '"' . $confirm . '>' . esc_html( $text ) . '</button>';
 				echo '</form>';
 			}
 
@@ -346,6 +356,10 @@ final class DWADS_Admin {
 				case 'delete':
 					DWADS_Banners::delete( $id );
 					$notice = __( 'Banner deleted.', 'dwads' );
+					break;
+				case 'reset_impressions':
+					DWADS_Banners::reset_impressions( $id );
+					$notice = __( 'Impression counter reset to zero.', 'dwads' );
 					break;
 				case 'price':
 					$price = isset( $_POST['click_price_usd'] ) && is_scalar( $_POST['click_price_usd'] ) ? (float) $_POST['click_price_usd'] : 0;

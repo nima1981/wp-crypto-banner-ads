@@ -772,6 +772,47 @@ final class DWADS_Banners {
 	 * @param int $id Banner id.
 	 * @return void
 	 */
+	/**
+	 * Zero a banner's impression counter and forget its recorded impressions.
+	 *
+	 * Deliberately narrow. Clicks charged, the balance, the money already spent
+	 * and the click log are all left alone: those are the billing record, and a
+	 * reset must never look like a refund or rewrite history. Clicking "reset"
+	 * and seeing the click log still there is the point.
+	 *
+	 * The impression rows go because they are what the de-duplication window and
+	 * the click-rate brake read. Keeping them would let an inflated history go
+	 * on deciding what happens next.
+	 *
+	 * @param int $id Banner id.
+	 * @return bool
+	 */
+	public static function reset_impressions( $id ) {
+		global $wpdb;
+
+		$id = (int) $id;
+		if ( $id <= 0 || ! self::get( $id ) ) {
+			return false;
+		}
+
+		$wpdb->query(
+			$wpdb->prepare(
+				'UPDATE ' . self::table() . ' SET impressions = 0, last_served_at = NULL WHERE id = %d',
+				$id
+			)
+		);
+
+		$wpdb->query(
+			$wpdb->prepare( 'DELETE FROM ' . DWADS_Clicks::impressions_table() . ' WHERE banner_id = %d', $id )
+		);
+
+		if ( class_exists( 'DWADS_Log' ) ) {
+			DWADS_Log::add( sprintf( 'Impression counter reset for banner #%d by an administrator.', $id ) );
+		}
+
+		return true;
+	}
+
 	public static function note_served( $id ) {
 		global $wpdb;
 		$now = gmdate( 'Y-m-d H:i:s' );

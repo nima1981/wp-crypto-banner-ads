@@ -577,3 +577,10 @@ fraudster money.
 These rules tighten counting, so numbers fall. Totals recorded before 1.5.0
 keep their old inflated history; only new activity follows the new rules.
 
+To start a banner's impression figure from zero under the new rules, use
+**Reset impressions** in that banner's row on the Banners screen. It clears the
+counter and the stored impression rows (which is what the de-duplication window
+and the click-rate brake read) and nothing else — clicks charged, the balance,
+the money spent and the click log all stay. Only an administrator can run it, and
+it asks for confirmation.
+

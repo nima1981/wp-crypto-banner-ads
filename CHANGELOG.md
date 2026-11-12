@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.5.1
+- **Reset impressions**, per banner, from the admin banner list. Zeroes the
+  impression counter and deletes that banner's stored impression rows, so the
+  de-duplication window and the click-rate brake start from a clean slate.
+  Clicks charged, the balance, the money already spent and the click log are all
+  kept: a reset must never look like a refund or rewrite the billing record.
+  Administrators only (`manage_options`), POST with a nonce, and confirmed before
+  it runs. The click rate shows "—" until new impressions arrive.
+
 ## 1.5.0
 - **Impressions are viewable impressions.** The ad script reports when at least
   half the creative has been on screen for a second, and only then does the
