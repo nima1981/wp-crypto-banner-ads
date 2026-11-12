@@ -447,6 +447,7 @@ final class DWADS_Admin {
 				'right'  => __( 'Right', 'dwads' ),
 			)
 		);
+		self::field_checkbox( 'footer_link_new_tab', __( 'Open the link in a new tab', 'dwads' ), __( 'The “Advertise here” link opens its destination in a new tab instead of navigating the reader away. Off by default.', 'dwads' ) );
 		echo '</table>';
 
 		echo '<h2 class="title">' . esc_html__( '“Fund this banner” link', 'dwads' ) . '</h2>';
@@ -463,6 +464,7 @@ final class DWADS_Admin {
 				'right'  => __( 'Right', 'dwads' ),
 			)
 		);
+		self::field_checkbox( 'fund_link_new_tab', __( 'Open the link in a new tab', 'dwads' ), __( 'The “Fund this banner” link opens the funding page in a new tab instead of navigating the reader away. Off by default.', 'dwads' ) );
 		echo '</table>';
 
 		echo '<h2 class="title">' . esc_html__( 'Uploads', 'dwads' ) . '</h2>';
@@ -667,7 +669,7 @@ final class DWADS_Admin {
 
 		$new['click_price_usd'] = number_format( max( 0.000001, (float) $scalar( 'click_price_usd', '0.02' ) ), 6, '.', '' );
 
-		foreach ( array( 'approval_required', 'target_new_tab', 'credit_mempool', 'record_impressions', 'notify_admin_uploads', 'notify_advertiser', 'ad_label_enabled', 'auto_fit_uploads', 'footer_link_enabled', 'fund_link_enabled', 'credit_enabled', 'delete_data_on_uninstall' ) as $flag ) {
+		foreach ( array( 'approval_required', 'target_new_tab', 'credit_mempool', 'record_impressions', 'notify_admin_uploads', 'notify_advertiser', 'ad_label_enabled', 'auto_fit_uploads', 'footer_link_enabled', 'footer_link_new_tab', 'fund_link_enabled', 'fund_link_new_tab', 'credit_enabled', 'delete_data_on_uninstall' ) as $flag ) {
 			$new[ $flag ] = empty( $input[ $flag ] ) ? 0 : 1;
 		}
 

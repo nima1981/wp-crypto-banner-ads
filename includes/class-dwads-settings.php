@@ -42,9 +42,11 @@ final class DWADS_Settings {
 			'footer_link_text'         => '',
 			'footer_link_url'          => '',
 			'footer_link_align'        => 'center',
+			'footer_link_new_tab'      => 0,
 			'fund_link_enabled'        => 1,
 			'fund_link_text'           => 'Fund this banner',
 			'fund_link_align'          => 'right',
+			'fund_link_new_tab'        => 0,
 			'manage_disclaimer'        => '',
 			'notify_advertiser'        => 1,
 			// Email copy. Every email the plugin sends is editable here; the
@@ -395,9 +397,10 @@ final class DWADS_Settings {
 		$text = mb_substr( sanitize_text_field( $text ), 0, 60 );
 
 		return array(
-			'text'  => $text,
-			'url'   => $url,
-			'align' => $align,
+			'text'    => $text,
+			'url'     => $url,
+			'align'   => $align,
+			'new_tab' => (bool) self::get( 'footer_link_new_tab', 0 ),
 		);
 	}
 
@@ -438,8 +441,9 @@ final class DWADS_Settings {
 		}
 
 		return array(
-			'text'  => $text,
-			'align' => $align,
+			'text'    => $text,
+			'align'   => $align,
+			'new_tab' => (bool) self::get( 'fund_link_new_tab', 0 ),
 		);
 	}
 

@@ -291,6 +291,9 @@
 			foot.className = 'dwads-foot dwads-foot-' + (item.align || 'center');
 			foot.href = item.url;
 			foot.rel = 'nofollow noopener';
+			if (item.new_tab) {
+				foot.target = '_blank';
+			}
 			foot.textContent = item.text;
 			return foot;
 		}

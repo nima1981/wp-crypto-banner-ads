@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.8.8
+- **“Advertise here” and “Fund this banner” can open in a new tab.**
+  Settings → Link under the banner and Settings → “Fund this banner” link each
+  gain an *Open the link in a new tab* checkbox, off by default. When on, the
+  anchor gets `target="_blank"` (the rel stays `nofollow noopener`, so the new
+  tab cannot reach back into the page).
+
 ## 1.8.7
 - **Copy: no more "private" management-link framing anywhere user-facing.**
   The upload page introduction, the upload result page ("Save these

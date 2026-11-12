@@ -369,6 +369,8 @@ in a wide sidebar.
   `[dwads slot="300x250" foot="on" foot_text="Advertise here" foot_align="right"]`.
 - The link is plain text in the flow, `rel="nofollow noopener"`, never counted as
   a click, and it does not appear when the slot is empty.
+- By default it navigates in the same tab; turn on **Open the link in a new tab**
+  under Settings → Link under the banner to send readers to a fresh tab instead.
 
 ## Responsive slots (1.2.6)
 
@@ -440,7 +442,8 @@ can add funds to it.
 
 Settings → **“Fund this banner” link**: on by default, text defaults to
 *Fund this banner*, alignment defaults to *right*. Type `none` as the text to
-switch the link off without clearing the alignment.
+switch the link off without clearing the alignment. There is also an **Open the
+link in a new tab** checkbox, off by default.
 
 - The address is never a setting: it is the banner's management page, which
   only exists once a banner has been served, so the link is per-banner.
