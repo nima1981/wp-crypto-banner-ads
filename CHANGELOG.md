@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.3.0
+- The credit line now appears only on the plugin's own pages — the upload form
+  page, the banner management page and the invalid-link page — instead of the
+  footer of every page on the site. Ordinary posts and pages never show it, even
+  when they display banners.
+
 ## 1.2.9
 - The footer credit also appears on the plugin's standalone pages — the banner
   management page and the invalid-link page — which build their own document

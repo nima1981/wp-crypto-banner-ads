@@ -14,6 +14,9 @@ defined( 'ABSPATH' ) || exit;
  */
 final class DWADS_Public_Pages {
 
+	/** @var bool Whether the upload form printed during this request. */
+	private static $upload_rendered = false;
+
 	/**
 	 * Hooks.
 	 *
@@ -54,11 +57,18 @@ final class DWADS_Public_Pages {
 	}
 
 	/**
-	 * Print the credit in the theme's footer.
+	 * Print the credit in the theme's footer, on plugin pages only.
+	 *
+	 * A page counts as the plugin's when the upload form actually printed on it.
+	 * Ordinary articles that happen to carry a banner are left alone: the credit
+	 * belongs to the plugin's own screens, not to the whole site.
 	 *
 	 * @return void
 	 */
 	public static function footer_credit() {
+		if ( ! self::$upload_rendered ) {
+			return;
+		}
 		echo self::credit_html(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped inside credit_html().
 	}
 
@@ -330,6 +340,7 @@ final class DWADS_Public_Pages {
 		if ( ! $sizes ) {
 			return '';
 		}
+		self::$upload_rendered = true;
 		$max_rows   = max( 1, (int) DWADS_Settings::get( 'max_banners_per_upload', 5 ) );
 		$max_kb     = (int) DWADS_Settings::get( 'max_upload_kb', 512 );
 		$result_key = isset( $_GET['dwads_result'] ) ? sanitize_key( wp_unslash( $_GET['dwads_result'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended

@@ -391,22 +391,31 @@ window across the breakpoint simply swaps the creative for the one that fits.
 Two creatives means two balances: a `320x100` banner is a separate banner with
 its own funding, exactly like any other size.
 
-## Footer credit (1.2.7)
+## Credit line on the plugin's own pages (1.2.7, scoped in 1.3.0)
 
-Settings → Display → **Show a small credit line in the footer** prints one quiet
-line at the bottom of every public page:
+Settings → Display → **Show a small credit line on the plugin's own pages**
+prints one quiet line:
 
 > Powered by [Crypto Banner Ads](https://github.com/nima1981/wp-crypto-banner-ads) from [Reza Consulting](https://reza.consulting)
 
-It is on by default and can be switched off completely. The styles are printed
-inline with the markup, so the line looks the same on pages that never enqueue
-the banner stylesheet. It is plain text in the flow — 11px, centred, inherited
-colour at 55% opacity — so it does not compete with the page or with the ads.
+It appears **only where the plugin itself is the subject**:
 
-It appears on the plugin's own standalone pages too: the banner management page
-and the invalid-link page. Those build a complete HTML document of their own and
-never run `wp_footer`, so they place the same markup at the bottom of their own
-body. Turning the setting off removes it from all of them.
+- the page holding `[dwads_upload]`
+- the banner management page
+- the invalid-link page
+
+Ordinary posts and pages never show it, even when they display banners. The test
+is "did the upload form print during this request", not "does this page carry an
+ad", so an article with three banners in it stays clean.
+
+The management and invalid-link pages build a complete HTML document of their
+own and never run `wp_footer`, so they place the same markup at the bottom of
+their own body; the upload page gets it through `wp_footer`.
+
+Styles are printed inline with the markup, so the line looks the same on pages
+that never enqueue the banner stylesheet. It is plain text in the flow — 11px,
+centred, inherited colour at 55% opacity. The setting switches it off everywhere
+at once.
 
 ## “Fund this banner” link (1.2.8)
 

@@ -408,7 +408,7 @@ final class DWADS_Admin {
 		self::field_checkbox( 'target_new_tab', __( 'Open advertiser links in a new tab', 'dwads' ) );
 		self::field_text( 'rel_attributes', __( 'rel attributes on banner links', 'dwads' ), __( 'Recommended: nofollow sponsored noopener', 'dwads' ) );
 		self::field_checkbox( 'ad_label_enabled', __( 'Show an advertisement label on banners', 'dwads' ), __( 'A small corner tag, the way the large ad networks disclose paid placements.', 'dwads' ) );
-		self::field_checkbox( 'credit_enabled', __( 'Show a small credit line in the footer', 'dwads' ), __( 'A single quiet line on every public page: “Powered by Crypto Banner Ads from Reza Consulting”, with both names linked. Turn it off to remove it completely.', 'dwads' ) );
+		self::field_checkbox( 'credit_enabled', __( 'Show a small credit line on the plugin’s own pages', 'dwads' ), __( 'A single quiet line — “Powered by Crypto Banner Ads from Reza Consulting”, with both names linked — at the bottom of the upload form page and the banner management page. Ordinary posts and pages never show it, even when they display banners.', 'dwads' ) );
 		self::field_text( 'ad_label_text', __( 'Label text', 'dwads' ), __( 'Keep it short and honest. “Sponsored” is the usual choice; “Ad” is the shortest.', 'dwads' ) );
 		self::field_checkbox( 'notify_advertiser', __( 'Email advertisers their link and approval status', 'dwads' ), __( 'Only applies when an email address was supplied at upload. This is the recovery path when a link is lost.', 'dwads' ) );
 		echo '</table>';
