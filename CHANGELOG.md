@@ -1,5 +1,22 @@
 # Changelog
 
+## 1.8.0
+- **A click is never written off.** A click that reaches the charge statement is
+  billed even when the balance cannot cover the price; the balance is allowed to
+  go negative instead. Recording such a click as free meant the advertiser got
+  the click and paid nothing, which is the wrong direction. The old
+  `insufficient_balance` outcome is gone.
+- **Underfunded banners stop being served.** Rotation now needs at least one
+  click's worth of balance, so a banner holding dust can no longer fill a slot
+  with impressions that can never be billed.
+- **The banner list says why:** "Below one click (6 of 28 sats): not served".
+- **A counter reset starts a new accounting window** (`reset_at`). The click-rate
+  brake and the per-banner daily cap ignore clicks charged before the reset,
+  which previously left a reset banner at "24 clicks to 1 impression" and tripped
+  the 20% brake as soon as 20 fresh impressions arrived. The click log itself is
+  untouched.
+- Schema 1.5.0: `reset_at` on the banners table.
+
 ## 1.7.0
 - **The swap provider field is now just the provider's embed code.** Paste the
   complete snippet — iframe, script tag, both — and it prints unchanged. The

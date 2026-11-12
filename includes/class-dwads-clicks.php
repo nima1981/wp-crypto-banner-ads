@@ -561,6 +561,14 @@ final class DWADS_Clicks {
 
 		$since_day   = gmdate( 'Y-m-d H:i:s', time() - DAY_IN_SECONDS );
 		$since_hour  = gmdate( 'Y-m-d H:i:s', time() - HOUR_IN_SECONDS );
+
+		// A counter reset starts a new accounting window for this banner. Without
+		// this, the clicks that were charged before the reset keep counting against
+		// a fresh impression total and trip the click-rate brake immediately.
+		$since_banner = $since_day;
+		if ( ! empty( $banner['reset_at'] ) && (string) $banner['reset_at'] > $since_day ) {
+			$since_banner = (string) $banner['reset_at'];
+		}
 		$max_per_hour = max( 1, (int) DWADS_Settings::get( 'max_clicks_per_ip_hour', 10 ) );
 		$max_ip_day   = max( 1, (int) DWADS_Settings::get( 'max_clicks_per_ip_day', 15 ) );
 		$max_vis_day  = max( 1, (int) DWADS_Settings::get( 'max_clicks_per_visitor_day', 3 ) );
@@ -578,7 +586,7 @@ final class DWADS_Clicks {
 			$reason = 'visitor_daily_cap';
 		}
 
-		if ( '' === $reason && $max_ban_day > 0 && self::charged_clicks_since( 'banner_id', (int) $banner['id'], $since_day ) >= $max_ban_day ) {
+		if ( '' === $reason && $max_ban_day > 0 && self::charged_clicks_since( 'banner_id', (int) $banner['id'], $since_banner ) >= $max_ban_day ) {
 			$reason = 'banner_daily_cap';
 		}
 
@@ -588,8 +596,8 @@ final class DWADS_Clicks {
 		$ceiling_pct = max( 0, (int) DWADS_Settings::get( 'click_rate_ceiling_percent', 20 ) );
 		$min_sample  = max( 1, (int) DWADS_Settings::get( 'click_rate_min_impressions', 20 ) );
 		if ( '' === $reason && $ceiling_pct > 0 && $record ) {
-			$views   = self::viewable_impressions_since( (int) $banner['id'], $since_day );
-			$billed  = self::charged_clicks_since( 'banner_id', (int) $banner['id'], $since_day );
+			$views   = self::viewable_impressions_since( (int) $banner['id'], $since_banner );
+			$billed  = self::charged_clicks_since( 'banner_id', (int) $banner['id'], $since_banner );
 			if ( $views >= $min_sample && ( $billed * 100 ) > ( $views * $ceiling_pct ) ) {
 				$reason = 'rate_ceiling';
 			}
@@ -601,21 +609,27 @@ final class DWADS_Clicks {
 
 		if ( '' === $reason ) {
 			global $wpdb;
-			// Single statement: the balance can never be pushed below zero, even
-			// with simultaneous clicks.
+			// One statement, so simultaneous clicks cannot double-charge. There is
+			// deliberately no balance condition: a click that reached this point is
+			// billed, even if the balance cannot cover it. Recording it as free
+			// would mean the advertiser received the click and paid nothing, which
+			// is the wrong direction. The balance is allowed to go negative, and
+			// serving stops there because rotation requires a positive balance; so
+			// an overdraft can only grow from tokens handed out before it went
+			// under, which expire in minutes and can be used once.
 			$affected = $wpdb->query(
 				$wpdb->prepare(
-					'UPDATE ' . DWADS_Banners::table() . " SET sats_spent = sats_spent + %d, clicks_charged = clicks_charged + 1, last_activity_at = %s WHERE id = %d AND status = 'active' AND ( sats_received - sats_spent ) >= %d",
+					'UPDATE ' . DWADS_Banners::table() . " SET sats_spent = sats_spent + %d, clicks_charged = clicks_charged + 1, last_activity_at = %s WHERE id = %d AND status = 'active'",
 					(int) $sats,
 					$now,
-					(int) $banner['id'],
-					(int) $sats
+					(int) $banner['id']
 				)
 			);
-			if ( $affected ) {
-				$charged = 1;
-			} else {
-				$reason = 'insufficient_balance';
+			$charged = $affected ? 1 : 0;
+
+			if ( ! $affected ) {
+				// The banner stopped being active between the token and the click.
+				$reason = 'inactive';
 			}
 		}
 

@@ -743,8 +743,17 @@ final class DWADS_Banners {
 		$weights = array();
 		$total   = 0;
 		foreach ( $rows as $index => $row ) {
-			$balance = max( 0, (int) $row['sats_received'] - (int) $row['sats_spent'] );
-			$weight  = (int) apply_filters( 'dwads_banner_weight', min( $balance, $cap ), $row, $w, $h );
+			$balance = (int) $row['sats_received'] - (int) $row['sats_spent'];
+
+			// A banner that cannot cover one click would be shown for free: it
+			// fills the space, the advertiser owes nothing, and the click is never
+			// billable. Leave it out until it is topped up.
+			$one_click = DWADS_Price::usd_to_sats( DWADS_Settings::click_price_for( $row ) );
+			if ( $balance < max( 1, $one_click ) ) {
+				continue;
+			}
+
+			$weight = (int) apply_filters( 'dwads_banner_weight', min( $balance, $cap ), $row, $w, $h );
 			if ( $weight <= 0 ) {
 				continue;
 			}
@@ -797,7 +806,8 @@ final class DWADS_Banners {
 
 		$wpdb->query(
 			$wpdb->prepare(
-				'UPDATE ' . self::table() . ' SET impressions = 0, last_served_at = NULL WHERE id = %d',
+				'UPDATE ' . self::table() . ' SET impressions = 0, last_served_at = NULL, reset_at = %s WHERE id = %d',
+				gmdate( 'Y-m-d H:i:s' ),
 				$id
 			)
 		);

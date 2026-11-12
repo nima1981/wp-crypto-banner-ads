@@ -266,8 +266,16 @@ final class DWADS_Admin {
 				echo '</form>';
 			}
 
-			if ( 'active' === $banner['status'] && $balance <= 0 ) {
-				echo '<div class="dwads-meta">' . esc_html__( 'Balance empty: not served', 'dwads' ) . '</div>';
+			$one_click = max( 1, DWADS_Price::usd_to_sats( DWADS_Settings::click_price_for( $banner ) ) );
+			if ( 'active' === $banner['status'] && $balance < $one_click ) {
+				echo '<div class="dwads-meta">' . esc_html(
+					sprintf(
+						/* translators: 1: balance in sats, 2: sats needed for one click */
+						__( 'Below one click (%1$s of %2$s sats): not served', 'dwads' ),
+						number_format_i18n( $balance ),
+						number_format_i18n( $one_click )
+					)
+				) . '</div>';
 			}
 			echo '</td></tr>';
 		}

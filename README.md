@@ -616,3 +616,30 @@ choice lives in the conversion path, not in the address. If you would rather
 word that differently, change **Settings → Upload page introduction** and the
 management-page disclaimer; the direct-send sentence is in
 `includes/class-dwads-public-pages.php`.
+
+## When the balance runs out (1.8.0)
+
+Two rules, and they point the same way: the advertiser never gets a free click,
+and the site never shows an ad that cannot be billed.
+
+**A click is always billed.** There is no balance check in the charge statement.
+If a click arrives when the balance cannot cover the price, the balance goes
+negative rather than the click being discarded. That can only happen from a token
+handed out before the balance dropped — serving stops as soon as the balance is
+not positive — and those tokens expire in 30 minutes and work once.
+
+A negative balance is a small debt against the next top-up. The banner list shows
+it as a negative figure, the badges say it is not being served, and it returns to
+rotation the moment the balance covers one click again.
+
+**Serving needs one click's worth.** A banner with a dust balance is skipped by
+the rotation picker rather than filling the slot for free. The row explains
+itself: "Below one click (6 of 28 sats): not served", where 28 is that banner's
+own price at the current rate.
+
+**Resetting counters starts a new accounting window.** `reset_at` is recorded, and
+the click-rate brake and the per-banner daily cap ignore anything charged before
+it. Without that boundary, a reset left a banner comparing a fresh impression
+count against a day of old clicks, which tripped the 20% brake almost
+immediately and stopped billing while still serving.
+

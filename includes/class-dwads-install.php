@@ -12,7 +12,7 @@ defined( 'ABSPATH' ) || exit;
  */
 final class DWADS_Install {
 
-	const SCHEMA = '1.4.0';
+	const SCHEMA = '1.5.0';
 
 	/**
 	 * Activate the plugin.
@@ -116,6 +116,7 @@ final class DWADS_Install {
 			clicks_charged bigint(20) unsigned NOT NULL DEFAULT 0,
 			impressions bigint(20) unsigned NOT NULL DEFAULT 0,
 			last_served_at datetime DEFAULT NULL,
+			reset_at datetime DEFAULT NULL,
 			last_manage_view_at datetime DEFAULT NULL,
 			last_poll_at datetime DEFAULT NULL,
 			last_activity_at datetime DEFAULT NULL,
