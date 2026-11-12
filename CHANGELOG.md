@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.3.1
+- Removed the "This page is read-only…" paragraph from the banner management
+  page. The page is still read-only; it just no longer explains that on every
+  visit.
+
 ## 1.3.0
 - The credit line now appears only on the plugin's own pages — the upload form
   page, the banner management page and the invalid-link page — instead of the

@@ -679,7 +679,6 @@ final class DWADS_Public_Pages {
 			$body .= '<tr><td>' . esc_html__( 'Keywords', 'dwads' ) . '</td><td>' . esc_html( $banner['keywords'] ) . '</td></tr>';
 		}
 		$body .= '</tbody></table>';
-		$body .= '<p class="dwads-muted">' . esc_html__( 'This page is read-only. To change the destination, the image or the status, reply to the email that delivered this link, or use the contact address on the site.', 'dwads' ) . '</p>';
 
 		$recent = $wpdb->get_results(
 			$wpdb->prepare(
