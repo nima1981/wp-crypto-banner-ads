@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.5
+- Management links shown right after an upload open in a new tab, so the
+  advertiser does not lose the upload screen when checking a banner.
+
 ## 1.2.4
 - Fitted (auto-fit) banners are saved at 90% quality instead of the WordPress
   default 82, and get a light sharpen pass after the downscale, so resized

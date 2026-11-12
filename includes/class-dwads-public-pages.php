@@ -309,7 +309,7 @@ final class DWADS_Public_Pages {
 				if ( ! empty( $result['created'] ) ) {
 					$list = '<p>' . esc_html__( 'Save these private management links. They are the only way to top up or edit a banner, and they are not shown again.', 'dwads' ) . '</p><ul class="dwads-links">';
 					foreach ( $result['created'] as $item ) {
-						$list .= '<li><strong>#' . (int) $item['id'] . '</strong> <a href="' . esc_url( $item['manage_url'] ) . '" rel="nofollow">' . esc_html( $item['manage_url'] ) . '</a> <span class="dwads-muted">(' . esc_html( $item['status'] ) . ')</span>';
+						$list .= '<li><strong>#' . (int) $item['id'] . '</strong> <a href="' . esc_url( $item['manage_url'] ) . '" target="_blank" rel="nofollow noopener noreferrer">' . esc_html( $item['manage_url'] ) . '</a> <span class="dwads-muted">(' . esc_html( $item['status'] ) . ')</span>';
 						if ( ! empty( $item['fit_from'] ) ) {
 							$list .= '<br><span class="dwads-muted">' . esc_html(
 								sprintf(
