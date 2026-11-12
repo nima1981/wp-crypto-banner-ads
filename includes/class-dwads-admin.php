@@ -502,15 +502,14 @@ final class DWADS_Admin {
 
 		echo '<h2 class="title">' . esc_html__( 'Payment wallet', 'dwads' ) . '</h2>';
 		echo '<table class="form-table" role="presentation">';
-		self::field_text( 'xpub', __( 'Extended public key (watch-only)', 'dwads' ), __( 'Paste an xpub, ypub or zpub. The plugin derives one address per banner and never stores a private key. Use an account-level key from a wallet that is not used for anything else. Note: address numbering restarts at 0 when the plugin data is deleted, so re-using the same key after a wipe hands old, already-funded addresses to new banners. Use a different account (new xpub) or raise the address index in Diagnostics before uploading again. See “Use this wallet for nothing else” below for change addresses and sweeping.', 'dwads' ), 'dwads-mono' );
+		self::field_text( 'xpub', __( 'Extended public key (watch-only)', 'dwads' ), __( 'Paste a zpub (native segwit) or ypub (wrapped segwit) account key from a modern descriptor wallet. The plugin derives one address per banner and never stores a private key. Legacy xpub and testnet keys are refused: those wallets put change back on the same chain the banners are numbered from. Use an account-level key from a wallet that is not used for anything else. Note: address numbering restarts at 0 when the plugin data is deleted, so re-using the same key after a wipe hands old, already-funded addresses to new banners. Use a different account or raise the address index in Diagnostics before uploading again. See “Use this wallet for nothing else” below for change addresses and sweeping.', 'dwads' ), 'dwads-mono' );
 		self::field_text( 'derivation_path', __( 'Derivation path template', 'dwads' ), __( 'Default 0/{i} for the external chain. Use {i} where the banner index goes.', 'dwads' ) );
 		self::field_select(
 			'address_type',
 			__( 'Address type', 'dwads' ),
-			__( 'auto follows the key prefix (xpub → legacy, zpub → native segwit).', 'dwads' ),
+			__( 'auto follows the key prefix (ypub → wrapped segwit, zpub → native segwit). Legacy keys are refused on save.', 'dwads' ),
 			array(
 				'auto'        => __( 'Automatic (recommended)', 'dwads' ),
-				'p2pkh'       => 'Legacy (1…)',
 				'p2sh-p2wpkh' => 'Segwit in P2SH (3…)',
 				'p2wpkh'      => 'Native segwit (bc1…)',
 			)
@@ -740,7 +739,7 @@ final class DWADS_Admin {
 		$new['exchange_widget'] = $widget;
 
 		$address_type                    = $scalar( 'address_type', 'auto' );
-		$new['address_type']             = in_array( $address_type, array( 'auto', 'p2pkh', 'p2sh-p2wpkh', 'p2wpkh' ), true ) ? $address_type : 'auto';
+		$new['address_type']             = in_array( $address_type, array( 'auto', 'p2sh-p2wpkh', 'p2wpkh' ), true ) ? $address_type : 'auto';
 		$path_raw                        = $scalar( 'derivation_path', '0/{i}' );
 		if ( DWADS_Xpub::has_hardened( $path_raw ) ) {
 			$errors[] = __( 'Hardened path steps cannot be derived from a public key. Paste the account-level key and use a relative path such as 0/{i}.', 'dwads' );
@@ -762,6 +761,15 @@ final class DWADS_Admin {
 			$parsed = DWADS_Xpub::parse( $xpub );
 			if ( is_wp_error( $parsed ) ) {
 				$errors[] = $parsed->get_error_message();
+			} elseif ( ! empty( $parsed['testnet'] ) ) {
+				$errors[] = __( 'Testnet keys (tpub, upub, vpub) are refused: this plugin runs on mainnet. Paste the mainnet account key.', 'dwads' );
+			} elseif ( ! in_array( (string) $parsed['type'], array( 'p2wpkh', 'p2sh-p2wpkh' ), true ) ) {
+				// Legacy accounts (xpub) send change back into the same chain the
+				// banners are numbered from, so a change output can later become a
+				// banner address and be credited to the wrong advertiser. Modern
+				// descriptor wallets (zpub/ypub) keep change on a separate chain.
+				// With no legacy installs to support, refuse the risky shape.
+				$errors[] = __( 'Only zpub (native segwit) and ypub (wrapped segwit) account keys are accepted. A legacy xpub key comes from a wallet that reuses the banner chain for change addresses. Re-export from a descriptor wallet: in Electrum, Wallet → Information shows zpub for a native segwit wallet.', 'dwads' );
 			} else {
 				$new['xpub'] = $xpub;
 			}
@@ -824,20 +832,20 @@ final class DWADS_Admin {
 		?>
 		<div class="dwads-help">
 			<h3><?php esc_html_e( 'What this key is, and what it can do', 'dwads' ); ?></h3>
-			<p><?php esc_html_e( 'An extended public key (xpub, ypub or zpub) lets any software compute every receiving address in one wallet account and read its history. It cannot sign, so a copy on the web server cannot move your money. Extended private keys (xprv, yprv, zprv) are refused on purpose: the server never needs one, and a private key here would let anyone drain the wallet.', 'dwads' ); ?></p>
+			<p><?php esc_html_e( 'An extended public key (zpub or ypub) lets any software compute every receiving address in one wallet account and read its history. It cannot sign, so a copy on the web server cannot move your money. Extended private keys (xprv, yprv, zprv) are refused on purpose: the server never needs one, and a private key here would let anyone drain the wallet. Legacy account keys (xpub) and testnet keys are also refused, because legacy wallets put change back on the same chain the banners are numbered from.', 'dwads' ); ?></p>
 
 			<h3><?php esc_html_e( 'Where to copy it from', 'dwads' ); ?></h3>
 			<ul>
-				<li><?php echo wp_kses_post( __( '<strong>Sparrow</strong> (also for Coldcard, Ledger and Trezor): open the wallet that should receive the money, then Settings → Keystore, and copy the xpub or zpub shown for the account.', 'dwads' ) ); ?></li>
+				<li><?php echo wp_kses_post( __( '<strong>Sparrow</strong> (also for Coldcard, Ledger and Trezor): open the wallet that should receive the money, then Settings → Keystore, and copy the zpub or ypub shown for the account.', 'dwads' ) ); ?></li>
 				<li><?php echo wp_kses_post( __( '<strong>Electrum</strong>: Wallet → Information → “Master public key”. For a fresh native-segwit wallet that key is a <code>zpub</code>, which is what you want here with Address type set to Native segwit. Its receive chain is <code>m/0/i</code>, exactly what the default path <code>0/{i}</code> produces. The “type” line on that screen is Standard vs 2FA vs multisig, not descriptor vs legacy: every new standard wallet since Electrum 4.6 is a descriptor wallet, with change on <code>m/1/i</code>, which this plugin never derives. See “Use this wallet for nothing else” below.', 'dwads' ) ); ?></li>
-				<li><?php echo wp_kses_post( __( '<strong>Bitcoin Core</strong> descriptor wallet: run <code>listdescriptors</code> and take the xpub part of the external descriptor (the one ending in <code>/0/*</code>).', 'dwads' ) ); ?></li>
+				<li><?php echo wp_kses_post( __( '<strong>Bitcoin Core</strong> descriptor wallet: run <code>listdescriptors</code> and take the xpub part of the external descriptor (the one ending in <code>/0/*</code>) — Core exports plain xpub even for segwit accounts. The plugin refuses xpub, so import that wallet into Sparrow instead and copy the zpub it shows for the account.', 'dwads' ) ); ?></li>
 				<li><?php echo wp_kses_post( __( '<strong>Ledger Live and Trezor Suite</strong> do not show account keys. Export through Sparrow or Electrum with the device connected.', 'dwads' ) ); ?></li>
 			</ul>
-			<p class="dwads-meta"><?php esc_html_e( 'Use an account-level key, meaning the node below the last hardened step (for example 84h/0h/0h). The path 0/{i} then matches your own receive chain. If a wallet labels a native segwit account as “xpub”, set Address type to Native segwit above; the label is cosmetic, the script type decides the address format.', 'dwads' ); ?></p>
+			<p class="dwads-meta"><?php esc_html_e( 'Use an account-level key, meaning the node below the last hardened step (for example 84h/0h/0h). The path 0/{i} then matches your own receive chain. Electrum shows this as zpub for a native segwit wallet; paste that and leave Address type on Automatic.', 'dwads' ); ?></p>
 			<h3><?php esc_html_e( 'Use this wallet for nothing else', 'dwads' ); ?></h3>
 			<p><?php esc_html_e( 'The plugin reads every banner address by walking the wallet history, so it cannot tell a payment from a payment-shaped accident. Coins that already sit on an index are invisible until that index becomes a banner — and at that moment they are credited to that advertiser, who never paid them.', 'dwads' ); ?></p>
 			<ul>
-				<li><?php echo wp_kses_post( __( '<strong>One wallet, one job.</strong> Give the plugin its own wallet account and never use its receive addresses for anything else: no incoming payments, no manual addresses, no second plugin or store on the same key. A dedicated account (a new xpub from the same seed is enough) is the simplest thing that cannot go wrong.', 'dwads' ) ); ?></li>
+				<li><?php echo wp_kses_post( __( '<strong>One wallet, one job.</strong> Give the plugin its own wallet account and never use its receive addresses for anything else: no incoming payments, no manual addresses, no second plugin or store on the same key. A dedicated account (a new key from the same seed is enough) is the simplest thing that cannot go wrong.', 'dwads' ) ); ?></li>
 				<li><?php echo wp_kses_post( __( '<strong>Check the wallet type if you use Electrum.</strong> Descriptor wallets, created by default from Electrum 4.6 on, send change to the internal chain <code>m/1/i</code>, which this plugin never derives, so change can never land on a banner address. A standard (legacy) wallet, which 4.5 could still create, sends change to the next unused address of the <em>same</em> receive chain — the very sequence banners are numbered from. Confirm the type at Wallet → Information. If it says standard, treat change as a hazard or move to a descriptor wallet.', 'dwads' ) ); ?></li>
 				<li><?php echo wp_kses_post( __( '<strong>Sweep everything, never a partial amount.</strong> Sending the full balance spends every coin and produces no change output at all, so there is nothing to misplace. Do not send a round figure “and leave the rest”. Sweeping does not affect any balance here: the plugin counts what arrived and never reads what an address spent.', 'dwads' ) ); ?></li>
 				<li><?php echo wp_kses_post( sprintf( __( 'After changing wallets, restoring a backup or wiping the plugin data, press <a href="%s">Check if the next address is unused</a> on the Diagnostics screen before uploading again.', 'dwads' ), esc_url( $diag ) ) ); ?></li>
@@ -851,7 +859,7 @@ final class DWADS_Admin {
 			</ol>
 			<p><?php echo wp_kses_post( __( '<strong>Gap limit:</strong> wallets scan only about 20 unused addresses ahead of the last one they know. Each banner uses up an index even when it is never funded, so raise the limit (Sparrow → Settings → Gap limit, Electrum <code>wallet.gap_limit</code>) before you have many banners, or keep ads in a dedicated account with a modest banner count. Coins on an address your wallet has not scanned are not lost; a higher gap or a rescan will reveal them.', 'dwads' ) ); ?></p>
 			<p><?php esc_html_e( 'Back up the database together with the wallet: the database holds the banner-to-address map and the click accounting. Losing it does not lose the coins, but it does lose the records.', 'dwads' ); ?></p>
-			<p><?php echo wp_kses_post( __( '<strong>Wiping the data.</strong> Deleting the plugin data resets the address counter, so the next banner starts again at index 0 of the same key. Any money that already sits on those addresses is on-chain and will be credited to the new banner. To start clean either use a different account (a new xpub from the same wallet is enough, the seed can stay), or set a higher starting index on the Diagnostics screen before uploading.', 'dwads' ) ); ?></p>
+			<p><?php echo wp_kses_post( __( '<strong>Wiping the data.</strong> Deleting the plugin data resets the address counter, so the next banner starts again at index 0 of the same key. Any money that already sits on those addresses is on-chain and will be credited to the new banner. To start clean either use a different account (a new key from the same wallet is enough, the seed can stay), or set a higher starting index on the Diagnostics screen before uploading.', 'dwads' ) ); ?></p>
 		</div>
 		<?php
 		return (string) ob_get_clean();

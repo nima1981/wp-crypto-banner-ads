@@ -16,7 +16,7 @@ This is a separate plugin from `wpd-bitcoin`, and does not share code with it.
 | Need | Why |
 |---|---|
 | PHP 7.4+ | WordPress baseline |
-| PHP **GMP** or **BCMath** | secp256k1 maths for deriving addresses from your xpub |
+| PHP **GMP** or **BCMath** | secp256k1 maths for deriving addresses from your account key |
 | PHP **RIPEMD160** | Bitcoin addresses (hash160) |
 | GD or Imagick | re-encoding uploaded images (strips EXIF/embedded payloads) |
 | Working WP-Cron or a real cron job | payment checks every 5 minutes |
@@ -34,7 +34,7 @@ The plugin warns you on the Plugins screen if a requirement is missing.
 
 ### One-time setup checklist
 
-1. **Wallet key.** Paste an account-level **xpub / ypub / zpub** (watch-only; no private keys are stored). Derivation is non-hardened, default path `0/{i}`. See [Wallet setup](#wallet-setup-the-xpub-and-staying-in-control-of-the-money) for wallet-by-wallet steps, how to verify it, and the gap-limit caveat.
+1. **Wallet key.** Paste an account-level **zpub / ypub** (watch-only; no private keys are stored). Legacy xpub and testnet keys are refused — see [Wallet setup](#wallet-setup-the-account-key-and-staying-in-control-of-the-money). Derivation is non-hardened, default path `0/{i}`. See [Wallet setup](#wallet-setup-the-account-key-and-staying-in-control-of-the-money) for wallet-by-wallet steps, how to verify it, and the gap-limit caveat.
 2. **Upload page.** Create a page containing the shortcode:
 
    ```
@@ -65,7 +65,7 @@ The plugin warns you on the Plugins screen if a requirement is missing.
 
 ---
 
-## Wallet setup: the xpub, and staying in control of the money
+## Wallet setup: the account key, and staying in control of the money
 
 ### What the plugin actually stores
 
@@ -81,13 +81,13 @@ Export the key at **account level** — the node three hardened steps below the 
 
 | Wallet | Where to get it | Notes |
 |---|---|---|
-| **Sparrow** (recommended, also for Coldcard / Ledger / Trezor) | Open the ad wallet → Settings → Keystore tab → copy the xpub/zpub | Shows the script type; a zpub produces `bc1…` addresses. Has a Gap limit setting. |
+| **Sparrow** (recommended, also for Coldcard / Ledger / Trezor) | Open the ad wallet → Settings → Keystore tab → copy the zpub/ypub | A zpub produces `bc1…` addresses. Has a Gap limit setting. |
 | **Electrum** (desktop or mobile) | Wallet → Information → “Master public key” | For a fresh native-segwit wallet the key is a `zpub` — that's the one to paste (Address type: Native segwit). Receive chain is `m/0/i`, exactly what `0/{i}` produces. The “type” line is Standard/2FA/multisig, not descriptor/legacy; every new standard wallet since 4.6 is a descriptor wallet (change on `m/1/i`). See **One wallet, one job**. |
-| **Bitcoin Core** (descriptor wallet) | `listdescriptors`, take the external descriptor | e.g. `wpkh([f1ngerpr1nt/84h/0h/0h]xpub6C…/0/*)` — use the xpub portion, path `0/{i}`. |
+| **Bitcoin Core** (descriptor wallet) | `listdescriptors` shows the descriptor | Core exports plain `xpub` even for segwit accounts, which the plugin refuses; import the wallet into Sparrow and copy the `zpub` it shows instead. |
 | **Ledger Live / Trezor Suite** | Not exposed | Connect the device to Sparrow or Electrum and export the account key there. |
 | **BTCPay Server** | Store → Wallet → derivation scheme | Same kind of account key. |
 
-If a wallet gives you a key labelled `xpub` for an account that is actually native segwit, set **Address type** to “Native segwit (bc1…)” in the settings. The prefix in the name is cosmetic; the script type is what decides the address format. Getting this wrong does not lose money, but the addresses will not appear in the wallet that created them.
+Address type follows the key: `zpub` derives native segwit (bc1…), `ypub` derives wrapped segwit (3…). Leave it on Automatic. Getting the script type wrong would hand out addresses that do not appear in the wallet, so it is locked to what the key says.
 
 ### Verify before you rely on it
 
@@ -108,18 +108,16 @@ Wallets do not scan addresses forever. They scan a fixed number of *unused* addr
 
 The plugin credits a banner by reading the **entire history** of that banner's address, not just what arrived after the banner was created. It has no way to tell a payment from a payment-shaped accident. Money that already sits on an index is invisible while that index is unused — and the moment the index is handed to a banner, that money becomes the advertiser's balance.
 
-So: **give the plugin its own wallet account and use it for nothing else.** No incoming payments, no manual addresses, no second plugin or store on the same key. A separate account from the same seed (a new xpub) is enough, and it is the simplest arrangement that cannot go wrong. After changing wallets, restoring a backup, or wiping plugin data, press **Check if the next address is unused** on the Diagnostics screen before uploading again.
+So: **give the plugin its own wallet account and use it for nothing else.** No incoming payments, no manual addresses, no second plugin or store on the same key. A separate account from the same seed (a new key) is enough, and it is the simplest arrangement that cannot go wrong. After changing wallets, restoring a backup, or wiping plugin data, press **Check if the next address is unused** on the Diagnostics screen before uploading again.
 
 **Change addresses.** A wallet that spends from banner addresses may need to send change somewhere.
 
 - **Descriptor wallets** — every new wallet in Electrum 4.6+, Sparrow, Bitcoin Core: change goes to a separate internal chain (`m/1/i`). The plugin derives `0/{i}` only, so change can never land on a banner address. Safe.
-- **Legacy wallets** — which Electrum 4.5 could still create: change goes to the next unused address of the *same* receive chain, which is exactly the sequence banners are numbered from. If a change output lands on index `N`, and a later banner is assigned index `N`, that banner is credited with money nobody paid it.
-
-The “type” shown on Electrum's Wallet → Information (standard / 2FA / multisig) is not the descriptor-vs-legacy flag. The key prefix tells you: `zpub`/`ypub` = descriptor-style account, `xpub` = legacy account. An `xpub` from a fresh modern wallet would be surprising — all new standard wallets since 4.6 are descriptors — but the plugin still accepts it, because legacy accounts and older wallets legitimately produce one.
+- **Legacy wallets** — which Electrum 4.5 could still create: change goes to the next unused address of the *same* receive chain, which is exactly the sequence banners are numbered from. If a change output lands on index `N`, and a later banner is assigned index `N`, that banner is credited with money nobody paid it. That is why the plugin **refuses xpub keys at save time**: the plugin has no legacy installs to support, so the risky shape is simply not accepted. `zpub` and `ypub` are only ever produced by descriptor wallets, whose change stays on `m/1/i`.
 
 **Sweep everything, never a partial amount.** Sending the full balance spends every coin and produces no change output at all, so there is nothing to misplace. Do not send a round figure and leave the remainder. Sweeping does not affect any advertiser balance: the plugin counts what arrived and never reads what an address spent.
 
-These rules matter most on a legacy wallet and barely matter on a descriptor one — but they cost nothing to follow, and they cover wallets this plugin was not built against.
+Since the plugin only accepts descriptor-wallet keys, the change-address hazard is structurally closed; sweep everything anyway, because it is the rule that costs nothing and has no downside.
 
 ### Sweeping and custody
 
@@ -128,7 +126,7 @@ Revenue arrives as many small UTXOs on many addresses. The plugin counts receive
 - Sweep the whole account to one of your own addresses when fees are low, ideally as one batched transaction rather than one per address.
 - Emptying the addresses is fine; the account and the seed are what matter.
 - Back up the site database alongside the wallet. If the database is lost, the plugin forgets which address belongs to which banner (the coins are still in your wallet, but the click accounting is gone).
-- The **seed is the only thing that must survive**. Losing the xpub costs nothing — re-export it. Losing the seed loses everything, and no amount of plugin data helps.
+- The **seed is the only thing that must survive**. Losing the key costs nothing — re-export it. Losing the seed loses everything, and no amount of plugin data helps.
 
 ### Rotating the key later
 
@@ -140,7 +138,7 @@ Existing banners keep the addresses they were issued, and the plugin keeps polli
 
 | Decision | Implementation |
 |---|---|
-| **xpub, no private keys** | `DWADS_Xpub` parses xpub/ypub/zpub/tpub/upub/vpub, derives non-hardened children, and encodes legacy, P2SH-segwit or native segwit addresses. Nothing secret is ever written to disk. |
+| **zpub/ypub only, no private keys** | `DWADS_Xpub` parses xpub/ypub/zpub/tpub/upub/vpub, derives non-hardened children, and encodes P2SH-segwit or native segwit addresses, but the settings page refuses legacy (xpub) and testnet keys on save: legacy wallets reuse the banner chain for change. Nothing secret is ever written to disk. |
 | **Admin approval configurable** | Setting *Require admin approval*. On: new banners are `pending` until approved. Off: they are `active` immediately. |
 | **Credit as soon as it appears on the network** | `credit_mempool` (default on). A payment is credited when mempool.space lists it, and its credit is removed automatically if it disappears twice without confirming (`missing_polls` counter), so dropped/replaced transactions do not leave phantom balance. |
 | **No refunds** | Stated on the upload and management pages. There is no refund path in the code. |
@@ -345,11 +343,11 @@ Balances are tracked per **address**, not per banner. Deleting the plugin data d
 
 To start clean you do **not** need a new seed. Any one of these works:
 
-1. **A different account.** Export the xpub of another account from the same wallet (e.g. the next `m/84'/0'/<n>`). Different address space, same seed, same backup.
+1. **A different account.** Export the key of another account from the same wallet (e.g. the next `m/84'/0'/<n>`). Different address space, same seed, same backup.
 2. **A higher starting index.** Crypto Ads → Diagnostics → *Start the next banner at index* → set something above every index used before (say 1000). Then *Check if the next address is unused* and confirm it reports no history. This is the cheap option when you keep one account.
 3. **A new wallet or seed**, if you want the old funds and the new campaign to be unrelated in every way.
 
-The plugin now says this in three places: under the xpub field, in the wallet help panel, and on the Diagnostics screen where the index can be changed. Raising the index can never go below an index already used by an existing banner — the form refuses it.
+The plugin now says this in three places: under the wallet-key field, in the wallet help panel, and on the Diagnostics screen where the index can be changed. Raising the index can never go below an index already used by an existing banner — the form refuses it.
 
 ## Link under the banner (1.2.3)
 

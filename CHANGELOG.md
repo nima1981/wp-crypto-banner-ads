@@ -1,5 +1,24 @@
 # Changelog
 
+## 1.8.3
+- **Legacy and testnet keys are refused at save time.** The plugin only accepts
+  zpub (native segwit) and ypub (wrapped segwit) account keys now. An xpub is a
+  legacy account key whose wallet sends change back into the same chain the
+  banners are numbered from, so a change output could later become a banner
+  address and be credited to the wrong advertiser. Descriptor wallets never do
+  this, and a zpub/ypub is only ever produced by a descriptor wallet, so the
+  prefix enforces the safe wallet shape. There are no legacy installs to
+  support, so the risky key is simply refused with a clear message instead of
+  accepted with a warning.
+- The Address type dropdown no longer offers Legacy (1…); it follows the key
+  (ypub → wrapped segwit, zpub → native segwit).
+- Wallet help, the field description, the README key table and the Bitcoin Core
+  note all updated: Core exports plain xpub even for segwit accounts, so the
+  README now points Core users at importing the wallet into Sparrow and copying
+  the zpub.
+- Parsing still recognises xpub/tpub/upub/vpub so it can refuse them with an
+  explanation rather than a generic "unsupported version" error.
+
 ## 1.8.2
 - Documentation only. The Electrum instructions now say the master public key of
   a fresh native-segwit wallet is a **zpub** and that this is the key to paste
