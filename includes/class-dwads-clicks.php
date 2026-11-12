@@ -76,7 +76,7 @@ final class DWADS_Clicks {
 	 * @param int   $page_id Page id.
 	 * @return string Click token.
 	 */
-	public static function begin_impression( $banner, $site_id = 0, $page_id = 0 ) {
+	public static function begin_impression( $banner, $site_id = 0, $page_id = 0, $visitor = '' ) {
 		global $wpdb;
 
 		$nonce = bin2hex( random_bytes( 8 ) );
@@ -91,10 +91,11 @@ final class DWADS_Clicks {
 					'banner_id'  => (int) $banner['id'],
 					'site_id'    => (int) $site_id,
 					'page_id'    => (int) $page_id,
+					'visitor'    => (string) $visitor,
 					'created_at' => gmdate( 'Y-m-d H:i:s', $now ),
 					'expires_at' => gmdate( 'Y-m-d H:i:s', $now + $ttl * MINUTE_IN_SECONDS ),
 				),
-				array( '%s', '%d', '%d', '%d', '%s', '%s' )
+				array( '%s', '%d', '%d', '%d', '%s', '%s', '%s' )
 			);
 		}
 
@@ -219,6 +220,38 @@ final class DWADS_Clicks {
 				$since
 			)
 		);
+		return null !== $found;
+	}
+
+	/**
+	 * Whether this visitor has already been counted for this banner lately.
+	 *
+	 * Keeps the impression counter close to "people who saw it" rather than
+	 * "requests we answered", so a reload or a crawler cannot inflate it.
+	 *
+	 * @param int    $banner_id Banner id.
+	 * @param string $visitor   Visitor hash.
+	 * @param int    $hours     Window in hours.
+	 * @return bool
+	 */
+	public static function recent_impression_exists( $banner_id, $visitor, $hours ) {
+		global $wpdb;
+
+		$visitor = (string) $visitor;
+		if ( '' === $visitor ) {
+			return false;
+		}
+
+		$since = gmdate( 'Y-m-d H:i:s', time() - max( 1, (int) $hours ) * HOUR_IN_SECONDS );
+		$found = $wpdb->get_var(
+			$wpdb->prepare(
+				'SELECT id FROM ' . self::impressions_table() . ' WHERE banner_id = %d AND visitor = %s AND created_at >= %s LIMIT 1',
+				(int) $banner_id,
+				$visitor,
+				$since
+			)
+		);
+
 		return null !== $found;
 	}
 

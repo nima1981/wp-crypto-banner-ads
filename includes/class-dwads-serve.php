@@ -106,8 +106,17 @@ final class DWADS_Serve {
 			return $empty;
 		}
 
-		$token = DWADS_Clicks::begin_impression( $banner, $site_id, $page_id );
-		DWADS_Banners::note_served( (int) $banner['id'] );
+		$ua      = isset( $_SERVER['HTTP_USER_AGENT'] ) ? (string) $_SERVER['HTTP_USER_AGENT'] : '';
+		$visitor = DWADS_Clicks::visitor_hash( (int) $banner['id'], DWADS_Clicks::client_ip(), $ua );
+
+		$token = DWADS_Clicks::begin_impression( $banner, $site_id, $page_id, $visitor );
+
+		// Handing out a banner is not the same as someone seeing it. The counter
+		// ignores crawlers and repeat views inside the de-duplication window, so
+		// the number an advertiser reads stays close to "people who saw this".
+		if ( self::counts_as_impression( $banner, $visitor, $ua ) ) {
+			DWADS_Banners::note_served( (int) $banner['id'] );
+		}
 
 		$alt = trim( (string) $banner['alt_text'] );
 		if ( '' === $alt ) {
@@ -167,6 +176,37 @@ final class DWADS_Serve {
 		$response = new WP_REST_Response( $payload, 200 );
 		self::cors( $response );
 		return $response;
+	}
+
+	/**
+	 * Whether this serve should move the advertiser-visible impression counter.
+	 *
+	 * @param array  $banner  Banner row.
+	 * @param string $visitor Visitor hash, empty when it could not be built.
+	 * @param string $ua      User agent.
+	 * @return bool
+	 */
+	private static function counts_as_impression( $banner, $visitor, $ua ) {
+		$hours = (int) DWADS_Settings::get( 'impression_dedupe_hours', 24 );
+		if ( $hours <= 0 ) {
+			return true;
+		}
+
+		// No user agent at all means a script, not a browser.
+		if ( '' === trim( (string) $ua ) ) {
+			return false;
+		}
+
+		$pattern = (string) DWADS_Settings::get( 'bot_uas', '' );
+		if ( '' !== $pattern && @preg_match( '#' . str_replace( '#', '\#', $pattern ) . '#i', (string) $ua ) ) {
+			return false;
+		}
+
+		if ( '' === (string) $visitor ) {
+			return true;
+		}
+
+		return ! DWADS_Clicks::recent_impression_exists( (int) $banner['id'], $visitor, $hours );
 	}
 
 	/**

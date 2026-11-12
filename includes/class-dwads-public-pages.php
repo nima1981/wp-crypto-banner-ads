@@ -616,8 +616,28 @@ final class DWADS_Public_Pages {
 		$body .= '<div class="dwads-summary">';
 		$body .= '<div><span class="dwads-label">' . esc_html__( 'Balance', 'dwads' ) . '</span><strong>' . esc_html( DWADS_Price::format_btc( $balance ) ) . '</strong><span class="dwads-muted">' . esc_html( sprintf( '≈ $%s', number_format( DWADS_Price::sats_to_usd( $balance ), 2 ) ) ) . '</span></div>';
 		$body .= '<div><span class="dwads-label">' . esc_html__( 'Clicks left', 'dwads' ) . '</span><strong>' . esc_html( number_format_i18n( $remaining ) ) . '</strong><span class="dwads-muted">' . esc_html( sprintf( __( '$%s per click', 'dwads' ), number_format( $price, 2 ) ) ) . '</span></div>';
-		$body .= '<div><span class="dwads-label">' . esc_html__( 'Clicks charged', 'dwads' ) . '</span><strong>' . esc_html( number_format_i18n( (int) $banner['clicks_charged'] ) ) . '</strong><span class="dwads-muted">' . esc_html( sprintf( __( '%s shown', 'dwads' ), number_format_i18n( (int) $banner['impressions'] ) ) ) . '</span></div>';
+		$body .= '<div><span class="dwads-label">' . esc_html__( 'Clicks charged', 'dwads' ) . '</span><strong>' . esc_html( number_format_i18n( (int) $banner['clicks_charged'] ) ) . '</strong><span class="dwads-muted">' . esc_html__( 'billable', 'dwads' ) . '</span></div>';
+
+		$impressions = (int) $banner['impressions'];
+		$charged     = (int) $banner['clicks_charged'];
+		$body .= '<div><span class="dwads-label">' . esc_html__( 'Impressions', 'dwads' ) . '</span><strong>' . esc_html( number_format_i18n( $impressions ) ) . '</strong><span class="dwads-muted">' . esc_html__( 'times shown', 'dwads' ) . '</span></div>';
+
+		// Only meaningful once something has been shown; a bare 0.00% reads like
+		// a failure rather than an absence of data.
+		$rate = $impressions > 0 ? ( $charged / $impressions ) * 100 : null;
+		$body .= '<div><span class="dwads-label">' . esc_html__( 'Click rate', 'dwads' ) . '</span><strong>' . esc_html( null === $rate ? '—' : number_format_i18n( $rate, 2 ) . '%' ) . '</strong><span class="dwads-muted">' . esc_html__( 'clicks ÷ impressions', 'dwads' ) . '</span></div>';
 		$body .= '</div>';
+
+		$dedupe_hours = (int) DWADS_Settings::get( 'impression_dedupe_hours', 24 );
+		if ( $dedupe_hours > 0 ) {
+			$body .= '<p class="dwads-muted">' . esc_html(
+				sprintf(
+					/* translators: %d: number of hours */
+					__( 'An impression is counted once per visitor every %d hours, and crawlers are ignored, so the figure tracks people rather than page loads. A click is only charged once per visitor in the same period, which is why it can be lower than the raw click count.', 'dwads' ),
+					$dedupe_hours
+				)
+			) . '</p>';
+		}
 		$body .= '<p class="dwads-muted">' . esc_html(
 			sprintf(
 				/* translators: 1: received BTC, 2: spent BTC */
@@ -737,10 +757,11 @@ final class DWADS_Public_Pages {
 			input[type=text], input[type=url], input[type=email], input[type=file] { display: block; width: 100%; margin-top: 6px; padding: 9px 10px; border: 1px solid #ccd2db; border-radius: 8px; font: inherit; background: #fff; }
 			.dwads-btn { display: inline-block; border: 0; border-radius: 8px; padding: 10px 16px; background: #1d4ed8; color: #fff; font: inherit; font-weight: 600; cursor: pointer; }
 			.dwads-btn-secondary { background: #e6e9ef; color: #1a1d23; }
-			.dwads-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin: 16px 0 4px; }
+			.dwads-summary { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 16px 0 4px; }
+			@media (min-width: 560px) { .dwads-summary { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 			.dwads-summary > div { border: 1px solid #e3e6eb; border-radius: 10px; padding: 12px; }
 			.dwads-label { display: block; font-size: .78rem; text-transform: uppercase; letter-spacing: .04em; opacity: .7; }
-			.dwads-summary strong { display: block; font-size: 1.15rem; margin: 2px 0; }
+			.dwads-summary strong { display: block; font-size: 1.15rem; margin: 2px 0; overflow-wrap: anywhere; }
 			.dwads-muted { opacity: .68; font-size: .87rem; }
 			.dwads-address code { display: inline-block; padding: 10px 12px; border-radius: 8px; border: 1px solid #ccd2db; word-break: break-all; font-size: .9rem; }
 			.dwads-qr, .dwads-preview { max-width: 100%; height: auto; border-radius: 8px; }

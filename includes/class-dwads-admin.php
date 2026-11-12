@@ -223,7 +223,7 @@ final class DWADS_Admin {
 			echo '<td><strong>' . esc_html( DWADS_Price::format_btc( $balance ) ) . '</strong><div class="dwads-meta">$' . esc_html( number_format( DWADS_Price::sats_to_usd( $balance ), 2 ) ) . ' · ' . esc_html( number_format_i18n( DWADS_Banners::remaining_clicks( $banner ) ) ) . ' clicks left</div>';
 			echo '<div class="dwads-meta">in ' . esc_html( DWADS_Price::format_btc( (int) $banner['sats_received'] ) ) . ' / out ' . esc_html( DWADS_Price::format_btc( (int) $banner['sats_spent'] ) ) . '</div></td>';
 
-			echo '<td>' . esc_html( number_format_i18n( (int) $banner['clicks_charged'] ) ) . '<div class="dwads-meta">' . esc_html( number_format_i18n( (int) $banner['impressions'] ) ) . ' shown</div></td>';
+			echo '<td>' . esc_html( number_format_i18n( (int) $banner['clicks_charged'] ) ) . '<div class="dwads-meta">' . esc_html( sprintf( __( '%s impressions', 'dwads' ), number_format_i18n( (int) $banner['impressions'] ) ) ) . '</div></td>';
 
 			echo '<td><form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '" class="dwads-inline">';
 			wp_nonce_field( 'dwads_banner_action' );
@@ -523,6 +523,7 @@ final class DWADS_Admin {
 		self::field_number( 'max_uploads_per_ip_hour', __( 'Maximum uploads per address per hour', 'dwads' ), '', '1' );
 		self::field_number( 'impression_ttl_minutes', __( 'Click token lifetime (minutes)', 'dwads' ), '', '1' );
 		self::field_checkbox( 'record_impressions', __( 'Record impressions (needed for replay protection)', 'dwads' ) );
+		self::field_number( 'impression_dedupe_hours', __( 'Count an impression once per visitor every N hours', 'dwads' ), __( 'Crawlers and repeat views inside this window do not move the counter an advertiser sees. 24 is a sensible default; 0 counts every single request, which is what made the old numbers look inflated. Needs impressions to be recorded, and never more than 48, because rows are pruned after two days.', 'dwads' ), '1' );
 		self::field_textarea( 'bot_uas', __( 'Bot user-agent pattern', 'dwads' ), __( 'Case-insensitive regular expression. Matching clicks are redirected but not charged.', 'dwads' ) );
 		echo '</table>';
 
@@ -654,6 +655,7 @@ final class DWADS_Admin {
 		$new['max_clicks_per_ip_hour']   = max( 1, (int) $scalar( 'max_clicks_per_ip_hour', '40' ) );
 		$new['max_uploads_per_ip_hour']  = max( 1, (int) $scalar( 'max_uploads_per_ip_hour', '5' ) );
 		$new['impression_ttl_minutes']   = max( 5, (int) $scalar( 'impression_ttl_minutes', '30' ) );
+		$new['impression_dedupe_hours']  = max( 0, min( 48, (int) $scalar( 'impression_dedupe_hours', '24' ) ) );
 		$new['price_cache_minutes']      = max( 1, (int) $scalar( 'price_cache_minutes', '15' ) );
 		$new['bot_uas']                  = sanitize_text_field( $scalar( 'bot_uas', '' ) );
 		$new['price_api']                = esc_url_raw( $scalar( 'price_api', 'https://mempool.space/api/v1/prices' ) );

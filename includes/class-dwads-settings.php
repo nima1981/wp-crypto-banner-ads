@@ -61,6 +61,7 @@ final class DWADS_Settings {
 			'max_clicks_per_ip_hour'   => 40,
 			'max_uploads_per_ip_hour'  => 5,
 			'impression_ttl_minutes'   => 30,
+			'impression_dedupe_hours'  => 24,
 			'record_impressions'       => 1,
 			// URLs.
 			'click_base'               => 'ads-go',

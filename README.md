@@ -481,3 +481,39 @@ auto-darken the page on top of it.
 Both checks are cheap to repeat: the management page's colours should be
 `#101318` page / `#171b22` card / `#e8eaf0` text under `prefers-color-scheme:
 dark`, and the upload form should render in a sans face at any theme.
+
+## How impressions are counted (1.4.0)
+
+An impression used to be "we answered a serve request", which counted every
+page load, every reload, and every crawler that runs JavaScript. On a site with
+a few hundred page views a month that produced figures in the thousands.
+
+Three filters now sit between a serve and the counter:
+
+1. **No user agent, no impression.** A request without one is a script, not a
+   browser.
+2. **Crawler user agents are ignored.** The same `bot_uas` pattern that protects
+   clicking also protects the counter.
+3. **One impression per visitor per window** — Settings → Anti-fraud →
+   *Count an impression once per visitor every N hours*, default **24**. The
+   visitor is a daily-rotating HMAC of address plus user agent, the same
+   cookie-free fingerprint the click de-duplication uses; nothing readable is
+   stored.
+
+Set that window to `0` to restore the old count-every-request behaviour. It is
+clamped to 48 hours because impression rows are pruned after two days.
+
+Two consequences worth knowing:
+
+- The counter needs impressions to be recorded. With *Record impressions* off
+  there is nothing to de-duplicate against, and every serve counts again.
+- Existing totals keep their old, inflated history. If you want the number to
+  start from zero under the new rules, say so and I will add a reset action;
+  the plugin does not clear a paid banner's counters on its own.
+
+Clicks are unchanged: a click is charged once per visitor per `dedupe_hours`,
+and bots are redirected but never charged. That is why the click figure sits
+below the impression figure, and the click rate is charged clicks ÷ impressions.
+
+The management page shows three separate figures — *Clicks charged*, *Impressions*
+and *Click rate* — so the two numbers are no longer stacked in one tile.

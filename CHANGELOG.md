@@ -1,5 +1,21 @@
 # Changelog
 
+## 1.4.0
+- Impression counting is no longer "requests answered". A serve now counts
+  once per visitor per de-duplication window (setting
+  `impression_dedupe_hours`, default 24, 0 restores the old behaviour), and
+  requests with no user agent or a crawler user agent are ignored entirely. The
+  counter an advertiser reads now tracks people rather than page loads.
+- The management page summary is split into *Clicks charged* (billable),
+  *Impressions* (times shown) and *Click rate* (clicks ÷ impressions), with a
+  line underneath explaining the counting rules.
+- The admin banner list labels the second figure "impressions" instead of
+  "shown".
+- Schema 1.3.0: the impressions table gains a hashed `visitor` column and a
+  `(banner_id,visitor,created_at)` index for the de-duplication query.
+- Mobile: the summary tiles are two columns under 560px, three above, and long
+  balances wrap inside their tile instead of spilling into the next one.
+
 ## 1.3.2
 - Fixed the management page washing out on phones in dark mode: the dark rules
   sat before the light ones in the stylesheet, so at equal specificity the light
