@@ -314,6 +314,34 @@ One field drives both the whitelist and what advertisers are told. Each line is 
 
 ---
 
+## Dropping several banners at once (1.9.0)
+
+The upload page now opens with a drop box above the fields. Drop one file or
+twenty: each image becomes its own set of fields, so you only have to fill in
+the destination link for each one instead of opening the file picker over and
+over.
+
+- **Grouped by size.** After a drop the rows are ordered so the same sizes sit
+  together, and each row is labelled with the size that was detected.
+- **Near misses are labelled too.** If an image is not an exact size but is
+  within the same 8% centre-crop the server allows, the row reads *Fitted to
+  300x250* — the same verdict the upload will reach, shown before you submit.
+- **Nothing that cannot be served slips through silently.** An image whose shape
+  matches no allowed size is marked *no matching size* in red, so it is obvious
+  which one will be rejected or cropped.
+- **The cap is the existing setting.** **Settings → Uploads → Maximum banners per
+  upload** still governs everything. Drop more than that and only the first ones
+  are added, with a message saying how many were left and to upload the rest in
+  another run. *Add another banner* keeps working for topping up the set by hand.
+
+Under the hood this is only a shortcut: the dropped files are placed into the
+same per-row file inputs the form always had, so the POST shape, the cap and
+every server-side check are unchanged. In a browser too old to attach files
+programmatically (no `DataTransfer`), the drop box does not appear at all and the
+per-row pickers are the only path — no half-working shortcut is offered.
+
+---
+
 ## Near-miss uploads (1.2.1)
 
 Exact dimensions are still the rule, but a banner that is close is no longer thrown away. With **Fit near-miss images automatically** on (default):

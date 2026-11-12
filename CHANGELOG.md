@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.9.0
+- **Drop several banners at once.** A drop box above the upload fields takes one
+  file or many; each image gets its own set of fields, sorted so the same sizes
+  sit together, with the detected size shown on each row. Near misses are
+  labelled with the size the server will fit them to, and an image matching no
+  allowed size is flagged before submitting.
+- The existing **Maximum banners per upload** setting still caps the run: extra
+  files are not added, and the message says how many were left and to upload
+  them in another run. *Add another banner* still adds rows by hand.
+- Implemented client-side only (`assets/upload.js`): dropped files are placed
+  into the same per-row file inputs, so the POST shape, the cap and every
+  server-side validation are unchanged. Browsers without `DataTransfer` never
+  see the drop box.
+
 ## 1.8.8
 - **“Advertise here” and “Fund this banner” can open in a new tab.**
   Settings → Link under the banner and Settings → “Fund this banner” link each

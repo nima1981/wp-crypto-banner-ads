@@ -61,6 +61,13 @@ final class DWADS_Shortcodes {
 			array(),
 			DWADS_VERSION
 		);
+		wp_register_script(
+			'dwads-upload',
+			DWADS_URL . 'assets/upload.js',
+			array(),
+			DWADS_VERSION,
+			true
+		);
 	}
 
 	/**
@@ -112,6 +119,7 @@ final class DWADS_Shortcodes {
 			self::register_assets();
 		}
 		wp_enqueue_style( 'dwads-form' );
+		wp_enqueue_script( 'dwads-upload' );
 		return DWADS_Public_Pages::upload_form_html();
 	}
 

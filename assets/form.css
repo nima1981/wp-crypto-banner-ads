@@ -73,6 +73,12 @@
 	background: #fbfcfd;
 }
 
+/* A [hidden] file input must stay hidden: the rule above would otherwise
+   re-show it, since an author declaration beats the browser's default. */
+.dwads-upload input[type="file"][hidden] {
+	display: none;
+}
+
 .dwads-upload input:focus {
 	outline: none;
 	border-color: #1d4ed8;
@@ -279,5 +285,132 @@
 	.dwads-upload .dwads-notice-success {
 		background: #17241b;
 		border-color: #2f4a37;
+	}
+}
+
+/* Multi-file drop zone. Sits above the rows and only ever fills the existing
+   per-row file inputs, so it is purely a shortcut, never a second upload path. */
+
+.dwads-upload .dwads-drop[hidden] {
+	display: none;
+}
+
+.dwads-upload .dwads-drop {
+	display: block;
+	margin: 18px 0 6px;
+	padding: 26px 18px;
+	border: 2px dashed rgba(29, 78, 216, .35);
+	border-radius: 12px;
+	background: rgba(29, 78, 216, .04);
+	text-align: center;
+	cursor: pointer;
+	transition: border-color .15s ease, background .15s ease;
+}
+
+.dwads-upload .dwads-drop:hover,
+.dwads-upload .dwads-drop:focus-visible {
+	border-color: rgba(29, 78, 216, .7);
+	background: rgba(29, 78, 216, .07);
+	outline: none;
+}
+
+.dwads-upload .dwads-drop.is-over {
+	border-color: #1d4ed8;
+	background: rgba(29, 78, 216, .12);
+}
+
+.dwads-upload .dwads-drop-title {
+	margin: 0 0 4px;
+	font-size: 15px;
+	font-weight: 600;
+	color: #1d4ed8;
+}
+
+.dwads-upload .dwads-drop-hint {
+	margin: 0;
+	font-size: 13px;
+	opacity: .72;
+}
+
+.dwads-upload .dwads-drop-status {
+	margin: 10px 0 0;
+	font-size: 13px;
+	line-height: 1.5;
+}
+
+.dwads-upload .dwads-drop-status:empty {
+	display: none;
+}
+
+.dwads-upload .dwads-drop-status.is-ok {
+	color: #1a7f37;
+}
+
+.dwads-upload .dwads-drop-status.is-warn {
+	color: #a4610b;
+}
+
+.dwads-upload .dwads-row-size {
+	display: inline-block;
+	margin: 0 0 10px;
+	padding: 5px 9px;
+	border-radius: 999px;
+	background: rgba(0, 0, 0, .06);
+	font-size: 12px;
+	font-weight: 600;
+	letter-spacing: .01em;
+}
+
+.dwads-upload .dwads-row-size.is-fit {
+	background: rgba(29, 78, 216, .12);
+	color: #1d4ed8;
+}
+
+.dwads-upload .dwads-row-size.is-warn {
+	background: rgba(180, 60, 20, .12);
+	color: #a63a12;
+}
+
+@media (prefers-color-scheme: dark) {
+	.dwads-upload .dwads-drop {
+		border-color: rgba(110, 150, 255, .35);
+		background: rgba(110, 150, 255, .06);
+	}
+
+	.dwads-upload .dwads-drop:hover,
+	.dwads-upload .dwads-drop:focus-visible {
+		border-color: rgba(110, 150, 255, .7);
+		background: rgba(110, 150, 255, .1);
+	}
+
+	.dwads-upload .dwads-drop.is-over {
+		border-color: #6e96ff;
+		background: rgba(110, 150, 255, .16);
+	}
+
+	.dwads-upload .dwads-drop-title {
+		color: #8fb0ff;
+	}
+
+	.dwads-upload .dwads-drop-status.is-ok {
+		color: #7ee2a0;
+	}
+
+	.dwads-upload .dwads-drop-status.is-warn {
+		color: #f0b866;
+	}
+
+	.dwads-upload .dwads-row-size {
+		background: rgba(255, 255, 255, .08);
+	}
+
+	.dwads-upload .dwads-row-size.is-fit {
+		background: rgba(110, 150, 255, .18);
+		color: #8fb0ff;
+	}
+
+	.dwads-upload .dwads-row-size.is-warn {
+		background: rgba(255, 120, 80, .16);
+		color: #f3a184;
 	}
 }

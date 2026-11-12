@@ -421,6 +421,23 @@ final class DWADS_Public_Pages {
 			)
 		) . '</p>';
 		$html .= '</div>';
+
+		// Drop several files at once: each one becomes a row of its own, grouped
+		// by size. The files are placed into the existing per-row file inputs,
+		// so the POST shape and every server-side check stay untouched.
+		$html .= '<div class="dwads-drop" id="dwads-dropzone" tabindex="0" role="button" hidden>'
+			. '<p class="dwads-drop-title">' . esc_html__( 'Drop banner images here', 'dwads' ) . '</p>'
+			. '<p class="dwads-drop-hint">' . esc_html(
+				sprintf(
+					/* translators: %d: maximum banners per upload */
+					__( 'Or click to choose files. Drop as many as you like — they are grouped by size. Up to %d per upload.', 'dwads' ),
+					$max_rows
+				)
+			) . '</p>'
+			. '<input type="file" id="dwads-drop-input" accept="image/png,image/jpeg,image/webp" multiple hidden>'
+			. '</div>'
+			. '<div class="dwads-drop-status" id="dwads-drop-status" role="status" aria-live="polite"></div>';
+
 		$html .= '<div id="dwads-rows">' . self::upload_row( 0, $sizes, $max_kb ) . '</div>';
 		$html .= '<p><button type="button" class="dwads-btn dwads-btn-secondary" id="dwads-add-row" data-max="' . (int) $max_rows . '">' . esc_html__( 'Add another banner', 'dwads' ) . '</button></p>';
 		$html .= '<h3>' . esc_html__( 'Optional', 'dwads' ) . '</h3>';
@@ -429,7 +446,28 @@ final class DWADS_Public_Pages {
 		$html .= '<p><button type="submit" class="dwads-btn">' . esc_html__( 'Upload and get my top-up link', 'dwads' ) . '</button></p>';
 		$html .= '</form>';
 		$html .= '<template id="dwads-row-template">' . $row_template . '</template>';
-		$html .= '<script>(function(){var wrap=document.getElementById("dwads-rows"),btn=document.getElementById("dwads-add-row"),tpl=document.getElementById("dwads-row-template");if(!btn||!tpl)return;var i=wrap.querySelectorAll(".dwads-row").length,max=parseInt(btn.getAttribute("data-max"),10)||5;btn.addEventListener("click",function(){if(wrap.querySelectorAll(".dwads-row").length>=max)return;var html=tpl.innerHTML.replace(/__i__/g,String(i));var holder=document.createElement("div");holder.innerHTML=html.trim();var node=holder.firstChild;wrap.appendChild(node);i++;if(wrap.querySelectorAll(".dwads-row").length>=max)btn.disabled=true;});})();</script>';
+
+		$js_sizes = array();
+		foreach ( $sizes as $size_key => $size_item ) {
+			$js_sizes[] = array(
+				'key'   => (string) $size_key,
+				'w'     => isset( $size_item['w'] ) ? (int) $size_item['w'] : 0,
+				'h'     => isset( $size_item['h'] ) ? (int) $size_item['h'] : 0,
+				'label' => isset( $size_item['label'] ) ? (string) $size_item['label'] : '',
+			);
+		}
+		$js_cfg = array(
+			'max'     => (int) $max_rows,
+			'maxKb'   => (int) $max_kb,
+			'autofit' => (bool) DWADS_Settings::get( 'auto_fit_uploads', 1 ),
+			'sizes'   => $js_sizes,
+		);
+		$html .= '<script>window.DWADS_UPLOAD=' . wp_json_encode( $js_cfg, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT ) . ';</script>';
+
+		if ( ! wp_script_is( 'dwads-upload', 'registered' ) ) {
+			DWADS_Shortcodes::register_assets();
+		}
+		wp_enqueue_script( 'dwads-upload' );
 
 		return $html . '</div>';
 	}
