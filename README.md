@@ -403,6 +403,11 @@ inline with the markup, so the line looks the same on pages that never enqueue
 the banner stylesheet. It is plain text in the flow — 11px, centred, inherited
 colour at 55% opacity — so it does not compete with the page or with the ads.
 
+It appears on the plugin's own standalone pages too: the banner management page
+and the invalid-link page. Those build a complete HTML document of their own and
+never run `wp_footer`, so they place the same markup at the bottom of their own
+body. Turning the setting off removes it from all of them.
+
 ## “Fund this banner” link (1.2.8)
 
 A second optional link sits under each creative, in the same style as

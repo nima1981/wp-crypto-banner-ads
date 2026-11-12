@@ -26,16 +26,20 @@ final class DWADS_Public_Pages {
 	}
 
 	/**
-	 * Optional one-line credit at the bottom of every public page.
+	 * The credit line as markup, or an empty string when it is switched off.
 	 *
-	 * The styles are printed inline rather than relying on the plugin's
-	 * stylesheet, which is only enqueued on pages that actually show a slot.
+	 * Returned rather than echoed because the management page and the upload
+	 * page are standalone documents that never run wp_footer; they place the
+	 * same markup at the bottom of their own body.
 	 *
-	 * @return void
+	 * The styles travel with the markup: the plugin stylesheet is only enqueued
+	 * on pages that actually render a slot.
+	 *
+	 * @return string
 	 */
-	public static function footer_credit() {
+	public static function credit_html() {
 		if ( ! DWADS_Settings::get( 'credit_enabled', 1 ) ) {
-			return;
+			return '';
 		}
 
 		$line = sprintf(
@@ -45,8 +49,17 @@ final class DWADS_Public_Pages {
 			'<a href="' . esc_url( 'https://reza.consulting' ) . '" rel="noopener">' . esc_html__( 'Reza Consulting', 'dwads' ) . '</a>'
 		);
 
-		echo '<style>.dwads-credit{clear:both;margin:1.5em 0 1em;padding:0 .75em;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-size:11px;line-height:1.5;text-align:center;color:inherit;opacity:.55}.dwads-credit a{color:inherit;text-decoration:none;border-bottom:1px solid rgba(128,128,128,.45)}.dwads-credit a:hover,.dwads-credit a:focus{border-bottom-color:currentColor}.dwads-credit a:focus-visible{outline:1px solid currentColor;outline-offset:2px}</style>';
-		echo '<p class="dwads-credit">' . $line . '</p>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Both links are escaped above.
+		return '<style>.dwads-credit{clear:both;margin:1.5em 0 1em;padding:0 .75em;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-size:11px;line-height:1.5;text-align:center;color:inherit;opacity:.55}.dwads-credit a{color:inherit;text-decoration:none;border-bottom:1px solid rgba(128,128,128,.45)}.dwads-credit a:hover,.dwads-credit a:focus{border-bottom-color:currentColor}.dwads-credit a:focus-visible{outline:1px solid currentColor;outline-offset:2px}</style>'
+			. '<p class="dwads-credit">' . $line . '</p>';
+	}
+
+	/**
+	 * Print the credit in the theme's footer.
+	 *
+	 * @return void
+	 */
+	public static function footer_credit() {
+		echo self::credit_html(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped inside credit_html().
 	}
 
 	/**
@@ -735,6 +748,8 @@ final class DWADS_Public_Pages {
 		return '<!DOCTYPE html><html ' . get_language_attributes() . '><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex, nofollow">'
 			. '<title>' . esc_html( $title ) . ' · ' . esc_html( $site ) . '</title><style>' . $css . '</style></head><body><div class="dwads-wrap">'
 			. '<div class="dwads-brand"><span>' . esc_html( $site ) . '</span><a href="' . esc_url( $home ) . '">← ' . esc_html__( 'Back to the site', 'dwads' ) . '</a></div>'
-			. '<div class="dwads-card"><h1>' . esc_html( $title ) . '</h1>' . $body . '</div></div></body></html>';
+			. '<div class="dwads-card"><h1>' . esc_html( $title ) . '</h1>' . $body . '</div>'
+			. self::credit_html()
+			. '</div></body></html>';
 	}
 }

@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.2.9
+- The footer credit also appears on the plugin's standalone pages — the banner
+  management page and the invalid-link page — which build their own document
+  and never run `wp_footer`.
+
 ## 1.2.8
 - Optional second link under each creative: “Fund this banner”, opening that
   banner's own management page. Same style as “Advertise here”; on by default,
