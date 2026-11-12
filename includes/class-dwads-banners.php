@@ -856,26 +856,35 @@ final class DWADS_Banners {
 	/**
 	 * Email the advertiser, when they gave an address.
 	 *
-	 * @param array  $banner  Banner row.
-	 * @param string $subject Subject.
-	 * @param string $intro   First paragraph.
+	 * The subject and body are read from the editable settings and rendered
+	 * with the per-banner tokens filled in.
+	 *
+	 * @param array  $banner      Banner row.
+	 * @param string $subject_key Settings key holding the subject template.
+	 * @param string $body_key    Settings key holding the body template.
 	 * @return bool
 	 */
-	public static function mail_advertiser( $banner, $subject, $intro ) {
+	public static function mail_advertiser( $banner, $subject_key, $body_key ) {
 		$email = isset( $banner['email'] ) ? sanitize_email( $banner['email'] ) : '';
 		if ( '' === $email || ! is_email( $email ) ) {
 			return false;
 		}
-		$url   = self::manage_url_for( $banner );
-		$lines = array(
-			$intro,
-			'',
-			'' !== $url ? $url : __( '(Management link unavailable. Contact the site owner with your banner ID.)', 'dwads' ),
-			'',
-			sprintf( /* translators: 1: banner id, 2: site name */ __( 'Banner #%1$d on %2$s', 'dwads' ), (int) $banner['id'], wp_specialchars_decode( get_bloginfo( 'name' ), ENT_QUOTES ) ),
-			home_url( '/' ),
+		$subject = (string) DWADS_Settings::get( $subject_key, '' );
+		$body    = (string) DWADS_Settings::get( $body_key, '' );
+		if ( '' === $body ) {
+			return false;
+		}
+		$url = self::manage_url_for( $banner );
+		if ( '' === $url ) {
+			$url = __( '(Management link unavailable. Contact the site owner with your banner ID.)', 'dwads' );
+		}
+		$tokens = array(
+			'{SITE_NAME}' => wp_specialchars_decode( get_bloginfo( 'name' ), ENT_QUOTES ),
+			'{SITE_URL}'  => home_url( '/' ),
+			'{BANNER_ID}' => (int) $banner['id'],
+			'{LINK}'      => $url,
 		);
-		return wp_mail( $email, $subject, implode( "\n", $lines ) );
+		return wp_mail( $email, strtr( $subject, $tokens ), strtr( $body, $tokens ) );
 	}
 
 	/**

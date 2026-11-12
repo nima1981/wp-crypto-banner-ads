@@ -327,9 +327,8 @@ final class DWADS_Admin {
 					if ( $banner && DWADS_Settings::get( 'notify_advertiser', 1 ) ) {
 						DWADS_Banners::mail_advertiser(
 							$banner,
-							/* translators: %s: site name */
-							sprintf( __( 'Your banner is live on %s', 'dwads' ), wp_specialchars_decode( get_bloginfo( 'name' ), ENT_QUOTES ) ),
-							__( 'Your banner has been approved and is now being shown. Open your management link to see the balance and top up.', 'dwads' )
+							'email_approved_subject',
+							'email_approved_body'
 						);
 					}
 					$notice = __( 'Banner approved and live.', 'dwads' );
@@ -340,9 +339,8 @@ final class DWADS_Admin {
 					if ( $banner && DWADS_Settings::get( 'notify_advertiser', 1 ) ) {
 						DWADS_Banners::mail_advertiser(
 							$banner,
-							/* translators: %s: site name */
-							sprintf( __( 'Your banner was not approved on %s', 'dwads' ), wp_specialchars_decode( get_bloginfo( 'name' ), ENT_QUOTES ) ),
-							__( 'This banner was rejected and is not being shown. Contact the site owner if you would like to know why.', 'dwads' )
+							'email_rejected_subject',
+							'email_rejected_body'
 						);
 					}
 					$notice = __( 'Banner rejected.', 'dwads' );
@@ -351,9 +349,8 @@ final class DWADS_Admin {
 					$banner = DWADS_Banners::get( $id );
 					$sent   = $banner ? DWADS_Banners::mail_advertiser(
 						$banner,
-						/* translators: %s: site name */
-						sprintf( __( 'Your banner link on %s', 'dwads' ), wp_specialchars_decode( get_bloginfo( 'name' ), ENT_QUOTES ) ),
-						__( 'Here is your management link again, as requested by the site owner.', 'dwads' )
+						'email_resend_subject',
+						'email_resend_body'
 					) : false;
 					$notice = $sent ? __( 'Management link emailed.', 'dwads' ) : __( 'No email address on file for this banner.', 'dwads' );
 					break;
@@ -567,6 +564,21 @@ final class DWADS_Admin {
 		self::field_number( 'click_rate_min_impressions', __( 'Impressions needed before the click-rate brake applies', 'dwads' ), __( 'Prevents a brand new banner from tripping the brake on its first few views.', 'dwads' ), '1' );
 		echo '</table>';
 
+		echo '<h2 class="title">' . esc_html__( 'Email copy', 'dwads' ) . '</h2>';
+		echo '<p class="description">' . esc_html__( 'Every email the plugin sends, editable. Placeholders are replaced at send time: {SITE_NAME}, {SITE_URL}, {LINK} (that banner’s management link), {LINKS} (one management link per banner), {BANNER_ID}, {BANNERS} (the admin’s list) and {ADMIN_URL}.', 'dwads' ) . '</p>';
+		echo '<table class="form-table" role="presentation">';
+		self::field_text( 'email_upload_subject', __( 'Upload confirmation — subject', 'dwads' ) );
+		self::field_textarea( 'email_upload_body', __( 'Upload confirmation — body', 'dwads' ), __( 'Sent right after a banner is uploaded. {LINKS} is one management link per banner, one per line.', 'dwads' ) );
+		self::field_text( 'email_approved_subject', __( 'Approved — subject', 'dwads' ) );
+		self::field_textarea( 'email_approved_body', __( 'Approved — body', 'dwads' ), __( 'Sent when a banner is approved. {LINK} is that banner’s management link.', 'dwads' ) );
+		self::field_text( 'email_rejected_subject', __( 'Rejected — subject', 'dwads' ) );
+		self::field_textarea( 'email_rejected_body', __( 'Rejected — body', 'dwads' ), __( 'Sent when a banner is rejected.', 'dwads' ) );
+		self::field_text( 'email_resend_subject', __( 'Management link re-sent — subject', 'dwads' ) );
+		self::field_textarea( 'email_resend_body', __( 'Management link re-sent — body', 'dwads' ), __( 'Sent when an admin re-emails a banner’s management link.', 'dwads' ) );
+		self::field_text( 'email_admin_upload_subject', __( 'Admin upload notice — subject', 'dwads' ) );
+		self::field_textarea( 'email_admin_upload_body', __( 'Admin upload notice — body', 'dwads' ), __( 'Sent to the site admin when banners are uploaded. {BANNERS} lists each banner and its status; {ADMIN_URL} is the moderation screen.', 'dwads' ) );
+		echo '</table>';
+
 		echo '<h2 class="title">' . esc_html__( 'Housekeeping', 'dwads' ) . '</h2>';
 		echo '<table class="form-table" role="presentation">';
 		self::field_checkbox( 'delete_data_on_uninstall', __( 'Delete all banner data when the plugin is uninstalled', 'dwads' ), __( 'Off by default so an accidental uninstall does not destroy paid balances.', 'dwads' ) );
@@ -683,6 +695,14 @@ final class DWADS_Admin {
 
 		$new['upload_intro']      = wp_kses_post( $scalar( 'upload_intro', '' ) );
 		$new['manage_disclaimer'] = trim( wp_kses_post( $scalar( 'manage_disclaimer', '' ) ) );
+
+		// Email copy: subjects are plain text, bodies may contain simple HTML.
+		foreach ( array( 'email_upload_subject', 'email_approved_subject', 'email_rejected_subject', 'email_resend_subject', 'email_admin_upload_subject' ) as $email_subject_key ) {
+			$new[ $email_subject_key ] = sanitize_text_field( $scalar( $email_subject_key, '' ) );
+		}
+		foreach ( array( 'email_upload_body', 'email_approved_body', 'email_rejected_body', 'email_resend_body', 'email_admin_upload_body' ) as $email_body_key ) {
+			$new[ $email_body_key ] = wp_kses_post( $scalar( $email_body_key, '' ) );
+		}
 
 		$fund_text                = sanitize_text_field( $scalar( 'fund_link_text', 'Fund this banner' ) );
 		$new['fund_link_text']    = mb_substr( $fund_text, 0, 60 );

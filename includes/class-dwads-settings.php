@@ -47,6 +47,18 @@ final class DWADS_Settings {
 			'fund_link_align'          => 'right',
 			'manage_disclaimer'        => '',
 			'notify_advertiser'        => 1,
+			// Email copy. Every email the plugin sends is editable here; the
+			// {TOKENS} are filled in at send time.
+			'email_upload_subject'       => 'Your banner on {SITE_NAME}',
+			'email_upload_body'          => "Thanks for your upload. Here is the link for each banner.\n\n{LINKS}\n\nTop up the balance on that page with your cryptocurrency or regular money of choice, using the swap widget there, or by sending Bitcoin straight to the address. If your banner is waiting for approval, payments still count while it waits.",
+			'email_approved_subject'     => 'Your banner is live on {SITE_NAME}',
+			'email_approved_body'        => "Your banner has been approved and is now being shown. Open your management link to see the balance and top up.\n\n{LINK}",
+			'email_rejected_subject'     => 'Your banner was not approved on {SITE_NAME}',
+			'email_rejected_body'        => "This banner was rejected and is not being shown. Contact the site owner if you would like to know why.\n\n{LINK}",
+			'email_resend_subject'       => 'Your banner link on {SITE_NAME}',
+			'email_resend_body'          => "Here is your management link again, as requested by the site owner.\n\n{LINK}",
+			'email_admin_upload_subject' => '[{SITE_NAME}] New banner upload',
+			'email_admin_upload_body'    => "New banners were uploaded and are waiting in Banner Ads:\n\n{BANNERS}\n\n{ADMIN_URL}",
 			// Bitcoin.
 			'xpub'                     => '',
 			'derivation_path'          => '0/{i}',

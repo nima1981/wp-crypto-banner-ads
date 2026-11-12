@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.8.6
+- **Every outgoing email is editable.** New Settings → Email copy section with
+  the subject and body of all five emails: upload confirmation, approved,
+  rejected, management-link re-sent and the admin upload notice. Bodies accept
+  simple HTML. Placeholders fill in at send time: `{SITE_NAME}`, `{SITE_URL}`,
+  `{LINK}` (that banner's management link), `{LINKS}` (one per uploaded banner),
+  `{BANNER_ID}`, `{BANNERS}` (admin list) and `{ADMIN_URL}`. Existing installs
+  inherit the new defaults, including the copy changes below.
+- **Copy: the upload email no longer calls the link "private"** and no longer
+  warns "Keep it somewhere safe … cannot be recovered without this email."
+  Default body is now "Thanks for your upload. Here is the link for each
+  banner." plus the links and the top-up instructions.
+
 ## 1.8.5
 - **Per-banner daily cap is off by default.** (Amended: the runtime fallback in
   the click path also quoted the old 50 default; every reader of that option now

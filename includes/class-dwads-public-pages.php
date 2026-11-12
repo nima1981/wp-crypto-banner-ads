@@ -266,16 +266,15 @@ final class DWADS_Public_Pages {
 			foreach ( $created as $item ) {
 				$links[] = $item['manage_url'];
 			}
+			$tokens = array(
+				'{SITE_NAME}' => wp_specialchars_decode( get_bloginfo( 'name' ), ENT_QUOTES ),
+				'{SITE_URL}'  => home_url( '/' ),
+				'{LINKS}'     => implode( "\n", $links ),
+			);
 			wp_mail(
 				$email,
-				sprintf(
-					/* translators: %s: site name */
-					__( 'Your banner on %s', 'dwads' ),
-					wp_specialchars_decode( get_bloginfo( 'name' ), ENT_QUOTES )
-				),
-				__( "Thanks for your upload. Here is the private link for each banner. Keep it somewhere safe: it is the only way back to your balance and top-up address, and it cannot be recovered without this email.", 'dwads' )
-				. "\n\n" . implode( "\n", $links )
-				. "\n\n" . __( 'Top up the balance on that page with your cryptocurrency or regular money of choice, using the swap widget there, or by sending Bitcoin straight to the address. If your banner is waiting for approval, payments still count while it waits.', 'dwads' )
+				strtr( (string) DWADS_Settings::get( 'email_upload_subject', '' ), $tokens ),
+				strtr( (string) DWADS_Settings::get( 'email_upload_body', '' ), $tokens )
 			);
 		}
 
@@ -284,10 +283,15 @@ final class DWADS_Public_Pages {
 			foreach ( $created as $item ) {
 				$lines[] = sprintf( '#%d (%s)', $item['id'], $item['status'] );
 			}
+			$tokens = array(
+				'{SITE_NAME}' => wp_specialchars_decode( get_bloginfo( 'name' ), ENT_QUOTES ),
+				'{BANNERS}'   => implode( "\n", $lines ),
+				'{ADMIN_URL}' => admin_url( 'admin.php?page=dwads-banners' ),
+			);
 			wp_mail(
 				get_option( 'admin_email' ),
-				sprintf( '[%s] New banner upload', wp_specialchars_decode( get_bloginfo( 'name' ), ENT_QUOTES ) ),
-				"New banners were uploaded and are waiting in Banner Ads:\n\n" . implode( "\n", $lines ) . "\n\n" . admin_url( 'admin.php?page=dwads-banners' )
+				strtr( (string) DWADS_Settings::get( 'email_admin_upload_subject', '' ), $tokens ),
+				strtr( (string) DWADS_Settings::get( 'email_admin_upload_body', '' ), $tokens )
 			);
 		}
 
