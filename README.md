@@ -457,3 +457,27 @@ The fixed sentence that used to sit there — "Balances are never refunded. Keep
 this link private…" — has been removed, since the fund link above deliberately
 publishes those pages. Put your own wording in the setting if you still want a
 note there.
+
+## Mobile and dark mode (1.3.2)
+
+Two things were wrong on a phone, both now fixed.
+
+**The upload form had no font of its own.** It inherited whatever face the theme
+set on the page — on Dissent Watch that is Courier New, so the intro paragraph
+and the size list rendered as typewriter text, and the theme's centred content
+column pulled it into a centred ragged block. `form.css` now sets a system sans
+stack on `.dwads-upload` and forces `text-align: left` on it and its paragraphs.
+Inline styles in your own `upload_intro` HTML still win, so deliberate formatting
+survives.
+
+**The management page washed out in dark mode.** Its dark rules were written
+before the light ones, so for `.dwads-card` both rules had equal specificity and
+the later light background won, while the inherited dark-mode text colour stayed:
+pale grey text on a white card. The dark block now comes after every light rule,
+covers the summary tiles, notices and table borders, and declares
+`color-scheme: dark` from inside the media query so the browser does not try to
+auto-darken the page on top of it.
+
+Both checks are cheap to repeat: the management page's colours should be
+`#101318` page / `#171b22` card / `#e8eaf0` text under `prefers-color-scheme:
+dark`, and the upload form should render in a sans face at any theme.

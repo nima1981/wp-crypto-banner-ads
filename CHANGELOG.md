@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.3.2
+- Fixed the management page washing out on phones in dark mode: the dark rules
+  sat before the light ones in the stylesheet, so at equal specificity the light
+  background won while the dark text colour still applied — pale text on a white
+  card. The dark block now comes last, covers the summary tiles and notices, and
+  declares `color-scheme` per branch.
+- The upload form brings its own font stack. It used to inherit the theme's
+  decorative face — Courier New on Dissent Watch — which ran through the body
+  copy and the size list. It is now system sans, and left-aligned even when the
+  theme centres its content column.
+
 ## 1.3.1
 - Removed the "This page is read-only…" paragraph from the banner management
   page. The page is still read-only; it just no longer explains that on every

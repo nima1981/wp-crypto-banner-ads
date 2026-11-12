@@ -723,10 +723,9 @@ final class DWADS_Public_Pages {
 		$site = get_bloginfo( 'name' );
 		$home = home_url( '/' );
 		$css  = '
-			:root { color-scheme: light dark; }
+			:root { color-scheme: light; }
 			* { box-sizing: border-box; }
 			body { margin: 0; font: 16px/1.55 system-ui, -apple-system, Segoe UI, Roboto, sans-serif; background: #f6f7f9; color: #16181d; }
-			@media (prefers-color-scheme: dark) { body { background: #101318; color: #e8eaf0; } .dwads-card { background: #171b22; border-color: #2a3140; } input, code { background: #0f1318; color: inherit; border-color: #2f3745; } .dwads-notice { background: #1d2430; } }
 			.dwads-wrap { max-width: 720px; margin: 0 auto; padding: 32px 18px 64px; }
 			.dwads-brand { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 22px; }
 			.dwads-brand a { color: inherit; text-decoration: none; font-weight: 600; }
@@ -754,6 +753,20 @@ final class DWADS_Public_Pages {
 			.dwads-row:first-child { border-top: 0; padding-top: 0; margin-top: 0; }
 			.dwads-table { width: 100%; border-collapse: collapse; font-size: .9rem; }
 			.dwads-table td { border-bottom: 1px solid #e3e6eb; padding: 6px 4px; }
+
+			/* Dark mode last, on purpose: these rules must beat the light ones
+			   above at equal specificity, so anything earlier would lose. */
+			@media (prefers-color-scheme: dark) {
+				:root { color-scheme: dark; }
+				body { background: #101318; color: #e8eaf0; }
+				.dwads-card { background: #171b22; border-color: #2a3140; }
+				input, code, .dwads-address code { background: #0f1318; color: inherit; border-color: #2f3745; }
+				.dwads-notice { background: #1d2430; border-color: #2f3745; }
+				.dwads-notice-error { background: #2a1c1c; border-color: #5a3535; }
+				.dwads-notice-success { background: #16261c; border-color: #2f4a38; }
+				.dwads-table td { border-bottom-color: #2a3140; }
+				.dwads-summary > div { border-color: #2a3140; }
+			}
 		';
 		return '<!DOCTYPE html><html ' . get_language_attributes() . '><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex, nofollow">'
 			. '<title>' . esc_html( $title ) . ' · ' . esc_html( $site ) . '</title><style>' . $css . '</style></head><body><div class="dwads-wrap">'
