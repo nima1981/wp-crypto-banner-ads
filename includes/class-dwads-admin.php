@@ -562,7 +562,7 @@ final class DWADS_Admin {
 		self::field_checkbox( 'honeypot_enabled', __( 'Add an invisible decoy link to every slot', 'dwads' ), __( 'Hidden from people and from the keyboard. Anything that follows it is a link-following machine, and is never billed again.', 'dwads' ) );
 		self::field_number( 'max_clicks_per_visitor_day', __( 'Maximum charged clicks per visitor per day (all banners)', 'dwads' ), __( 'One visitor is billed at most this many times across all banners in a rolling day. A real person browsing clicks rarely; anything above this is automation or an extremely unusual visitor. 0 disables.', 'dwads' ), '1' );
 		self::field_number( 'max_clicks_per_ip_day', __( 'Maximum charged clicks per address per day', 'dwads' ), __( 'The day-long version of the per-address limit, guarding against one address evading the per-visitor cap by rotating user-agents. On a high-traffic site behind shared or carrier addresses this is usually the first cap to raise or set to 0 — the per-banner cap and the click-rate brake are the real money guards.', 'dwads' ), '1' );
-		self::field_number( 'max_clicks_per_banner_day', __( 'Maximum charged clicks per banner per day', 'dwads' ), __( 'The ceiling on what one advertiser’s balance can be charged in a rolling day, whatever the traffic looks like. This is the cap that protects each advertiser’s money. 0 disables.', 'dwads' ), '1' );
+		self::field_number( 'max_clicks_per_banner_day', __( 'Maximum charged clicks per banner per day', 'dwads' ), __( 'Off by default. An opt-in guard if you suspect one specific banner is being drained: the ceiling on what that banner can be charged in a rolling day, whatever the traffic looks like. When it hits the cap, billing stops for that banner until the window rolls over (it keeps serving). The per-visitor and per-address caps already bound the damage, so most sites never need this. 0 disables.', 'dwads' ), '1' );
 		self::field_number( 'click_rate_ceiling_percent', __( 'Pause billing above this click rate (%)', 'dwads' ), __( 'Real audiences click a banner a fraction of a percent of the time. Once a banner passes this rate it stops billing until the rolling day resets. 0 disables the brake.', 'dwads' ), '1' );
 		self::field_number( 'click_rate_min_impressions', __( 'Impressions needed before the click-rate brake applies', 'dwads' ), __( 'Prevents a brand new banner from tripping the brake on its first few views.', 'dwads' ), '1' );
 		echo '</table>';
@@ -696,7 +696,7 @@ final class DWADS_Admin {
 		$new['click_min_dwell_ms']       = max( 0, min( 10000, (int) $scalar( 'click_min_dwell_ms', '400' ) ) );
 		$new['max_clicks_per_visitor_day']    = max( 0, (int) $scalar( 'max_clicks_per_visitor_day', '3' ) );
 		$new['max_clicks_per_ip_day']         = max( 0, (int) $scalar( 'max_clicks_per_ip_day', '15' ) );
-		$new['max_clicks_per_banner_day']     = max( 0, (int) $scalar( 'max_clicks_per_banner_day', '50' ) );
+		$new['max_clicks_per_banner_day']     = max( 0, (int) $scalar( 'max_clicks_per_banner_day', '0' ) );
 		$new['click_rate_ceiling_percent']    = max( 0, min( 100, (int) $scalar( 'click_rate_ceiling_percent', '20' ) ) );
 		$new['click_rate_min_impressions']    = max( 1, (int) $scalar( 'click_rate_min_impressions', '20' ) );
 		$new['impression_viewable']      = empty( $scalar( 'impression_viewable', '' ) ) ? 0 : 1;

@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.8.5
+- **Per-banner daily cap is off by default.** (Amended: the runtime fallback in
+  the click path also quoted the old 50 default; every reader of that option now
+  defaults to 0. Existing installs that already saved 50 keep 50 — set it to 0
+  once to switch the guard off, or delete the option to inherit 0.)
+- **Per-banner daily cap is off by default.** It is now an opt-in guard
+  (Settings → Human visitor checks → Maximum charged clicks per banner per day)
+  for when a specific banner looks like it is being drained, rather than a
+  budget imposed on every advertiser. When set, billing stops at the cap but the
+  banner keeps serving — the site owner's choice to keep slots filled. The
+  always-on per-visitor (3/day) and per-address (15/day, 10/hour) caps already
+  bound the damage, so most sites never need the per-banner one.
+
 ## 1.8.4
 - **Every cap now honours 0 = disabled.** The per-address hourly, per-address
   daily and per-visitor daily caps were clamped with max(1, ...), so setting 0

@@ -564,9 +564,12 @@ or reach by keyboard leads to it, so following it is proof of a machine; that
 visitor is flagged for 30 days and never billed.
 
 **Caps.** A rolling day limits charged clicks to 3 per visitor (across all
-banners), 15 per address, and 50 per banner. The per-banner figure is the hard
-ceiling on what a single balance can lose in a day, whatever the traffic looks
-like. Set any of them to `0` to disable that one.
+banners) and 15 per address. Those two are always on and are what bound the
+damage. A third cap, *maximum charged clicks per banner per day*, is **off by
+default**: it is an opt-in guard for when you suspect one specific banner is
+being drained. Set to a number, it is the ceiling on what that banner can be
+charged in a rolling day; billing stops when it hits the cap (the banner keeps
+serving). Set any cap to `0` to disable it.
 
 **Click-rate brake.** Real audiences click a banner a fraction of a percent of
 the time. Above *Pause billing above this click rate* (20%) with at least 20
@@ -581,11 +584,12 @@ most abuse. They cannot stop a determined farm that runs a real browser and
 sends the same signals — nothing in JavaScript can, because the client is
 attacker-controlled.
 
-What does hold against that is arithmetic, not identity: the per-banner daily
-cap, the per-visitor cap and the click-rate brake mean a farm can only ever
-extract a bounded, predictable amount per banner per day. If you would rather
-lose more, tighten those three; they are the settings that actually cost a
-fraudster money.
+What does hold against that is arithmetic, not identity: the per-visitor cap,
+the per-address caps and the click-rate brake mean a farm can only ever extract
+a bounded, predictable amount per banner per day. If you suspect a specific
+banner is being drained, switch on its per-banner daily cap as an extra bound;
+if you would rather lose more, loosen the per-visitor and per-address caps. The
+caps, not identity, are what actually cost a fraudster money.
 
 ### Measurement note
 

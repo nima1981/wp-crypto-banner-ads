@@ -574,7 +574,7 @@ final class DWADS_Clicks {
 		$max_per_hour = max( 0, (int) DWADS_Settings::get( 'max_clicks_per_ip_hour', 10 ) );
 		$max_ip_day   = max( 0, (int) DWADS_Settings::get( 'max_clicks_per_ip_day', 15 ) );
 		$max_vis_day  = max( 0, (int) DWADS_Settings::get( 'max_clicks_per_visitor_day', 3 ) );
-		$max_ban_day  = max( 0, (int) DWADS_Settings::get( 'max_clicks_per_banner_day', 50 ) );
+		$max_ban_day  = max( 0, (int) DWADS_Settings::get( 'max_clicks_per_banner_day', 0 ) );
 
 		if ( '' === $reason && $max_per_hour > 0 && self::clicks_from_ip_last_hour( $ip_hash ) >= $max_per_hour ) {
 			$reason = 'rate_limited';

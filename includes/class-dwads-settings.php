@@ -73,7 +73,7 @@ final class DWADS_Settings {
 			'honeypot_enabled'         => 1,
 			'max_clicks_per_visitor_day' => 3,
 			'max_clicks_per_ip_day'    => 15,
-			'max_clicks_per_banner_day' => 50,
+			'max_clicks_per_banner_day' => 0,
 			'click_rate_ceiling_percent' => 20,
 			'click_rate_min_impressions' => 20,
 			// URLs.
