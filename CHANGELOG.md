@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.2.4
+- Fitted (auto-fit) banners are saved at 90% quality instead of the WordPress
+  default 82, and get a light sharpen pass after the downscale, so resized
+  JPEGs stay visibly crisper. Both are filterable: `dwads_editor_quality` and
+  `dwads_autofit_sharpen` (0 disables the sharpen).
+
 ## 1.2.3
 - Optional link underneath each banner: real text in the page flow, aligned to
   the image (left, centre or right), site-wide or overridden per widget and per

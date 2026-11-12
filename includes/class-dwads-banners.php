@@ -349,6 +349,57 @@ final class DWADS_Banners {
 	}
 
 	/**
+	 * Mild unsharp pass after a fitted downscale.
+	 *
+	 * Downscaling removes high-frequency detail, which reads as softness. A
+	 * light sharpen restores edge contrast without adding halos. Strength is
+	 * filterable and defaults to 0.5; set it to 0 to disable it entirely.
+	 *
+	 * @param WP_Image_Editor $editor The editor holding the resized image.
+	 * @return void
+	 */
+	private static function sharpen( $editor ) {
+		$amount = (float) apply_filters( 'dwads_autofit_sharpen', 0.5 );
+		if ( $amount <= 0 ) {
+			return;
+		}
+		$amount = min( 1.0, $amount );
+
+		if ( method_exists( $editor, 'get_imagick' ) ) {
+			$imagick = $editor->get_imagick();
+			if ( $imagick instanceof Imagick ) {
+				try {
+					$imagick->unsharpMaskImage( 0.5, 0.5, $amount, 0.05 );
+				} catch ( Exception $e ) { // phpcs:ignore Generic.CodeAnalysis.EmptyStatement.DetectedCatch
+					// Sharpen is cosmetic; never fail an upload over it.
+				}
+				return;
+			}
+		}
+
+		if ( method_exists( $editor, 'get_image' ) && function_exists( 'imageconvolution' ) ) {
+			$img = $editor->get_image();
+			if ( is_resource( $img ) || $img instanceof GdImage ) {
+				$s = $amount;
+				// Kernel sums to 1, so brightness is unchanged:
+				//   0  -s  0
+				//  -s 1+4s -s
+				//   0  -s  0
+				imageconvolution(
+					$img,
+					array(
+						array( 0, -$s, 0 ),
+						array( -$s, 1 + 4 * $s, -$s ),
+						array( 0, -$s, 0 ),
+					),
+					1,
+					0
+				);
+			}
+		}
+	}
+
+	/**
 	 * Validate, re-encode and store an uploaded banner image.
 	 *
 	 * @param array $file        Entry from $_FILES.
@@ -412,7 +463,8 @@ final class DWADS_Banners {
 		if ( is_wp_error( $editor ) ) {
 			return new WP_Error( 'dwads_upload_editor', __( 'This server could not process the image (GD or Imagick is required).', 'dwads' ) );
 		}
-		$editor->set_quality( 82 );
+		$quality = (int) apply_filters( 'dwads_editor_quality', 90 );
+		$editor->set_quality( $quality );
 
 		if ( ! empty( $target['fitted'] ) ) {
 			// Cover-fit: scale so the image covers the target, then centre-crop
@@ -421,6 +473,9 @@ final class DWADS_Banners {
 			if ( is_wp_error( $resized ) ) {
 				return new WP_Error( 'dwads_upload_resize', __( 'The image could not be resized to the nearest banner size.', 'dwads' ) );
 			}
+			// Downscaling softens edges; a light sharpen pass puts some of that
+			// back without looking crunchy.
+			self::sharpen( $editor );
 		}
 
 		$dir = self::upload_dir();
