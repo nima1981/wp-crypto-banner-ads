@@ -275,7 +275,7 @@ final class DWADS_Public_Pages {
 				),
 				__( "Thanks for your upload. Here is the private link for each banner. Keep it somewhere safe: it is the only way back to your balance and top-up address, and it cannot be recovered without this email.", 'dwads' )
 				. "\n\n" . implode( "\n", $links )
-				. "\n\n" . __( 'Send bitcoin to the address shown on that page to load the balance. If your banner is waiting for approval, payments still count while it waits.', 'dwads' )
+				. "\n\n" . __( 'Top up the balance on that page with your cryptocurrency or regular money of choice, using the swap widget there, or by sending Bitcoin straight to the address. If your banner is waiting for approval, payments still count while it waits.', 'dwads' )
 			);
 		}
 
@@ -517,50 +517,74 @@ final class DWADS_Public_Pages {
 	 * @param array $banner Banner row.
 	 * @return string
 	 */
+	/**
+	 * Render the swap-provider snippet the administrator pasted.
+	 *
+	 * The same field accepts a bare URL, an iframe, or a provider's complete
+	 * embed block, so switching providers never needs a plugin change. Tokens are
+	 * replaced before anything is output:
+	 *
+	 *   {ADDRESS}    the banner's deposit address
+	 *   {LINK_ID}    affiliate / account id, empty when it was set to "none"
+	 *   {BANNER_ID}  numeric banner id
+	 *   {SITE_URL}   this site's home URL
+	 *   {SITE_NAME}  this site's name
+	 *   {HEIGHT}     the height setting, for providers that take it in the URL
+	 *
+	 * @param array $banner Banner row.
+	 * @return string Markup, or an empty string when nothing should render.
+	 */
 	public static function exchange_widget_html( $banner ) {
 		$address = isset( $banner['address'] ) ? (string) $banner['address'] : '';
 		if ( '' === $address ) {
 			return '';
 		}
 
-		$override = trim( (string) DWADS_Settings::get( 'exchange_widget_html', '' ) );
-		if ( '' !== $override ) {
-			return '<div class="dwads-widget">' . str_replace( array( '{{ADDRESS}}', '{ADDRESS}' ), esc_html( $address ), $override ) . '</div>';
-		}
-
-		$template = DWADS_Settings::exchange_widget_url();
-		if ( '' === $template || false === strpos( $template, '{ADDRESS}' ) ) {
+		$template = (string) DWADS_Settings::exchange_template();
+		if ( '' === trim( $template ) ) {
 			return '';
 		}
 
-		// Empty = use the shipped default id; the literal "none" = send no
-		// affiliate parameter at all.
-		$link_id = DWADS_Settings::exchange_link_id();
-		if ( '' === $link_id ) {
-			$template = str_replace( array( 'link_id={LINK_ID}&', '&link_id={LINK_ID}' ), '', $template );
-		} else {
-			$template = str_replace( '{LINK_ID}', rawurlencode( $link_id ), $template );
+		$height  = max( 120, min( 1200, (int) DWADS_Settings::get( 'exchange_widget_height', 356 ) ) );
+		$link_id = (string) DWADS_Settings::exchange_link_id();
+
+		$snippet = strtr(
+			$template,
+			array(
+				'{{ADDRESS}}' => rawurlencode( $address ),
+				'{ADDRESS}'   => rawurlencode( $address ),
+				'{{LINK_ID}}' => rawurlencode( $link_id ),
+				'{LINK_ID}'   => rawurlencode( $link_id ),
+				'{BANNER_ID}' => (string) ( isset( $banner['id'] ) ? (int) $banner['id'] : 0 ),
+				'{SITE_URL}'  => rawurlencode( home_url( '/' ) ),
+				'{SITE_NAME}' => esc_html( wp_specialchars_decode( get_bloginfo( 'name' ), ENT_QUOTES ) ),
+				'{HEIGHT}'    => (string) $height,
+			)
+		);
+
+		// A token nobody handled must never reach the browser as literal braces.
+		$snippet = preg_replace( '/\{\{?[A-Z_]{2,}\}?\}/', '', $snippet );
+
+		// A bare URL is wrapped in the frame the plugin owns; anything else is
+		// already markup and is printed as the administrator stored it.
+		if ( preg_match( '#^https?://\S+$#i', trim( $snippet ) ) ) {
+			$safe = esc_url( trim( $snippet ), array( 'https', 'http' ) );
+			if ( '' === $safe ) {
+				return '';
+			}
+
+			$html = '<div class="dwads-widget"><iframe id="dwads-widget" src="' . $safe . '" style="height:' . (int) $height . 'px;width:100%;border:none" '
+				. 'title="' . esc_attr__( 'Pay with your cryptocurrency or regular money of choice', 'dwads' ) . '" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>';
+
+			$host = strtolower( (string) wp_parse_url( $safe, PHP_URL_HOST ) );
+			if ( false !== strpos( $host, 'changenow.io' ) ) {
+				$html .= '<script defer src="https://changenow.io/embeds/exchange-widget/v2/stepper-connector.js"></script>';
+			}
+
+			return $html . '</div>';
 		}
-		$template = str_replace( '{{ADDRESS}}', '{ADDRESS}', $template );
-		// Safety net: never let an unreplaced token leak into the frame URL.
-		$template = str_replace( '{LINK_ID}', '', $template );
-		$url      = str_replace( '{ADDRESS}', rawurlencode( $address ), $template );
 
-		$safe = esc_url( $url, array( 'https' ) );
-		if ( '' === $safe ) {
-			return '';
-		}
-
-		$height = max( 200, min( 900, (int) DWADS_Settings::get( 'exchange_widget_height', 356 ) ) );
-		$html   = '<div class="dwads-widget"><iframe id="dwads-widget" src="' . $safe . '" style="height:' . (int) $height . 'px;width:100%;border:none" '
-			. 'title="' . esc_attr__( 'Buy bitcoin with another currency', 'dwads' ) . '" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>';
-
-		$host = strtolower( (string) wp_parse_url( $url, PHP_URL_HOST ) );
-		if ( false !== strpos( $host, 'changenow.io' ) ) {
-			$html .= '<script defer src="https://changenow.io/embeds/exchange-widget/v2/stepper-connector.js"></script>';
-		}
-
-		return $html . '</div>';
+		return '<div class="dwads-widget">' . $snippet . '</div>';
 	}
 
 	/**
@@ -657,7 +681,11 @@ final class DWADS_Public_Pages {
 		$body .= '</form>';
 
 		$body .= '<h2>' . esc_html__( 'Top up', 'dwads' ) . '</h2>';
-		$body .= '<p>' . esc_html__( 'Send Bitcoin to this address. Payment is credited within a few minutes of appearing on the network, before confirmation.', 'dwads' ) . '</p>';
+		$body .= '<p>' . esc_html__( 'Pay with your cryptocurrency or regular money of choice. The widget above converts it and sends it to this address, so there is nothing else to do.', 'dwads' ) . '</p>';
+		// The address itself is a Bitcoin address, so the direct-send line has to
+		// say Bitcoin: sending another coin here would lose it. The choice lives in
+		// the conversion path, not in the address.
+		$body .= '<p>' . esc_html__( 'Or send Bitcoin straight to the address below. Anything that arrives is credited within a few minutes of appearing on the network, before confirmation.', 'dwads' ) . '</p>';
 		$body .= '<p class="dwads-address"><code id="dwads-address">' . esc_html( $banner['address'] ) . '</code></p>';
 		$body .= '<p><button type="button" class="dwads-btn dwads-btn-secondary" id="dwads-copy" data-address="' . esc_attr( $banner['address'] ) . '">' . esc_html__( 'Copy address', 'dwads' ) . '</button></p>';
 		$body .= '<p><a class="dwads-btn dwads-btn-secondary" href="' . esc_attr( 'bitcoin:' . rawurlencode( $banner['address'] ) ) . '">' . esc_html__( 'Open in wallet', 'dwads' ) . '</a></p>';
@@ -665,7 +693,7 @@ final class DWADS_Public_Pages {
 		$qr_template = DWADS_Settings::qr_template();
 		if ( '' !== $qr_template ) {
 			$qr_url = str_replace( '{ADDRESS}', rawurlencode( $banner['address'] ), $qr_template );
-			$body  .= '<p><img class="dwads-qr" src="' . esc_url( $qr_url ) . '" alt="' . esc_attr__( 'Bitcoin address QR code', 'dwads' ) . '" loading="lazy"></p>';
+			$body  .= '<p><img class="dwads-qr" src="' . esc_url( $qr_url ) . '" alt="' . esc_attr__( 'Payment address QR code', 'dwads' ) . '" loading="lazy"></p>';
 		}
 
 		$widget = self::exchange_widget_html( $banner );

@@ -417,7 +417,7 @@ final class DWADS_Admin {
 
 		echo '<h2 class="title">' . esc_html__( 'Pricing and moderation', 'dwads' ) . '</h2>';
 		echo '<table class="form-table" role="presentation">';
-		self::field_number( 'click_price_usd', __( 'Default price per click (USD)', 'dwads' ), __( 'Charged in Bitcoin at the current rate. Each banner can override this.', 'dwads' ), '0.0001' );
+		self::field_number( 'click_price_usd', __( 'Default price per click (USD)', 'dwads' ), __( 'Charged from the banner balance at the current exchange rate. Each banner can override this.', 'dwads' ), '0.0001' );
 		self::field_checkbox( 'approval_required', __( 'Require admin approval', 'dwads' ), __( 'When off, a paid banner goes live as soon as it is uploaded.', 'dwads' ) );
 		self::field_checkbox( 'target_new_tab', __( 'Open advertiser links in a new tab', 'dwads' ) );
 		self::field_text( 'rel_attributes', __( 'rel attributes on banner links', 'dwads' ), __( 'Recommended: nofollow sponsored noopener', 'dwads' ) );
@@ -492,7 +492,7 @@ final class DWADS_Admin {
 		echo '</table>';
 		echo '<p class="description">' . wp_kses_post( __( 'Publish a page containing the <code>[dwads_upload]</code> shortcode to give advertisers the upload form.', 'dwads' ) ) . '</p>';
 
-		echo '<h2 class="title">' . esc_html__( 'Bitcoin wallet', 'dwads' ) . '</h2>';
+		echo '<h2 class="title">' . esc_html__( 'Payment wallet', 'dwads' ) . '</h2>';
 		echo '<table class="form-table" role="presentation">';
 		self::field_text( 'xpub', __( 'Extended public key (watch-only)', 'dwads' ), __( 'Paste an xpub, ypub or zpub. The plugin derives one address per banner and never stores a private key. Use an account-level key that is not used for anything else. Note: address numbering restarts at 0 when the plugin data is deleted, so re-using the same key after a wipe hands old, already-funded addresses to new banners. Use a different account (new xpub) or raise the address index in Diagnostics before uploading again.', 'dwads' ), 'dwads-mono' );
 		self::field_text( 'derivation_path', __( 'Derivation path template', 'dwads' ), __( 'Default 0/{i} for the external chain. Use {i} where the banner index goes.', 'dwads' ) );
@@ -517,10 +517,13 @@ final class DWADS_Admin {
 
 		echo '<h2 class="title">' . esc_html__( 'Top-up page', 'dwads' ) . '</h2>';
 		echo '<table class="form-table" role="presentation">';
-		self::field_textarea( 'exchange_widget_url', __( 'Exchange widget URL', 'dwads' ), __( 'The full embed URL. Keep {ADDRESS} where the banner address belongs and {LINK_ID} where your account id belongs. The plugin renders the iframe itself, so no script pasting is needed. An empty field uses the default ChangeNOW URL; type none to hide the widget completely.', 'dwads' ) );
-		self::field_text( 'exchange_widget_link_id', __( 'Exchange account link id', 'dwads' ), __( 'Pre-filled with the plugin default (bc1c9b656c7061) so the widget works out of the box; that default routes a share of the exchange fees to the plugin author. Replace it with your own ChangeNOW “link_id”. Type the word none to send no affiliate id at all — leaving the field empty keeps the default.', 'dwads' ) );
-		self::field_number( 'exchange_widget_height', __( 'Widget height (px)', 'dwads' ), '', '1' );
-		self::field_textarea( 'exchange_widget_html', __( 'Custom HTML embed (optional)', 'dwads' ), __( 'Only for a provider that needs real markup instead of a URL. Use {ADDRESS}. Leave empty to use the URL above. Requires the unfiltered_html capability.', 'dwads' ) );
+		self::field_textarea(
+			'exchange_widget',
+			__( 'Swap provider embed', 'dwads' ),
+			__( 'Paste whatever your swap provider gives you: a plain URL, an iframe, or their complete embed block including any script tag. Any provider works — the field is not tied to one brand. Tokens are replaced before it renders: {ADDRESS} (the banner deposit address), {LINK_ID} (affiliate or account id), {BANNER_ID}, {SITE_URL}, {SITE_NAME} and {HEIGHT}. Make sure {ADDRESS} appears somewhere, or the widget cannot know where to send the funds. An empty field uses the shipped ChangeNOW default; type none to show no widget at all. Because this field can contain markup, it is only editable by an administrator, and a script tag additionally needs the unfiltered_html capability.', 'dwads' ),
+			DWADS_Settings::exchange_template()
+		);
+		self::field_number( 'exchange_widget_height', __( 'Widget height (px)', 'dwads' ), __( 'Used when you paste a plain URL, so the plugin can size the frame it creates. A pasted iframe keeps whatever height it already carries. Also available as {HEIGHT}.', 'dwads' ), '1' );
 		self::field_text( 'qr_service', __( 'QR image template', 'dwads' ), __( 'Use {ADDRESS} as the placeholder. An empty field uses the default service; type none to hide the QR code.', 'dwads' ) );
 		echo '</table>';
 
@@ -714,32 +717,24 @@ final class DWADS_Admin {
 		}
 		$new['qr_service'] = $qr;
 
-		// The exchange widget is rendered from a URL, so nothing raw is stored by
-		// default. Braces are placeholders, so esc_url_raw cannot be used here.
-		$widget_url = trim( $scalar( 'exchange_widget_url', '' ) );
-		if ( '' !== $widget_url && 0 !== strcasecmp( $widget_url, 'none' ) ) {
-			if ( ! preg_match( '#^https://#i', $widget_url ) ) {
-				$errors[]   = __( 'The exchange widget URL must start with https://. The previous value was kept.', 'dwads' );
-				$widget_url = (string) $current['exchange_widget_url'];
-			} elseif ( false === strpos( $widget_url, '{ADDRESS}' ) ) {
-				$errors[]   = __( 'The exchange widget URL must contain {ADDRESS}. The previous value was kept.', 'dwads' );
-				$widget_url = (string) $current['exchange_widget_url'];
-			} else {
-				$widget_url = preg_replace( '/[\x00-\x1f\x7f"\']/', '', $widget_url );
+		// One field holds the provider snippet. It may be a URL, an iframe or a
+		// whole embed block, so kses and esc_url_raw would both destroy it: this is
+		// an administrator-only setting and is stored as pasted. Control characters
+		// are still stripped, and markup that runs script needs unfiltered_html.
+		$widget = trim( (string) $scalar( 'exchange_widget', '' ) );
+		if ( '' !== $widget && 0 !== strcasecmp( $widget, 'none' ) ) {
+			$widget = preg_replace( '/[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]/', '', $widget );
+
+			if ( false === strpos( $widget, '{ADDRESS}' ) ) {
+				$errors[] = __( 'The swap provider embed must contain {ADDRESS}, or the widget cannot know where to send the funds. The previous value was kept.', 'dwads' );
+				$widget   = isset( $current['exchange_widget'] ) ? (string) $current['exchange_widget'] : '';
+			} elseif ( false !== stripos( $widget, '<script' ) && ! current_user_can( 'unfiltered_html' ) ) {
+				$errors[] = __( 'Your user cannot store script tags, so the swap provider embed was not saved.', 'dwads' );
+				$widget   = isset( $current['exchange_widget'] ) ? (string) $current['exchange_widget'] : '';
 			}
 		}
-		$new['exchange_widget_url']     = $widget_url;
-		$new['exchange_widget_link_id'] = sanitize_text_field( $scalar( 'exchange_widget_link_id', '' ) );
-		$new['exchange_widget_height']  = max( 200, min( 900, (int) $scalar( 'exchange_widget_height', '356' ) ) );
-
-		// A full HTML override is a markup blob, so kses would destroy it. Only
-		// users allowed unfiltered HTML may store one.
-		$widget_html = trim( $scalar( 'exchange_widget_html', '' ) );
-		if ( '' !== $widget_html && ! current_user_can( 'unfiltered_html' ) ) {
-			$errors[]    = __( 'Your user cannot store raw HTML embeds, so the custom exchange embed was not saved.', 'dwads' );
-			$widget_html = (string) $current['exchange_widget_html'];
-		}
-		$new['exchange_widget_html'] = $widget_html;
+		$new['exchange_widget']        = $widget;
+		$new['exchange_widget_height'] = max( 120, min( 1200, (int) $scalar( 'exchange_widget_height', '356' ) ) );
 		$address_type                    = $scalar( 'address_type', 'auto' );
 		$new['address_type']             = in_array( $address_type, array( 'auto', 'p2pkh', 'p2sh-p2wpkh', 'p2wpkh' ), true ) ? $address_type : 'auto';
 		$path_raw                        = $scalar( 'derivation_path', '0/{i}' );
@@ -1147,8 +1142,10 @@ final class DWADS_Admin {
 	 * @param string $desc  Description.
 	 * @return void
 	 */
-	private static function field_textarea( $key, $label, $desc = '' ) {
-		$value = (string) DWADS_Settings::get( $key );
+	private static function field_textarea( $key, $label, $desc = '', $value = null ) {
+		if ( null === $value ) {
+			$value = (string) DWADS_Settings::get( $key );
+		}
 		echo '<tr><th scope="row"><label for="dwads-' . esc_attr( $key ) . '">' . esc_html( $label ) . '</label></th><td>';
 		echo '<textarea rows="5" class="large-text code" id="dwads-' . esc_attr( $key ) . '" name="' . esc_attr( self::name( $key ) ) . '">' . esc_textarea( $value ) . '</textarea>';
 		if ( $desc ) {

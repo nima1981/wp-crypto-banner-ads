@@ -42,7 +42,7 @@ final class DWADS_Address {
 		try {
 			$hash = self::hash160( $pub_bytes );
 		} catch ( RuntimeException $e ) {
-			return new WP_Error( 'dwads_ripemd', __( 'This server cannot derive Bitcoin addresses because PHP is missing RIPEMD160 (OpenSSL legacy). Ask your host to enable the hash extension with ripemd160.', 'dwads' ) );
+			return new WP_Error( 'dwads_ripemd', __( 'This server cannot derive payment addresses because PHP is missing RIPEMD160 (OpenSSL legacy). Ask your host to enable the hash extension with ripemd160.', 'dwads' ) );
 		}
 		switch ( $type ) {
 			case 'p2pkh':

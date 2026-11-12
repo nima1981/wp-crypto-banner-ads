@@ -64,7 +64,7 @@ final class DWADS_Plugin {
 			return;
 		}
 		if ( ! DWADS_BigInt::available() ) {
-			echo '<div class="notice notice-error"><p><strong>Crypto Banner Ads:</strong> ' . esc_html__( 'this server has neither the GMP nor the BCMath PHP extension, so Bitcoin addresses cannot be derived. Ask your host to enable one of them.', 'dwads' ) . '</p></div>';
+			echo '<div class="notice notice-error"><p><strong>Crypto Banner Ads:</strong> ' . esc_html__( 'this server has neither the GMP nor the BCMath PHP extension, so payment addresses cannot be derived. Ask your host to enable one of them.', 'dwads' ) . '</p></div>';
 			return;
 		}
 		if ( ! in_array( 'ripemd160', hash_algos(), true ) ) {

@@ -1,5 +1,25 @@
 # Changelog
 
+## 1.6.0
+- **One field for the swap provider.** The old URL field, affiliate-id field and
+  custom-HTML field are replaced by **Settings → Top-up page → Swap provider
+  embed**, which takes a plain URL, an iframe, or a provider's complete embed
+  block. It ships pre-filled with the ChangeNOW embed, so nothing needs setting
+  up, and it is no longer tied to one provider.
+- **More tokens:** `{ADDRESS}`, `{LINK_ID}`, `{BANNER_ID}`, `{SITE_URL}`,
+  `{SITE_NAME}`, `{HEIGHT}`. An unrecognised token is dropped instead of being
+  printed into a payment URL.
+- A pasted script tag needs `unfiltered_html`; an iframe or a URL does not. A
+  snippet without `{ADDRESS}` is rejected rather than saved, because the widget
+  would have nowhere to send funds.
+- **Wording:** copy that implied Bitcoin is now "your cryptocurrency or regular
+  money of choice" — the upload introduction, the payment email, the wallet
+  page, the frame title, the QR alt text and the price description. The direct
+  send line still says Bitcoin on purpose: the address is a Bitcoin address and
+  sending another coin to it would be lost.
+- Existing installs keep working with no migration: an empty new field falls
+  back to the previously saved URL or HTML, including a saved `link_id`.
+
 ## 1.5.1
 - **Reset impressions**, per banner, from the admin banner list. Zeroes the
   impression counter and deletes that banner's stored impression rows, so the

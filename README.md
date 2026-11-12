@@ -2,8 +2,8 @@
 
 A self-contained WordPress plugin for **cookie-free, account-free paid banner ads**.
 
-- Visitors upload one or more banners, pay Bitcoin to that banner's own address, and get a private management link.
-- Every click on a banner deducts a configurable dollar amount (default **$0.02**) worth of bitcoin from that banner's balance.
+- Visitors upload one or more banners, fund that banner's own address with their cryptocurrency or regular money of choice, and get a private management link.
+- Every click on a banner deducts a configurable dollar amount (default **$0.02**) worth of the balance.
 - The site owner just pastes a snippet wherever a banner should appear. If no banner has money left, the slot stays completely empty.
 - Sweeping the wallet does not affect the plugin: a banner's balance is *money that ever arrived* minus *money deducted by clicks*. Spending from the wallet is invisible to it.
 
@@ -56,7 +56,7 @@ The plugin warns you on the Plugins screen if a requirement is missing.
 
    **The slot value is a size filter, not a CSS size.** It must be one of the configured sizes — by default `728x90`, `320x100`, `300x250`, `336x280`, `250x250`, `160x600`, `300x600`, `970x250` — and a banner of exactly those pixels will fill it. A slot that is blank, misspelled or no longer configured renders nothing at all, and the endpoint answers HTTP 400 (the loader logs a console warning in that case). Add your own sizes under **Settings → Uploads → Allowed sizes**; they then appear in the snippet picker, the upload form and the widget.
 
-4. **Exchange widget (optional).** The plugin builds the ChangeNOW iframe itself. The **link id** field is pre-filled with `bc1c9b656c7061`, the plugin's default affiliate id, so the widget works without any setup — that default sends a share of the exchange fees to the plugin author. Replace it with your own `link_id` if you have one, or type `none` to drop the parameter entirely (an empty field keeps the default). The widget URL is also editable, so you can change `from=`, the size, or the whole provider; `{ADDRESS}` marks where the banner address goes.
+4. **Swap provider (optional).** One field takes whatever your provider gives you: a plain URL, an iframe, or their complete embed block including a script tag. It ships pre-filled with the ChangeNOW embed, so it works without any setup. Tokens are replaced before it renders — `{ADDRESS}` (the banner's deposit address), `{LINK_ID}`, `{BANNER_ID}`, `{SITE_URL}`, `{SITE_NAME}`, `{HEIGHT}`. `{ADDRESS}` must appear somewhere or the widget cannot know where to send funds; an unknown token is dropped rather than printed. Type `none` to show no widget, or empty to fall back to the shipped default. See **Trying a different swap provider** below for the details.
 5. **Cron.** WP-Cron only runs on traffic. For a quiet site add a real cron job:
 
    ```
@@ -196,7 +196,7 @@ Amounts are integers in satoshis. Each click also records the dollar price it wa
 
 ## Known limits
 
-- **The exchange widget is per-account, with a default.** The ChangeNOW embed carries a `link_id` that identifies whose fees apply. It ships pre-filled with the maintainer's id so a fresh install has a working widget; replace it with your own, or type `none` to remove it — an empty field falls back to the default. The frame is rendered by the plugin from the stored URL, so no raw HTML or `unfiltered_html` capability is needed.
+- **The swap provider is one snippet, with a working default.** The field holds a `link_id` (affiliate/account id) inside the text, so it ships pre-filled with the maintainer's id and a fresh install has a working widget. Replace `{LINK_ID}` with your own account id (or delete the `link_id=` parameter), or type `none` as the whole field to remove the widget. A pasted script tag needs the `unfiltered_html` capability; an iframe or a plain URL does not.
 - **QR images come from an external service by default** (`api.qrserver.com`) because a bundled QR encoder would be far more code than the rest of the plugin. The code encodes a `bitcoin:` URI, so a wallet app can scan it directly. The address is public information; change the template to your own endpoint, or type `none` to hide it — the page still has a copy button and an “Open in wallet” link.
 - **REST must be reachable.** If a security plugin blocks `/wp-json/`, the snippet cannot fetch banners.
 - **Animated GIFs are flattened** to PNG on upload.
@@ -294,7 +294,7 @@ One field drives both the whitelist and what advertisers are told. Each line is 
 
 - The upload form lists every size with its label, its note and a “recommended” badge, so an advertiser can pick a shape that suits their artwork instead of guessing.
 - **Settings → Allowed sizes** previews exactly what advertisers will see, under the field.
-- **Settings → Upload page introduction** is the paragraph above the form: what happens after upload, that no account is needed, where the Bitcoin address comes from. Plain text or simple HTML; empty hides it.
+- **Settings → Upload page introduction** is the paragraph above the form: what happens after upload, that no account is needed, where the payment address comes from. Plain text or simple HTML; empty hides it.
 - Recommended marks are guidance only — they do not change rotation. Weighting is still by remaining balance, by design: an advertiser who tops up less should not outrank one who pays more.
 
 ---
@@ -584,3 +584,43 @@ and the click-rate brake read) and nothing else — clicks charged, the balance,
 the money spent and the click log all stay. Only an administrator can run it, and
 it asks for confirmation.
 
+## Trying a different swap provider (1.6.0)
+
+**Settings → Top-up page → Swap provider embed** takes one snippet, from any
+provider, and renders it as-is. The plugin does not care whose widget it is.
+
+- **A plain URL** is wrapped in a frame the plugin sizes, using the *Widget
+  height* setting. If the URL points at `changenow.io`, the stepper connector
+  script is added for you.
+- **Anything else** — an `<iframe>`, a `<div>` plus a `<script>` — is printed
+  exactly as pasted. That is how a provider that ships a full embed block
+  works, and why the field is administrator-only.
+
+Tokens, replaced before output:
+
+| Token | Becomes |
+|---|---|
+| `{ADDRESS}` | the banner's deposit address, URL-encoded |
+| `{LINK_ID}` | affiliate / account id (empty when the field says `none`) |
+| `{BANNER_ID}` | the numeric banner id |
+| `{SITE_URL}` | this site's home URL |
+| `{SITE_NAME}` | this site's name |
+| `{HEIGHT}` | the Widget height setting |
+
+A token the plugin does not recognise is dropped rather than printed, so a typo
+cannot leak `{ADRES}` into a payment URL.
+
+### Paying in other coins and in fiat
+
+The widget is the conversion path: the visitor pays in whatever the provider
+accepts and the provider sends Bitcoin to the deposit address. The copy across
+the plugin says **"your cryptocurrency or regular money of choice"** for
+exactly that reason.
+
+One exception is deliberate and must stay: the address itself is a Bitcoin
+address. Sending ETH, USDT or anything else directly to it is unrecoverable, so
+the direct-send line still says "send Bitcoin straight to this address". The
+choice lives in the conversion path, not in the address. If you would rather
+word that differently, change **Settings → Upload page introduction** and the
+management-page disclaimer; the direct-send sentence is in
+`includes/class-dwads-public-pages.php`.

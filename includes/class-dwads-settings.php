@@ -28,7 +28,7 @@ final class DWADS_Settings {
 			'click_price_usd'          => '0.02',
 			'approval_required'        => 1,
 			'sizes'                    => "728x90 | Leaderboard | top of every page\n320x100 | Large mobile banner | phones\n300x250 | Medium rectangle | in-content, best performing | recommended\n336x280 | Large rectangle | in-content\n250x250 | Square | sidebar\n160x600 | Wide skyscraper | tall sidebar\n300x600 | Half page | end of article\n970x250 | Billboard | wide header | recommended",
-			'upload_intro'             => "Pick an image, add the link it should open, and upload. No account is needed: right after uploading you receive a private management link with a Bitcoin address. Send bitcoin there to load the balance, and each click on your banner uses a small amount of it.",
+			'upload_intro'             => "Pick an image, add the link it should open, and upload. No account is needed: right after uploading you receive a private management link with a payment address. Load the balance there with your cryptocurrency or regular money of choice — the swap widget converts it for you — and each click on your banner uses a small amount of it.",
 			'max_upload_kb'            => 512,
 			'max_banners_per_upload'   => 5,
 			'auto_fit_uploads'         => 1,
@@ -80,6 +80,10 @@ final class DWADS_Settings {
 			'click_base'               => 'ads-go',
 			'manage_base'              => 'ads/manage',
 			// Top up.
+			// One field holds whatever the swap provider gives you: a plain URL, an
+			// iframe, or their whole embed block. Empty means "use the shipped
+			// ChangeNOW default"; the literal "none" hides the widget.
+			'exchange_widget'          => '',
 			'exchange_widget_url'      => 'https://changenow.io/embeds/exchange-widget/v2/widget.html?FAQ=true&amount=0.01&amountFiat=6.50&backgroundColor=FFFFFF&darkMode=false&from=xmr&fromFiat=usd&horizontal=false&isFiat&lang=en-US&link_id={LINK_ID}&locales=true&logo=false&primaryColor=00C26F&to=btc&toFiat=eth&toTheMoon=true&topUpAddress={ADDRESS}&topUpCurrency=btc&topUpExtraId&topUpMode=true&topUpNetwork=btc',
 			// Ships with the maintainer's affiliate id so a fresh install has a
 			// working widget; replace it with your own, or clear the field to
@@ -321,6 +325,33 @@ final class DWADS_Settings {
 			return '';
 		}
 		return $value;
+	}
+
+	/**
+	 * The swap-provider snippet to render, exactly as the administrator stored it.
+	 *
+	 * One field replaces the old URL / affiliate-id / raw-HTML trio. The value may
+	 * be a bare URL, an iframe, or a provider's complete embed block.
+	 *
+	 * Order of preference keeps existing installs working without a migration:
+	 * the new field, then the old raw-HTML override, then the old URL field (whose
+	 * default is the shipped ChangeNOW URL). An empty new field therefore still
+	 * means "use what was configured before", and "none" is the opt-out.
+	 *
+	 * @return string Empty when the widget is disabled.
+	 */
+	public static function exchange_template() {
+		$value = trim( (string) self::get( 'exchange_widget' ) );
+		if ( '' !== $value ) {
+			return 0 === strcasecmp( $value, 'none' ) ? '' : $value;
+		}
+
+		$legacy_html = trim( (string) self::get( 'exchange_widget_html', '' ) );
+		if ( '' !== $legacy_html ) {
+			return $legacy_html;
+		}
+
+		return self::exchange_widget_url();
 	}
 
 	/**
