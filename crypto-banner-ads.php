@@ -1,7 +1,7 @@
 <?php
 /**
  * Plugin Name:       Crypto Banner Ads
- * Plugin URI:        https://reza.consulting
+ * Plugin URI:        https://reza.consulting/crypto-banner-ads/
  * Description:       Cookie-free, account-free banner ads paid in Bitcoin: watch-only address per banner, pay-per-click balances, empty slots when unfunded.
  * Version:           1.9.3
  * Requires at least: 6.0
