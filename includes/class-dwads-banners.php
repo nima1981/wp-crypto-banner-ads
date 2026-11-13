@@ -940,7 +940,7 @@ final class DWADS_Banners {
 			(int) $limit
 		);
 
-		return (array) $wpdb->get_results( $sql, ARRAY_A );
+		return (array) $wpdb->get_results( $sql, ARRAY_A ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- $sql is a fully prepared query with $wpdb->prefix table names
 	}
 
 	/**
