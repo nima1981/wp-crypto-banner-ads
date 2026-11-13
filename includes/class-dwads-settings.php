@@ -412,7 +412,7 @@ final class DWADS_Settings {
 		}
 
 		if ( '' === $text || 0 === strcasecmp( $text, 'none' ) ) {
-			$text = __( 'Advertise here', 'dwads' );
+			$text = __( 'Advertise here', 'crypto-banner-ads' );
 		}
 		$text = mb_substr( sanitize_text_field( $text ), 0, 60 );
 

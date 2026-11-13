@@ -260,8 +260,8 @@ class DWADS_Widget extends WP_Widget {
 	public function __construct() {
 		parent::__construct(
 			'dwads_slot',
-			__( 'Banner Ad Slot', 'dwads' ),
-			array( 'description' => __( 'Rotates paid banners that fit the selected size.', 'dwads' ) )
+			__( 'Banner Ad Slot', 'crypto-banner-ads' ),
+			array( 'description' => __( 'Rotates paid banners that fit the selected size.', 'crypto-banner-ads' ) )
 		);
 	}
 
@@ -310,11 +310,11 @@ class DWADS_Widget extends WP_Widget {
 		$sizes = DWADS_Settings::sizes();
 		?>
 		<p>
-			<label for="<?php echo esc_attr( $this->get_field_id( 'title' ) ); ?>"><?php esc_html_e( 'Title (optional)', 'dwads' ); ?></label>
+			<label for="<?php echo esc_attr( $this->get_field_id( 'title' ) ); ?>"><?php esc_html_e( 'Title (optional)', 'crypto-banner-ads' ); ?></label>
 			<input class="widefat" id="<?php echo esc_attr( $this->get_field_id( 'title' ) ); ?>" name="<?php echo esc_attr( $this->get_field_name( 'title' ) ); ?>" type="text" value="<?php echo esc_attr( $title ); ?>">
 		</p>
 		<p>
-			<label for="<?php echo esc_attr( $this->get_field_id( 'slot' ) ); ?>"><?php esc_html_e( 'Slot size', 'dwads' ); ?></label>
+			<label for="<?php echo esc_attr( $this->get_field_id( 'slot' ) ); ?>"><?php esc_html_e( 'Slot size', 'crypto-banner-ads' ); ?></label>
 			<select class="widefat" id="<?php echo esc_attr( $this->get_field_id( 'slot' ) ); ?>" name="<?php echo esc_attr( $this->get_field_name( 'slot' ) ); ?>">
 				<?php foreach ( $sizes as $key => $size ) : ?>
 					<option value="<?php echo esc_attr( $key ); ?>" <?php selected( $slot, $key ); ?>><?php echo esc_html( $key ); ?></option>
@@ -325,14 +325,14 @@ class DWADS_Widget extends WP_Widget {
 		$mobile = isset( $instance['slot_mobile'] ) ? (string) $instance['slot_mobile'] : '';
 		?>
 		<p>
-			<label for="<?php echo esc_attr( $this->get_field_id( 'slot_mobile' ) ); ?>"><?php esc_html_e( 'Size on phones (optional)', 'dwads' ); ?></label>
+			<label for="<?php echo esc_attr( $this->get_field_id( 'slot_mobile' ) ); ?>"><?php esc_html_e( 'Size on phones (optional)', 'crypto-banner-ads' ); ?></label>
 			<select class="widefat" id="<?php echo esc_attr( $this->get_field_id( 'slot_mobile' ) ); ?>" name="<?php echo esc_attr( $this->get_field_name( 'slot_mobile' ) ); ?>">
-				<option value="" <?php selected( $mobile, '' ); ?>><?php esc_html_e( 'Same size everywhere', 'dwads' ); ?></option>
+				<option value="" <?php selected( $mobile, '' ); ?>><?php esc_html_e( 'Same size everywhere', 'crypto-banner-ads' ); ?></option>
 				<?php foreach ( $sizes as $key => $size ) : ?>
 					<option value="<?php echo esc_attr( $key ); ?>" <?php selected( $mobile, $key ); ?>><?php echo esc_html( $key ); ?></option>
 				<?php endforeach; ?>
 			</select>
-			<span class="description"><?php esc_html_e( 'Banners of this size replace the one above on narrow screens. Never wider than the slot, or it will scale down.', 'dwads' ); ?></span>
+			<span class="description"><?php esc_html_e( 'Banners of this size replace the one above on narrow screens. Never wider than the slot, or it will scale down.', 'crypto-banner-ads' ); ?></span>
 		</p>
 		<?php
 		$mode  = isset( $instance['foot_mode'] ) ? (string) $instance['foot_mode'] : 'inherit';
@@ -341,28 +341,28 @@ class DWADS_Widget extends WP_Widget {
 		$fal   = isset( $instance['foot_align'] ) ? (string) $instance['foot_align'] : '';
 		?>
 		<p>
-			<label for="<?php echo esc_attr( $this->get_field_id( 'foot_mode' ) ); ?>"><?php esc_html_e( 'Link under the banner', 'dwads' ); ?></label>
+			<label for="<?php echo esc_attr( $this->get_field_id( 'foot_mode' ) ); ?>"><?php esc_html_e( 'Link under the banner', 'crypto-banner-ads' ); ?></label>
 			<select class="widefat" id="<?php echo esc_attr( $this->get_field_id( 'foot_mode' ) ); ?>" name="<?php echo esc_attr( $this->get_field_name( 'foot_mode' ) ); ?>">
-				<option value="inherit" <?php selected( $mode, 'inherit' ); ?>><?php esc_html_e( 'Use the site setting', 'dwads' ); ?></option>
-				<option value="on" <?php selected( $mode, 'on' ); ?>><?php esc_html_e( 'Show a link here', 'dwads' ); ?></option>
-				<option value="off" <?php selected( $mode, 'off' ); ?>><?php esc_html_e( 'Never show it here', 'dwads' ); ?></option>
+				<option value="inherit" <?php selected( $mode, 'inherit' ); ?>><?php esc_html_e( 'Use the site setting', 'crypto-banner-ads' ); ?></option>
+				<option value="on" <?php selected( $mode, 'on' ); ?>><?php esc_html_e( 'Show a link here', 'crypto-banner-ads' ); ?></option>
+				<option value="off" <?php selected( $mode, 'off' ); ?>><?php esc_html_e( 'Never show it here', 'crypto-banner-ads' ); ?></option>
 			</select>
 		</p>
 		<p>
-			<label for="<?php echo esc_attr( $this->get_field_id( 'foot_text' ) ); ?>"><?php esc_html_e( 'Link text', 'dwads' ); ?></label>
-			<input class="widefat" id="<?php echo esc_attr( $this->get_field_id( 'foot_text' ) ); ?>" name="<?php echo esc_attr( $this->get_field_name( 'foot_text' ) ); ?>" type="text" value="<?php echo esc_attr( $ftext ); ?>" placeholder="<?php esc_attr_e( 'Site setting', 'dwads' ); ?>">
+			<label for="<?php echo esc_attr( $this->get_field_id( 'foot_text' ) ); ?>"><?php esc_html_e( 'Link text', 'crypto-banner-ads' ); ?></label>
+			<input class="widefat" id="<?php echo esc_attr( $this->get_field_id( 'foot_text' ) ); ?>" name="<?php echo esc_attr( $this->get_field_name( 'foot_text' ) ); ?>" type="text" value="<?php echo esc_attr( $ftext ); ?>" placeholder="<?php esc_attr_e( 'Site setting', 'crypto-banner-ads' ); ?>">
 		</p>
 		<p>
-			<label for="<?php echo esc_attr( $this->get_field_id( 'foot_url' ) ); ?>"><?php esc_html_e( 'Link address', 'dwads' ); ?></label>
-			<input class="widefat" id="<?php echo esc_attr( $this->get_field_id( 'foot_url' ) ); ?>" name="<?php echo esc_attr( $this->get_field_name( 'foot_url' ) ); ?>" type="text" value="<?php echo esc_attr( $furl ); ?>" placeholder="<?php esc_attr_e( 'Site setting', 'dwads' ); ?>">
+			<label for="<?php echo esc_attr( $this->get_field_id( 'foot_url' ) ); ?>"><?php esc_html_e( 'Link address', 'crypto-banner-ads' ); ?></label>
+			<input class="widefat" id="<?php echo esc_attr( $this->get_field_id( 'foot_url' ) ); ?>" name="<?php echo esc_attr( $this->get_field_name( 'foot_url' ) ); ?>" type="text" value="<?php echo esc_attr( $furl ); ?>" placeholder="<?php esc_attr_e( 'Site setting', 'crypto-banner-ads' ); ?>">
 		</p>
 		<p>
-			<label for="<?php echo esc_attr( $this->get_field_id( 'foot_align' ) ); ?>"><?php esc_html_e( 'Alignment', 'dwads' ); ?></label>
+			<label for="<?php echo esc_attr( $this->get_field_id( 'foot_align' ) ); ?>"><?php esc_html_e( 'Alignment', 'crypto-banner-ads' ); ?></label>
 			<select class="widefat" id="<?php echo esc_attr( $this->get_field_id( 'foot_align' ) ); ?>" name="<?php echo esc_attr( $this->get_field_name( 'foot_align' ) ); ?>">
-				<option value="" <?php selected( $fal, '' ); ?>><?php esc_html_e( 'Site setting', 'dwads' ); ?></option>
-				<option value="left" <?php selected( $fal, 'left' ); ?>><?php esc_html_e( 'Left', 'dwads' ); ?></option>
-				<option value="center" <?php selected( $fal, 'center' ); ?>><?php esc_html_e( 'Center', 'dwads' ); ?></option>
-				<option value="right" <?php selected( $fal, 'right' ); ?>><?php esc_html_e( 'Right', 'dwads' ); ?></option>
+				<option value="" <?php selected( $fal, '' ); ?>><?php esc_html_e( 'Site setting', 'crypto-banner-ads' ); ?></option>
+				<option value="left" <?php selected( $fal, 'left' ); ?>><?php esc_html_e( 'Left', 'crypto-banner-ads' ); ?></option>
+				<option value="center" <?php selected( $fal, 'center' ); ?>><?php esc_html_e( 'Center', 'crypto-banner-ads' ); ?></option>
+				<option value="right" <?php selected( $fal, 'right' ); ?>><?php esc_html_e( 'Right', 'crypto-banner-ads' ); ?></option>
 			</select>
 		</p>
 		<?php
@@ -371,25 +371,25 @@ class DWADS_Widget extends WP_Widget {
 		$fal2  = isset( $instance['fund_align'] ) ? (string) $instance['fund_align'] : '';
 		?>
 		<p>
-			<label for="<?php echo esc_attr( $this->get_field_id( 'fund_mode' ) ); ?>"><?php esc_html_e( '“Fund this banner” link', 'dwads' ); ?></label>
+			<label for="<?php echo esc_attr( $this->get_field_id( 'fund_mode' ) ); ?>"><?php esc_html_e( '“Fund this banner” link', 'crypto-banner-ads' ); ?></label>
 			<select class="widefat" id="<?php echo esc_attr( $this->get_field_id( 'fund_mode' ) ); ?>" name="<?php echo esc_attr( $this->get_field_name( 'fund_mode' ) ); ?>">
-				<option value="inherit" <?php selected( $fmode, 'inherit' ); ?>><?php esc_html_e( 'Use the site setting', 'dwads' ); ?></option>
-				<option value="on" <?php selected( $fmode, 'on' ); ?>><?php esc_html_e( 'Show it here', 'dwads' ); ?></option>
-				<option value="off" <?php selected( $fmode, 'off' ); ?>><?php esc_html_e( 'Never show it here', 'dwads' ); ?></option>
+				<option value="inherit" <?php selected( $fmode, 'inherit' ); ?>><?php esc_html_e( 'Use the site setting', 'crypto-banner-ads' ); ?></option>
+				<option value="on" <?php selected( $fmode, 'on' ); ?>><?php esc_html_e( 'Show it here', 'crypto-banner-ads' ); ?></option>
+				<option value="off" <?php selected( $fmode, 'off' ); ?>><?php esc_html_e( 'Never show it here', 'crypto-banner-ads' ); ?></option>
 			</select>
-			<span class="description"><?php esc_html_e( 'Opens the banner’s own management page, where anyone can add funds to it.', 'dwads' ); ?></span>
+			<span class="description"><?php esc_html_e( 'Opens the banner’s own management page, where anyone can add funds to it.', 'crypto-banner-ads' ); ?></span>
 		</p>
 		<p>
-			<label for="<?php echo esc_attr( $this->get_field_id( 'fund_text' ) ); ?>"><?php esc_html_e( 'Fund link text', 'dwads' ); ?></label>
-			<input class="widefat" id="<?php echo esc_attr( $this->get_field_id( 'fund_text' ) ); ?>" name="<?php echo esc_attr( $this->get_field_name( 'fund_text' ) ); ?>" type="text" value="<?php echo esc_attr( $ftext2 ); ?>" placeholder="<?php esc_attr_e( 'Site setting', 'dwads' ); ?>">
+			<label for="<?php echo esc_attr( $this->get_field_id( 'fund_text' ) ); ?>"><?php esc_html_e( 'Fund link text', 'crypto-banner-ads' ); ?></label>
+			<input class="widefat" id="<?php echo esc_attr( $this->get_field_id( 'fund_text' ) ); ?>" name="<?php echo esc_attr( $this->get_field_name( 'fund_text' ) ); ?>" type="text" value="<?php echo esc_attr( $ftext2 ); ?>" placeholder="<?php esc_attr_e( 'Site setting', 'crypto-banner-ads' ); ?>">
 		</p>
 		<p>
-			<label for="<?php echo esc_attr( $this->get_field_id( 'fund_align' ) ); ?>"><?php esc_html_e( 'Fund link alignment', 'dwads' ); ?></label>
+			<label for="<?php echo esc_attr( $this->get_field_id( 'fund_align' ) ); ?>"><?php esc_html_e( 'Fund link alignment', 'crypto-banner-ads' ); ?></label>
 			<select class="widefat" id="<?php echo esc_attr( $this->get_field_id( 'fund_align' ) ); ?>" name="<?php echo esc_attr( $this->get_field_name( 'fund_align' ) ); ?>">
-				<option value="" <?php selected( $fal2, '' ); ?>><?php esc_html_e( 'Site setting', 'dwads' ); ?></option>
-				<option value="left" <?php selected( $fal2, 'left' ); ?>><?php esc_html_e( 'Left', 'dwads' ); ?></option>
-				<option value="center" <?php selected( $fal2, 'center' ); ?>><?php esc_html_e( 'Center', 'dwads' ); ?></option>
-				<option value="right" <?php selected( $fal2, 'right' ); ?>><?php esc_html_e( 'Right', 'dwads' ); ?></option>
+				<option value="" <?php selected( $fal2, '' ); ?>><?php esc_html_e( 'Site setting', 'crypto-banner-ads' ); ?></option>
+				<option value="left" <?php selected( $fal2, 'left' ); ?>><?php esc_html_e( 'Left', 'crypto-banner-ads' ); ?></option>
+				<option value="center" <?php selected( $fal2, 'center' ); ?>><?php esc_html_e( 'Center', 'crypto-banner-ads' ); ?></option>
+				<option value="right" <?php selected( $fal2, 'right' ); ?>><?php esc_html_e( 'Right', 'crypto-banner-ads' ); ?></option>
 			</select>
 		</p>
 		<?php

@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.9.3
+- **Text domain changed to `crypto-banner-ads`** to match the WordPress.org slug
+  (was `dwads`). `load_plugin_textdomain()` is now called on init. No
+  translations exist yet, so nothing breaks.
+- **SQL queries use `$wpdb->prefix` directly** instead of a `table()` helper
+  method, satisfying Plugin Check's prepared-SQL checks.
+- **Upload form config and the copy-address button** now use
+  `wp_add_inline_script()` instead of raw inline `<script>` tags.
+- Added `/* translators: */` comments where placeholders were ambiguous.
+- Fixed a `prepare()` argument-count edge case in the banners admin list.
+
 ## 1.9.2
 - The "Powered by Crypto Banner Ads from Reza Consulting" credit line is now opt-in
   (off by default) on new installs, matching the WordPress.org guideline that

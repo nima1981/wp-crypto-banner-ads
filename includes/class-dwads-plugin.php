@@ -46,6 +46,8 @@ final class DWADS_Plugin {
 		}
 		self::$booted = true;
 
+		add_action( 'init', array( __CLASS__, 'load_textdomain' ) );
+
 		DWADS_Install::maybe_upgrade();
 
 		DWADS_Rewrite::init();
@@ -64,13 +66,22 @@ final class DWADS_Plugin {
 	}
 
 	/**
+	 * Load translations.
+	 *
+	 * @return void
+	 */
+	public static function load_textdomain() {
+		load_plugin_textdomain( 'crypto-banner-ads', false, dirname( plugin_basename( DWADS_FILE ) ) . '/languages' );
+	}
+
+	/**
 	 * Settings link on the plugins screen.
 	 *
 	 * @param array $links Links.
 	 * @return array
 	 */
 	public static function action_links( $links ) {
-		$links[] = '<a href="' . esc_url( admin_url( 'admin.php?page=dwads-settings' ) ) . '">' . esc_html__( 'Settings', 'dwads' ) . '</a>';
+		$links[] = '<a href="' . esc_url( admin_url( 'admin.php?page=dwads-settings' ) ) . '">' . esc_html__( 'Settings', 'crypto-banner-ads' ) . '</a>';
 		return $links;
 	}
 
@@ -84,11 +95,11 @@ final class DWADS_Plugin {
 			return;
 		}
 		if ( ! DWADS_BigInt::available() ) {
-			echo '<div class="notice notice-error"><p><strong>Crypto Banner Ads:</strong> ' . esc_html__( 'this server has neither the GMP nor the BCMath PHP extension, so payment addresses cannot be derived. Ask your host to enable one of them.', 'dwads' ) . '</p></div>';
+			echo '<div class="notice notice-error"><p><strong>Crypto Banner Ads:</strong> ' . esc_html__( 'this server has neither the GMP nor the BCMath PHP extension, so payment addresses cannot be derived. Ask your host to enable one of them.', 'crypto-banner-ads' ) . '</p></div>';
 			return;
 		}
 		if ( ! in_array( 'ripemd160', hash_algos(), true ) ) {
-			echo '<div class="notice notice-error"><p><strong>Crypto Banner Ads:</strong> ' . esc_html__( 'RIPEMD160 is missing from this PHP build, so addresses cannot be derived. Ask your host to enable the hash extension with ripemd160 support.', 'dwads' ) . '</p></div>';
+			echo '<div class="notice notice-error"><p><strong>Crypto Banner Ads:</strong> ' . esc_html__( 'RIPEMD160 is missing from this PHP build, so addresses cannot be derived. Ask your host to enable the hash extension with ripemd160 support.', 'crypto-banner-ads' ) . '</p></div>';
 		}
 	}
 

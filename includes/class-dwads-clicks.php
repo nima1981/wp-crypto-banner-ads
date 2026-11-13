@@ -105,7 +105,7 @@ final class DWADS_Clicks {
 
 		if ( DWADS_Settings::get( 'record_impressions', 1 ) ) {
 			$wpdb->insert(
-				self::impressions_table(),
+				$wpdb->prefix . 'dwads_impressions',
 				array(
 					'nonce'      => $nonce,
 					'banner_id'  => (int) $banner['id'],
@@ -234,7 +234,7 @@ final class DWADS_Clicks {
 		$since = gmdate( 'Y-m-d H:i:s', time() - $hours * HOUR_IN_SECONDS );
 		$found = $wpdb->get_var(
 			$wpdb->prepare(
-				'SELECT id FROM ' . self::table() . ' WHERE banner_id = %d AND visitor_hash = %s AND charged = 1 AND created_at >= %s LIMIT 1',
+				'SELECT id FROM ' . $wpdb->prefix . 'dwads_clicks' . ' WHERE banner_id = %d AND visitor_hash = %s AND charged = 1 AND created_at >= %s LIMIT 1',
 				(int) $banner_id,
 				$visitor_hash,
 				$since
@@ -270,7 +270,7 @@ final class DWADS_Clicks {
 		// silently counts nothing at all.
 		$found = $wpdb->get_var(
 			$wpdb->prepare(
-				'SELECT id FROM ' . self::impressions_table() . ' WHERE banner_id = %d AND visitor = %s AND seen_at IS NOT NULL AND created_at >= %s AND nonce <> %s LIMIT 1',
+				'SELECT id FROM ' . $wpdb->prefix . 'dwads_impressions' . ' WHERE banner_id = %d AND visitor = %s AND seen_at IS NOT NULL AND created_at >= %s AND nonce <> %s LIMIT 1',
 				(int) $banner_id,
 				$visitor,
 				$since,
@@ -296,7 +296,7 @@ final class DWADS_Clicks {
 		}
 
 		$row = $wpdb->get_row(
-			$wpdb->prepare( 'SELECT * FROM ' . self::impressions_table() . ' WHERE nonce = %s LIMIT 1', $nonce ),
+			$wpdb->prepare( 'SELECT * FROM ' . $wpdb->prefix . 'dwads_impressions' . ' WHERE nonce = %s LIMIT 1', $nonce ),
 			ARRAY_A
 		);
 
@@ -318,7 +318,7 @@ final class DWADS_Clicks {
 
 		return (int) $wpdb->query(
 			$wpdb->prepare(
-				'UPDATE ' . self::impressions_table() . ' SET seen_at = %s WHERE nonce = %s AND seen_at IS NULL AND expires_at >= %s',
+				'UPDATE ' . $wpdb->prefix . 'dwads_impressions' . ' SET seen_at = %s WHERE nonce = %s AND seen_at IS NULL AND expires_at >= %s',
 				$now,
 				(string) $nonce,
 				$now
@@ -338,7 +338,7 @@ final class DWADS_Clicks {
 
 		return (int) $wpdb->query(
 			$wpdb->prepare(
-				'UPDATE ' . self::impressions_table() . ' SET armed_at = %s WHERE nonce = %s AND armed_at IS NULL AND expires_at >= %s',
+				'UPDATE ' . $wpdb->prefix . 'dwads_impressions' . ' SET armed_at = %s WHERE nonce = %s AND armed_at IS NULL AND expires_at >= %s',
 				$now,
 				(string) $nonce,
 				$now
@@ -388,7 +388,7 @@ final class DWADS_Clicks {
 		if ( 'banner_id' === $column ) {
 			return (int) $wpdb->get_var(
 				$wpdb->prepare(
-					'SELECT COUNT(*) FROM ' . self::table() . ' WHERE banner_id = %d AND charged = 1 AND created_at >= %s',
+					'SELECT COUNT(*) FROM ' . $wpdb->prefix . 'dwads_clicks' . ' WHERE banner_id = %d AND charged = 1 AND created_at >= %s',
 					(int) $value,
 					(string) $since
 				)
@@ -397,7 +397,7 @@ final class DWADS_Clicks {
 
 		return (int) $wpdb->get_var(
 			$wpdb->prepare(
-				'SELECT COUNT(*) FROM ' . self::table() . ' WHERE ' . $column . ' = %s AND charged = 1 AND created_at >= %s',
+				'SELECT COUNT(*) FROM ' . $wpdb->prefix . 'dwads_clicks' . ' WHERE ' . $column . ' = %s AND charged = 1 AND created_at >= %s',
 				(string) $value,
 				(string) $since
 			)
@@ -416,7 +416,7 @@ final class DWADS_Clicks {
 
 		return (int) $wpdb->get_var(
 			$wpdb->prepare(
-				'SELECT COUNT(*) FROM ' . self::impressions_table() . ' WHERE banner_id = %d AND seen_at IS NOT NULL AND created_at >= %s',
+				'SELECT COUNT(*) FROM ' . $wpdb->prefix . 'dwads_impressions' . ' WHERE banner_id = %d AND seen_at IS NOT NULL AND created_at >= %s',
 				(int) $banner_id,
 				(string) $since
 			)
@@ -440,7 +440,7 @@ final class DWADS_Clicks {
 		$since = gmdate( 'Y-m-d H:i:s', time() - 30 * DAY_IN_SECONDS );
 		$found = $wpdb->get_var(
 			$wpdb->prepare(
-				'SELECT id FROM ' . self::table() . " WHERE visitor_hash = %s AND reason = 'honeypot' AND created_at >= %s LIMIT 1",
+				'SELECT id FROM ' . $wpdb->prefix . 'dwads_clicks' . " WHERE visitor_hash = %s AND reason = 'honeypot' AND created_at >= %s LIMIT 1",
 				$visitor_hash,
 				$since
 			)
@@ -459,7 +459,7 @@ final class DWADS_Clicks {
 		global $wpdb;
 		$since = gmdate( 'Y-m-d H:i:s', time() - HOUR_IN_SECONDS );
 		return (int) $wpdb->get_var(
-			$wpdb->prepare( 'SELECT COUNT(*) FROM ' . self::table() . ' WHERE ip_hash = %s AND created_at >= %s', $ip_hash, $since )
+			$wpdb->prepare( 'SELECT COUNT(*) FROM ' . $wpdb->prefix . 'dwads_clicks' . ' WHERE ip_hash = %s AND created_at >= %s', $ip_hash, $since )
 		);
 	}
 
@@ -493,7 +493,7 @@ final class DWADS_Clicks {
 		if ( ! empty( $_GET['dwads_hp'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 			global $wpdb;
 			$wpdb->insert(
-				self::table(),
+				$wpdb->prefix . 'dwads_clicks',
 				array(
 					'banner_id'    => (int) $banner['id'],
 					'site_id'      => (int) $payload['s'],
@@ -521,7 +521,7 @@ final class DWADS_Clicks {
 			global $wpdb;
 			$used = $wpdb->query(
 				$wpdb->prepare(
-					'UPDATE ' . self::impressions_table() . ' SET used_at = %s WHERE nonce = %s AND used_at IS NULL AND expires_at >= %s',
+					'UPDATE ' . $wpdb->prefix . 'dwads_impressions' . ' SET used_at = %s WHERE nonce = %s AND used_at IS NULL AND expires_at >= %s',
 					$now,
 					(string) $payload['n'],
 					$now
@@ -641,7 +641,7 @@ final class DWADS_Clicks {
 			// under, which expire in minutes and can be used once.
 			$affected = $wpdb->query(
 				$wpdb->prepare(
-					'UPDATE ' . DWADS_Banners::table() . " SET sats_spent = sats_spent + %d, clicks_charged = clicks_charged + 1, last_activity_at = %s WHERE id = %d AND status = 'active'",
+					'UPDATE ' . $wpdb->prefix . 'dwads_banners' . " SET sats_spent = sats_spent + %d, clicks_charged = clicks_charged + 1, last_activity_at = %s WHERE id = %d AND status = 'active'",
 					(int) $sats,
 					$now,
 					(int) $banner['id']
@@ -657,7 +657,7 @@ final class DWADS_Clicks {
 
 		global $wpdb;
 		$wpdb->insert(
-			self::table(),
+			$wpdb->prefix . 'dwads_clicks',
 			array(
 				'banner_id'    => (int) $banner['id'],
 				'site_id'      => (int) $payload['s'],

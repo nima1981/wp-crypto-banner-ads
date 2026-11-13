@@ -59,7 +59,7 @@ final class DWADS_Banners {
 	 */
 	public static function get( $id ) {
 		global $wpdb;
-		$row = $wpdb->get_row( $wpdb->prepare( 'SELECT * FROM ' . self::table() . ' WHERE id = %d', (int) $id ), ARRAY_A );
+		$row = $wpdb->get_row( $wpdb->prepare( 'SELECT * FROM ' . $wpdb->prefix . 'dwads_banners' . ' WHERE id = %d', (int) $id ), ARRAY_A );
 		return $row ? $row : null;
 	}
 
@@ -76,7 +76,7 @@ final class DWADS_Banners {
 			return null;
 		}
 		$row = $wpdb->get_row(
-			$wpdb->prepare( 'SELECT * FROM ' . self::table() . ' WHERE token_hash = %s', self::token_hash( $token ) ),
+			$wpdb->prepare( 'SELECT * FROM ' . $wpdb->prefix . 'dwads_banners' . ' WHERE token_hash = %s', self::token_hash( $token ) ),
 			ARRAY_A
 		);
 		return $row ? $row : null;
@@ -226,7 +226,7 @@ final class DWADS_Banners {
 		}
 		$path = trailingslashit( $uploads['basedir'] ) . 'dwads';
 		if ( ! wp_mkdir_p( $path ) ) {
-			return new WP_Error( 'dwads_uploads', __( 'The uploads folder could not be created.', 'dwads' ) );
+			return new WP_Error( 'dwads_uploads', __( 'The uploads folder could not be created.', 'crypto-banner-ads' ) );
 		}
 		return array(
 			'path' => $path,
@@ -277,20 +277,20 @@ final class DWADS_Banners {
 	 */
 	public static function sanitize_target_url( $url ) {
 		if ( ! is_scalar( $url ) ) {
-			return new WP_Error( 'dwads_target', __( 'Use a full https:// link for the banner destination.', 'dwads' ) );
+			return new WP_Error( 'dwads_target', __( 'Use a full https:// link for the banner destination.', 'crypto-banner-ads' ) );
 		}
 		$url = trim( (string) $url );
 		if ( '' === $url ) {
-			return new WP_Error( 'dwads_target', __( 'A destination link is required for every banner.', 'dwads' ) );
+			return new WP_Error( 'dwads_target', __( 'A destination link is required for every banner.', 'crypto-banner-ads' ) );
 		}
 		$clean = esc_url_raw( $url, array( 'https' ) );
 		if ( ! $clean ) {
-			return new WP_Error( 'dwads_target', __( 'Use a full https:// link for the banner destination.', 'dwads' ) );
+			return new WP_Error( 'dwads_target', __( 'Use a full https:// link for the banner destination.', 'crypto-banner-ads' ) );
 		}
 		$scheme = strtolower( (string) wp_parse_url( $clean, PHP_URL_SCHEME ) );
 		$host   = (string) wp_parse_url( $clean, PHP_URL_HOST );
 		if ( 'https' !== $scheme || '' === $host ) {
-			return new WP_Error( 'dwads_target', __( 'Use a full https:// link for the banner destination.', 'dwads' ) );
+			return new WP_Error( 'dwads_target', __( 'Use a full https:// link for the banner destination.', 'crypto-banner-ads' ) );
 		}
 		return $clean;
 	}
@@ -311,7 +311,7 @@ final class DWADS_Banners {
 		$w = (int) $w;
 		$h = (int) $h;
 		if ( $w <= 0 || $h <= 0 ) {
-			return new WP_Error( 'dwads_upload_dims', __( 'The image has no usable dimensions.', 'dwads' ) );
+			return new WP_Error( 'dwads_upload_dims', __( 'The image has no usable dimensions.', 'crypto-banner-ads' ) );
 		}
 
 		$ratio      = $w / $h;
@@ -334,7 +334,7 @@ final class DWADS_Banners {
 		}
 
 		if ( ! $best ) {
-			return new WP_Error( 'dwads_upload_dims', __( 'No banner sizes are configured.', 'dwads' ) );
+			return new WP_Error( 'dwads_upload_dims', __( 'No banner sizes are configured.', 'crypto-banner-ads' ) );
 		}
 
 		$target_ratio = (int) $best['w'] / (int) $best['h'];
@@ -349,7 +349,7 @@ final class DWADS_Banners {
 				'dwads_upload_dims',
 				sprintf(
 					/* translators: 1: width, 2: height, 3: closest width, 4: closest height, 5: crop percentage, 6: allowed sizes */
-					__( 'This image is %1$d×%2$d. The closest allowed size is %3$d×%4$d, but fitting it would crop about %5$d%% away. Please export the banner at one of: %6$s.', 'dwads' ),
+					__( 'This image is %1$d×%2$d. The closest allowed size is %3$d×%4$d, but fitting it would crop about %5$d%% away. Please export the banner at one of: %6$s.', 'crypto-banner-ads' ),
 					$w,
 					$h,
 					(int) $best['w'],
@@ -428,24 +428,24 @@ final class DWADS_Banners {
 	 */
 	public static function handle_uploaded_file( $file, $allow_sizes ) {
 		if ( ! is_array( $file ) || empty( $file['tmp_name'] ) || ! isset( $file['error'] ) ) {
-			return new WP_Error( 'dwads_upload', __( 'The file was not uploaded correctly.', 'dwads' ) );
+			return new WP_Error( 'dwads_upload', __( 'The file was not uploaded correctly.', 'crypto-banner-ads' ) );
 		}
 		if ( UPLOAD_ERR_OK !== (int) $file['error'] ) {
-			return new WP_Error( 'dwads_upload', __( 'The upload failed. Large images are rejected; try again with a smaller file.', 'dwads' ) );
+			return new WP_Error( 'dwads_upload', __( 'The upload failed. Large images are rejected; try again with a smaller file.', 'crypto-banner-ads' ) );
 		}
 		if ( ! is_uploaded_file( $file['tmp_name'] ) ) {
-			return new WP_Error( 'dwads_upload', __( 'The file was not uploaded correctly.', 'dwads' ) );
+			return new WP_Error( 'dwads_upload', __( 'The file was not uploaded correctly.', 'crypto-banner-ads' ) );
 		}
 
 		$max_kb = max( 16, (int) DWADS_Settings::get( 'max_upload_kb', 512 ) );
 		if ( (int) filesize( $file['tmp_name'] ) > $max_kb * 1024 ) {
 			/* translators: %d: maximum kilobytes */
-			return new WP_Error( 'dwads_upload_size', sprintf( __( 'Images must be smaller than %d KB.', 'dwads' ), $max_kb ) );
+			return new WP_Error( 'dwads_upload_size', sprintf( __( 'Images must be smaller than %d KB.', 'crypto-banner-ads' ), $max_kb ) );
 		}
 
 		$info = @getimagesize( $file['tmp_name'] ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
 		if ( ! $info || empty( $info['mime'] ) ) {
-			return new WP_Error( 'dwads_upload_type', __( 'That file is not a readable image.', 'dwads' ) );
+			return new WP_Error( 'dwads_upload_type', __( 'That file is not a readable image.', 'crypto-banner-ads' ) );
 		}
 		$w = (int) $info[0];
 		$h = (int) $info[1];
@@ -459,7 +459,7 @@ final class DWADS_Banners {
 		if ( ! isset( $allow_sizes[ $w . 'x' . $h ] ) ) {
 			if ( ! DWADS_Settings::get( 'auto_fit_uploads', 1 ) ) {
 				/* translators: %s: list of allowed sizes */
-				return new WP_Error( 'dwads_upload_dims', sprintf( __( 'Images must be one of these exact sizes: %s.', 'dwads' ), implode( ', ', array_keys( $allow_sizes ) ) ) );
+				return new WP_Error( 'dwads_upload_dims', sprintf( __( 'Images must be one of these exact sizes: %s.', 'crypto-banner-ads' ), implode( ', ', array_keys( $allow_sizes ) ) ) );
 			}
 			$target = self::nearest_size( $w, $h, $allow_sizes );
 			if ( is_wp_error( $target ) ) {
@@ -469,7 +469,7 @@ final class DWADS_Banners {
 
 		$allowed_mimes = array( 'image/jpeg', 'image/png', 'image/webp', 'image/gif' );
 		if ( ! in_array( $info['mime'], $allowed_mimes, true ) ) {
-			return new WP_Error( 'dwads_upload_mime', __( 'Only JPEG, PNG, WebP or GIF images are accepted. Animated GIFs are flattened.', 'dwads' ) );
+			return new WP_Error( 'dwads_upload_mime', __( 'Only JPEG, PNG, WebP or GIF images are accepted. Animated GIFs are flattened.', 'crypto-banner-ads' ) );
 		}
 
 		$target_mime = ( 'image/gif' === $info['mime'] ) ? 'image/png' : $info['mime'];
@@ -481,7 +481,7 @@ final class DWADS_Banners {
 
 		$editor = wp_get_image_editor( $file['tmp_name'] );
 		if ( is_wp_error( $editor ) ) {
-			return new WP_Error( 'dwads_upload_editor', __( 'This server could not process the image (GD or Imagick is required).', 'dwads' ) );
+			return new WP_Error( 'dwads_upload_editor', __( 'This server could not process the image (GD or Imagick is required).', 'crypto-banner-ads' ) );
 		}
 		$quality = (int) apply_filters( 'dwads_editor_quality', 90 );
 		$editor->set_quality( $quality );
@@ -491,7 +491,7 @@ final class DWADS_Banners {
 			// whatever sticks out. No distortion, at most a sliver lost.
 			$resized = $editor->resize( (int) $target['w'], (int) $target['h'], true );
 			if ( is_wp_error( $resized ) ) {
-				return new WP_Error( 'dwads_upload_resize', __( 'The image could not be resized to the nearest banner size.', 'dwads' ) );
+				return new WP_Error( 'dwads_upload_resize', __( 'The image could not be resized to the nearest banner size.', 'crypto-banner-ads' ) );
 			}
 			// Downscaling softens edges; a light sharpen pass puts some of that
 			// back without looking crunchy.
@@ -510,14 +510,14 @@ final class DWADS_Banners {
 		// appended to the original file.
 		$saved = $editor->save( $path, $target_mime );
 		if ( is_wp_error( $saved ) ) {
-			return new WP_Error( 'dwads_upload_save', __( 'The image could not be stored. WebP may be unsupported on this server; try PNG.', 'dwads' ) );
+			return new WP_Error( 'dwads_upload_save', __( 'The image could not be stored. WebP may be unsupported on this server; try PNG.', 'crypto-banner-ads' ) );
 		}
 
 		$saved_path = isset( $saved['path'] ) ? $saved['path'] : $path;
 		$check      = @getimagesize( $saved_path ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
 		if ( ! $check || (int) $check[0] !== (int) $target['w'] || (int) $check[1] !== (int) $target['h'] ) {
 			@unlink( $saved_path ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
-			return new WP_Error( 'dwads_upload_dims', __( 'The image could not be kept at its exact size.', 'dwads' ) );
+			return new WP_Error( 'dwads_upload_dims', __( 'The image could not be kept at its exact size.', 'crypto-banner-ads' ) );
 		}
 		@chmod( $saved_path, 0644 ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
 
@@ -544,7 +544,7 @@ final class DWADS_Banners {
 
 		$image = isset( $args['image'] ) && is_array( $args['image'] ) ? $args['image'] : null;
 		if ( ! $image || empty( $image['file'] ) ) {
-			return new WP_Error( 'dwads_no_image', __( 'No image was processed.', 'dwads' ) );
+			return new WP_Error( 'dwads_no_image', __( 'No image was processed.', 'crypto-banner-ads' ) );
 		}
 
 		$target = self::sanitize_target_url( isset( $args['target_url'] ) ? $args['target_url'] : '' );
@@ -599,7 +599,7 @@ final class DWADS_Banners {
 			$data['address']          = $derived['address'];
 			$data['derivation_index'] = (int) $derived['index'];
 
-			$inserted = $wpdb->insert( self::table(), $data, array_merge( $formats, array( '%s', '%d' ) ) );
+			$inserted = $wpdb->insert( $wpdb->prefix . 'dwads_banners', $data, array_merge( $formats, array( '%s', '%d' ) ) );
 			if ( $inserted ) {
 				$id = (int) $wpdb->insert_id;
 				DWADS_Log::add( sprintf( 'Banner #%d created (%s, %dx%d, address %s).', $id, $status, (int) $image['w'], (int) $image['h'], $derived['address'] ) );
@@ -618,7 +618,7 @@ final class DWADS_Banners {
 
 		self::delete_file( $image['file'] );
 		DWADS_Log::add( 'Banner insert failed: ' . (string) $wpdb->last_error );
-		return new WP_Error( 'dwads_db', __( 'The banner could not be saved.', 'dwads' ) );
+		return new WP_Error( 'dwads_db', __( 'The banner could not be saved.', 'crypto-banner-ads' ) );
 	}
 
 	/**
@@ -656,7 +656,7 @@ final class DWADS_Banners {
 			$formats[]                 = '%s';
 		}
 		if ( isset( $data['image'] ) && is_array( $data['image'] ) && ! empty( $data['image']['file'] ) ) {
-			$old = $wpdb->get_var( $wpdb->prepare( 'SELECT image_file FROM ' . self::table() . ' WHERE id = %d', (int) $id ) );
+			$old = $wpdb->get_var( $wpdb->prepare( 'SELECT image_file FROM ' . $wpdb->prefix . 'dwads_banners' . ' WHERE id = %d', (int) $id ) );
 			$fields['image_file']  = $data['image']['file'];
 			$fields['image_w']     = (int) $data['image']['w'];
 			$fields['image_h']     = (int) $data['image']['h'];
@@ -675,9 +675,9 @@ final class DWADS_Banners {
 		$fields['updated_at'] = gmdate( 'Y-m-d H:i:s' );
 		$formats[]            = '%s';
 
-		$result = $wpdb->update( self::table(), $fields, array( 'id' => (int) $id ), $formats, array( '%d' ) );
+		$result = $wpdb->update( $wpdb->prefix . 'dwads_banners', $fields, array( 'id' => (int) $id ), $formats, array( '%d' ) );
 		if ( false === $result ) {
-			return new WP_Error( 'dwads_db', __( 'The banner could not be updated.', 'dwads' ) );
+			return new WP_Error( 'dwads_db', __( 'The banner could not be updated.', 'crypto-banner-ads' ) );
 		}
 		return true;
 	}
@@ -692,7 +692,7 @@ final class DWADS_Banners {
 	public static function set_status( $id, $status ) {
 		global $wpdb;
 		if ( ! in_array( $status, self::statuses(), true ) ) {
-			return new WP_Error( 'dwads_status', __( 'Unknown status.', 'dwads' ) );
+			return new WP_Error( 'dwads_status', __( 'Unknown status.', 'crypto-banner-ads' ) );
 		}
 		$fields = array(
 			'status'     => $status,
@@ -703,7 +703,7 @@ final class DWADS_Banners {
 			$fields['approved_at'] = gmdate( 'Y-m-d H:i:s' );
 			$formats[]             = '%s';
 		}
-		$wpdb->update( self::table(), $fields, array( 'id' => (int) $id ), $formats, array( '%d' ) );
+		$wpdb->update( $wpdb->prefix . 'dwads_banners', $fields, array( 'id' => (int) $id ), $formats, array( '%d' ) );
 		return true;
 	}
 
@@ -723,7 +723,7 @@ final class DWADS_Banners {
 		if ( ! empty( $banner['image_file'] ) ) {
 			self::delete_file( $banner['image_file'] );
 		}
-		$wpdb->delete( self::table(), array( 'id' => $id ), array( '%d' ) );
+		$wpdb->delete( $wpdb->prefix . 'dwads_banners', array( 'id' => $id ), array( '%d' ) );
 		$wpdb->delete( $wpdb->prefix . 'dwads_payments', array( 'banner_id' => $id ), array( '%d' ) );
 		$wpdb->delete( $wpdb->prefix . 'dwads_clicks', array( 'banner_id' => $id ), array( '%d' ) );
 		$wpdb->delete( $wpdb->prefix . 'dwads_impressions', array( 'banner_id' => $id ), array( '%d' ) );
@@ -743,7 +743,7 @@ final class DWADS_Banners {
 
 		$rows = $wpdb->get_results(
 			$wpdb->prepare(
-				'SELECT * FROM ' . self::table() . ' WHERE status = %s AND image_w = %d AND image_h = %d AND site_id = %d AND ( sats_received - sats_spent ) > 0 LIMIT 200',
+				'SELECT * FROM ' . $wpdb->prefix . 'dwads_banners' . ' WHERE status = %s AND image_w = %d AND image_h = %d AND site_id = %d AND ( sats_received - sats_spent ) > 0 LIMIT 200',
 				'active',
 				(int) $w,
 				(int) $h,
@@ -826,14 +826,14 @@ final class DWADS_Banners {
 
 		$wpdb->query(
 			$wpdb->prepare(
-				'UPDATE ' . self::table() . ' SET impressions = 0, last_served_at = NULL, reset_at = %s WHERE id = %d',
+				'UPDATE ' . $wpdb->prefix . 'dwads_banners' . ' SET impressions = 0, last_served_at = NULL, reset_at = %s WHERE id = %d',
 				gmdate( 'Y-m-d H:i:s' ),
 				$id
 			)
 		);
 
 		$wpdb->query(
-			$wpdb->prepare( 'DELETE FROM ' . DWADS_Clicks::impressions_table() . ' WHERE banner_id = %d', $id )
+			$wpdb->prepare( 'DELETE FROM ' . $wpdb->prefix . 'dwads_impressions' . ' WHERE banner_id = %d', $id )
 		);
 
 		if ( class_exists( 'DWADS_Log' ) ) {
@@ -848,7 +848,7 @@ final class DWADS_Banners {
 		$now = gmdate( 'Y-m-d H:i:s' );
 		$wpdb->query(
 			$wpdb->prepare(
-				'UPDATE ' . self::table() . ' SET impressions = impressions + 1, last_served_at = %s WHERE id = %d',
+				'UPDATE ' . $wpdb->prefix . 'dwads_banners' . ' SET impressions = impressions + 1, last_served_at = %s WHERE id = %d',
 				$now,
 				(int) $id
 			)
@@ -866,7 +866,7 @@ final class DWADS_Banners {
 		$now = gmdate( 'Y-m-d H:i:s' );
 		$wpdb->query(
 			$wpdb->prepare(
-				'UPDATE ' . self::table() . ' SET last_manage_view_at = %s WHERE id = %d',
+				'UPDATE ' . $wpdb->prefix . 'dwads_banners' . ' SET last_manage_view_at = %s WHERE id = %d',
 				$now,
 				(int) $id
 			)
@@ -896,7 +896,7 @@ final class DWADS_Banners {
 		}
 		$url = self::manage_url_for( $banner );
 		if ( '' === $url ) {
-			$url = __( '(Management link unavailable. Contact the site owner with your banner ID.)', 'dwads' );
+			$url = __( '(Management link unavailable. Contact the site owner with your banner ID.)', 'crypto-banner-ads' );
 		}
 		$tokens = array(
 			'{SITE_NAME}' => wp_specialchars_decode( get_bloginfo( 'name' ), ENT_QUOTES ),
@@ -915,7 +915,7 @@ final class DWADS_Banners {
 	 */
 	public static function poll_candidates( $limit = 25 ) {
 		global $wpdb;
-		$banners = self::table();
+		$banners = $wpdb->prefix . 'dwads_banners';
 		$payments = $wpdb->prefix . 'dwads_payments';
 		$now      = time();
 		$recent_manage = gmdate( 'Y-m-d H:i:s', $now - 3 * HOUR_IN_SECONDS );
@@ -923,14 +923,14 @@ final class DWADS_Banners {
 		$recent_created = gmdate( 'Y-m-d H:i:s', $now - DAY_IN_SECONDS );
 
 		$sql = $wpdb->prepare(
-			"SELECT * FROM {$banners} b
+			"SELECT * FROM {$wpdb->prefix}dwads_banners b
 			WHERE b.status IN ('pending','active','paused')
 			AND b.address <> ''
 			AND (
 				b.last_manage_view_at > %s
 				OR b.last_activity_at > %s
 				OR b.created_at > %s
-				OR EXISTS ( SELECT 1 FROM {$payments} p WHERE p.banner_id = b.id AND p.credited = 0 AND p.status = 'mempool' )
+				OR EXISTS ( SELECT 1 FROM {$wpdb->prefix}dwads_payments p WHERE p.banner_id = b.id AND p.credited = 0 AND p.status = 'mempool' )
 			)
 			ORDER BY b.last_poll_at IS NOT NULL, b.last_poll_at ASC
 			LIMIT %d",
@@ -950,6 +950,6 @@ final class DWADS_Banners {
 	 */
 	public static function pending_count() {
 		global $wpdb;
-		return (int) $wpdb->get_var( $wpdb->prepare( 'SELECT COUNT(*) FROM ' . self::table() . ' WHERE status = %s', 'pending' ) );
+		return (int) $wpdb->get_var( $wpdb->prepare( 'SELECT COUNT(*) FROM ' . $wpdb->prefix . 'dwads_banners' . ' WHERE status = %s', 'pending' ) );
 	}
 }

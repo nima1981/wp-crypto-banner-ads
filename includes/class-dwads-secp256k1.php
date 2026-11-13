@@ -384,11 +384,11 @@ final class DWADS_Secp256k1 {
 		self::init();
 		$tweak = DWADS_BigInt::normalize( $tweak_dec );
 		if ( DWADS_BigInt::cmp( $tweak, self::$n ) >= 0 ) {
-			return new WP_Error( 'dwads_tweak', __( 'Derived key material was out of range. Try the next address index.', 'dwads' ) );
+			return new WP_Error( 'dwads_tweak', __( 'Derived key material was out of range. Try the next address index.', 'crypto-banner-ads' ) );
 		}
 		$point = self::decompress( $pub_hex );
 		if ( null === $point ) {
-			return new WP_Error( 'dwads_pubkey', __( 'The extended public key is not valid.', 'dwads' ) );
+			return new WP_Error( 'dwads_pubkey', __( 'The extended public key is not valid.', 'crypto-banner-ads' ) );
 		}
 		$tweak_point = self::mulG( $tweak );
 		if ( null === $tweak_point ) {
@@ -396,7 +396,7 @@ final class DWADS_Secp256k1 {
 		}
 		$sum = self::addPoints( $tweak_point, $point );
 		if ( null === $sum ) {
-			return new WP_Error( 'dwads_point', __( 'Derivation produced the point at infinity. Try the next address index.', 'dwads' ) );
+			return new WP_Error( 'dwads_point', __( 'Derivation produced the point at infinity. Try the next address index.', 'crypto-banner-ads' ) );
 		}
 		return $sum;
 	}

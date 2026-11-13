@@ -83,20 +83,20 @@ final class DWADS_Xpub {
 	 */
 	public static function parse( $xpub ) {
 		if ( ! DWADS_BigInt::available() ) {
-			return new WP_Error( 'dwads_backend', __( 'The PHP GMP or BCMath extension is required to derive addresses.', 'dwads' ) );
+			return new WP_Error( 'dwads_backend', __( 'The PHP GMP or BCMath extension is required to derive addresses.', 'crypto-banner-ads' ) );
 		}
 		$raw = DWADS_Base58::checkDecode( trim( (string) $xpub ) );
 		if ( null === $raw || 78 !== strlen( $raw ) ) {
-			return new WP_Error( 'dwads_xpub_format', __( 'That is not a valid extended public key. Paste the key starting with xpub, ypub, zpub, tpub, upub or vpub.', 'dwads' ) );
+			return new WP_Error( 'dwads_xpub_format', __( 'That is not a valid extended public key. Paste the key starting with xpub, ypub, zpub, tpub, upub or vpub.', 'crypto-banner-ads' ) );
 		}
 		$version = strtoupper( bin2hex( substr( $raw, 0, 4 ) ) );
 		$versions = self::versions();
 		if ( ! isset( $versions[ $version ] ) ) {
-			return new WP_Error( 'dwads_xpub_version', __( 'That extended key version is not supported.', 'dwads' ) );
+			return new WP_Error( 'dwads_xpub_version', __( 'That extended key version is not supported.', 'crypto-banner-ads' ) );
 		}
 		$key = substr( $raw, 45, 33 );
 		if ( "\x02" !== $key[0] && "\x03" !== $key[0] ) {
-			return new WP_Error( 'dwads_xpub_private', __( 'That looks like a private extended key (xprv/zprv). Only a watch-only public key may be stored.', 'dwads' ) );
+			return new WP_Error( 'dwads_xpub_private', __( 'That looks like a private extended key (xprv/zprv). Only a watch-only public key may be stored.', 'crypto-banner-ads' ) );
 		}
 		return array(
 			'version'    => $version,
@@ -119,7 +119,7 @@ final class DWADS_Xpub {
 	public static function derive_child( $node, $index ) {
 		$index = (int) $index;
 		if ( $index < 0 || $index >= 2147483648 ) {
-			return new WP_Error( 'dwads_index', __( 'Address index out of range.', 'dwads' ) );
+			return new WP_Error( 'dwads_index', __( 'Address index out of range.', 'crypto-banner-ads' ) );
 		}
 		$hmac = hash_hmac( 'sha512', $node['pubkey'] . pack( 'N', $index ), $node['chain_code'], true );
 		$il   = substr( $hmac, 0, 32 );
@@ -127,7 +127,7 @@ final class DWADS_Xpub {
 
 		$tweak = DWADS_BigInt::fromHex( bin2hex( $il ) );
 		if ( DWADS_BigInt::cmp( $tweak, DWADS_Secp256k1::order() ) >= 0 ) {
-			return new WP_Error( 'dwads_derive', __( 'Derived key material was out of range.', 'dwads' ) );
+			return new WP_Error( 'dwads_derive', __( 'Derived key material was out of range.', 'crypto-banner-ads' ) );
 		}
 		$point = DWADS_Secp256k1::tweakAdd( bin2hex( $node['pubkey'] ), $tweak );
 		if ( is_wp_error( $point ) ) {
@@ -135,7 +135,7 @@ final class DWADS_Xpub {
 		}
 		$pub_hex = DWADS_Secp256k1::compress( $point );
 		if ( ! $pub_hex ) {
-			return new WP_Error( 'dwads_derive', __( 'Derived public key was invalid.', 'dwads' ) );
+			return new WP_Error( 'dwads_derive', __( 'Derived public key was invalid.', 'crypto-banner-ads' ) );
 		}
 		return array(
 			'version'    => $node['version'],
@@ -197,7 +197,7 @@ final class DWADS_Xpub {
 			}
 			$value = ( '{i}' === $segment ) ? (int) $index : (int) preg_replace( '/[^0-9]/', '', str_replace( '{i}', (string) $index, $segment ) );
 			if ( $value < 0 ) {
-				return new WP_Error( 'dwads_path', __( 'Invalid derivation path.', 'dwads' ) );
+				return new WP_Error( 'dwads_path', __( 'Invalid derivation path.', 'crypto-banner-ads' ) );
 			}
 			$node = self::derive_child( $node, $value );
 			if ( is_wp_error( $node ) ) {
@@ -225,7 +225,7 @@ final class DWADS_Xpub {
 	public static function settings_config() {
 		$xpub = trim( (string) DWADS_Settings::get( 'xpub', '' ) );
 		if ( '' === $xpub ) {
-			return new WP_Error( 'dwads_no_xpub', __( 'No extended public key has been saved yet. Add your wallet xpub in Banner Ads settings to accept paid banners.', 'dwads' ) );
+			return new WP_Error( 'dwads_no_xpub', __( 'No extended public key has been saved yet. Add your wallet xpub in Banner Ads settings to accept paid banners.', 'crypto-banner-ads' ) );
 		}
 		$node = self::parse( $xpub );
 		if ( is_wp_error( $node ) ) {
@@ -295,7 +295,7 @@ final class DWADS_Xpub {
 			}
 			$last = $address;
 		}
-		return $last ? $last : new WP_Error( 'dwads_xpub_derive', __( 'Could not derive an address.', 'dwads' ) );
+		return $last ? $last : new WP_Error( 'dwads_xpub_derive', __( 'Could not derive an address.', 'crypto-banner-ads' ) );
 	}
 
 	/**

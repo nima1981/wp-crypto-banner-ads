@@ -67,9 +67,9 @@ final class DWADS_Public_Pages {
 
 		$line = sprintf(
 			/* translators: 1: plugin name, linked to its repository. 2: company name, linked to its site. */
-			esc_html__( 'Powered by %1$s from %2$s', 'dwads' ),
-			'<a href="' . esc_url( 'https://github.com/nima1981/wp-crypto-banner-ads' ) . '" rel="noopener">' . esc_html__( 'Crypto Banner Ads', 'dwads' ) . '</a>',
-			'<a href="' . esc_url( 'https://reza.consulting' ) . '" rel="noopener">' . esc_html__( 'Reza Consulting', 'dwads' ) . '</a>'
+			esc_html__( 'Powered by %1$s from %2$s', 'crypto-banner-ads' ),
+			'<a href="' . esc_url( 'https://github.com/nima1981/wp-crypto-banner-ads' ) . '" rel="noopener">' . esc_html__( 'Crypto Banner Ads', 'crypto-banner-ads' ) . '</a>',
+			'<a href="' . esc_url( 'https://reza.consulting' ) . '" rel="noopener">' . esc_html__( 'Reza Consulting', 'crypto-banner-ads' ) . '</a>'
 		);
 
 		return '<style>.dwads-credit{clear:both;margin:1.5em 0 1em;padding:0 .75em;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-size:11px;line-height:1.5;text-align:center;color:inherit;opacity:.55}.dwads-credit a{color:inherit;text-decoration:none;border-bottom:1px solid rgba(128,128,128,.45)}.dwads-credit a:hover,.dwads-credit a:focus{border-bottom-color:currentColor}.dwads-credit a:focus-visible{outline:1px solid currentColor;outline-offset:2px}</style>'
@@ -271,7 +271,7 @@ final class DWADS_Public_Pages {
 		}
 
 		if ( ! $processed ) {
-			$errors[] = __( 'Choose at least one banner image.', 'dwads' );
+			$errors[] = __( 'Choose at least one banner image.', 'crypto-banner-ads' );
 		}
 
 		// PHP drops files beyond max_file_uploads without saying so. When the
@@ -282,7 +282,7 @@ final class DWADS_Public_Pages {
 		if ( $php_cap > 0 && $received >= $php_cap && $max_rows > $php_cap ) {
 			$errors[] = sprintf(
 				/* translators: %d: PHP max_file_uploads value */
-				__( 'Your server accepts at most %d files per request (PHP max_file_uploads); anything beyond that did not arrive. Upload the rest in another run.', 'dwads' ),
+				__( 'Your server accepts at most %d files per request (PHP max_file_uploads); anything beyond that did not arrive. Upload the rest in another run.', 'crypto-banner-ads' ),
 				$php_cap
 			);
 		}
@@ -396,14 +396,14 @@ final class DWADS_Public_Pages {
 			$result = get_transient( 'dwads_result_' . $result_key );
 			if ( is_array( $result ) ) {
 				if ( ! empty( $result['created'] ) ) {
-					$list = '<p>' . esc_html__( 'Save these management links. They are the only way to top up or edit a banner, and they are not shown again.', 'dwads' ) . '</p><ul class="dwads-links">';
+					$list = '<p>' . esc_html__( 'Save these management links. They are the only way to top up or edit a banner, and they are not shown again.', 'crypto-banner-ads' ) . '</p><ul class="dwads-links">';
 					foreach ( $result['created'] as $item ) {
 						$list .= '<li><strong>#' . (int) $item['id'] . '</strong> <a href="' . esc_url( $item['manage_url'] ) . '" target="_blank" rel="nofollow noopener noreferrer">' . esc_html( $item['manage_url'] ) . '</a> <span class="dwads-muted">(' . esc_html( $item['status'] ) . ')</span>';
 						if ( ! empty( $item['fit_from'] ) ) {
 							$list .= '<br><span class="dwads-muted">' . esc_html(
 								sprintf(
 									/* translators: 1: original size, 2: final size */
-									__( 'Your image was %1$s; it has been fitted to %2$s by centre-cropping.', 'dwads' ),
+									__( 'Your image was %1$s; it has been fitted to %2$s by centre-cropping.', 'crypto-banner-ads' ),
 									$item['fit_from'],
 									$item['fit_to']
 								)
@@ -435,14 +435,14 @@ final class DWADS_Public_Pages {
 		}
 
 		$html .= '<div class="dwads-sizes">';
-		$html .= '<p class="dwads-sizes-title">' . esc_html__( 'Accepted sizes', 'dwads' ) . '</p><ul>';
+		$html .= '<p class="dwads-sizes-title">' . esc_html__( 'Accepted sizes', 'crypto-banner-ads' ) . '</p><ul>';
 		foreach ( $sizes as $size_key => $size_item ) {
 			$html .= '<li><strong>' . esc_html( $size_key ) . '</strong>';
 			if ( ! empty( $size_item['label'] ) ) {
 				$html .= ' <span class="dwads-size-label">' . esc_html( $size_item['label'] ) . '</span>';
 			}
 			if ( ! empty( $size_item['recommended'] ) ) {
-				$html .= ' <span class="dwads-size-rec">' . esc_html__( 'recommended', 'dwads' ) . '</span>';
+				$html .= ' <span class="dwads-size-rec">' . esc_html__( 'recommended', 'crypto-banner-ads' ) . '</span>';
 			}
 			if ( ! empty( $size_item['note'] ) ) {
 				$html .= '<span class="dwads-size-note">' . esc_html( $size_item['note'] ) . '</span>';
@@ -453,7 +453,7 @@ final class DWADS_Public_Pages {
 		$html .= '<p class="dwads-hint">' . esc_html(
 			sprintf(
 				/* translators: %d: maximum kilobytes */
-				__( 'Files up to %d KB, PNG, JPEG or WebP. The link must be https:// and the image must match one of the sizes exactly.', 'dwads' ),
+				__( 'Files up to %d KB, PNG, JPEG or WebP. The link must be https:// and the image must match one of the sizes exactly.', 'crypto-banner-ads' ),
 				$max_kb
 			)
 		) . '</p>';
@@ -463,18 +463,18 @@ final class DWADS_Public_Pages {
 		// by size. The files are placed into the existing per-row file inputs,
 		// so the POST shape and every server-side check stay untouched.
 		$html .= '<div class="dwads-drop" id="dwads-dropzone" tabindex="0" role="button" hidden>'
-			. '<p class="dwads-drop-title">' . esc_html__( 'Drop banner images here', 'dwads' ) . '</p>'
+			. '<p class="dwads-drop-title">' . esc_html__( 'Drop banner images here', 'crypto-banner-ads' ) . '</p>'
 			. '<p class="dwads-drop-hint">' . esc_html( self::drop_limit_text( $max_rows ) ) . '</p>'
 			. '<input type="file" id="dwads-drop-input" accept="image/png,image/jpeg,image/webp" multiple hidden>'
 			. '</div>'
 			. '<div class="dwads-drop-status" id="dwads-drop-status" role="status" aria-live="polite"></div>';
 
 		$html .= '<div id="dwads-rows">' . self::upload_row( 0, $sizes, $max_kb ) . '</div>';
-		$html .= '<p><button type="button" class="dwads-btn dwads-btn-secondary" id="dwads-add-row" data-max="' . (int) $max_rows . '">' . esc_html__( 'Add another banner', 'dwads' ) . '</button></p>';
-		$html .= '<h3>' . esc_html__( 'Optional', 'dwads' ) . '</h3>';
-		$html .= '<p><label>' . esc_html__( 'Advertiser or business name', 'dwads' ) . '<input type="text" name="advertiser_label" maxlength="120" value=""></label></p>';
-		$html .= '<p><label>' . esc_html__( 'Email for recovery (not shown publicly)', 'dwads' ) . '<input type="email" name="email" maxlength="190" value=""></label></p>';
-		$html .= '<p><button type="submit" class="dwads-btn">' . esc_html__( 'Upload and get my top-up link', 'dwads' ) . '</button></p>';
+		$html .= '<p><button type="button" class="dwads-btn dwads-btn-secondary" id="dwads-add-row" data-max="' . (int) $max_rows . '">' . esc_html__( 'Add another banner', 'crypto-banner-ads' ) . '</button></p>';
+		$html .= '<h3>' . esc_html__( 'Optional', 'crypto-banner-ads' ) . '</h3>';
+		$html .= '<p><label>' . esc_html__( 'Advertiser or business name', 'crypto-banner-ads' ) . '<input type="text" name="advertiser_label" maxlength="120" value=""></label></p>';
+		$html .= '<p><label>' . esc_html__( 'Email for recovery (not shown publicly)', 'crypto-banner-ads' ) . '<input type="email" name="email" maxlength="190" value=""></label></p>';
+		$html .= '<p><button type="submit" class="dwads-btn">' . esc_html__( 'Upload and get my top-up link', 'crypto-banner-ads' ) . '</button></p>';
 		$html .= '</form>';
 		$html .= '<template id="dwads-row-template">' . $row_template . '</template>';
 
@@ -494,12 +494,14 @@ final class DWADS_Public_Pages {
 			'autofit' => (bool) DWADS_Settings::get( 'auto_fit_uploads', 1 ),
 			'sizes'   => $js_sizes,
 		);
-		$html .= '<script>window.DWADS_UPLOAD=' . wp_json_encode( $js_cfg, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT ) . ';</script>';
-
 		if ( ! wp_script_is( 'dwads-upload', 'registered' ) ) {
 			DWADS_Shortcodes::register_assets();
 		}
 		wp_enqueue_script( 'dwads-upload' );
+		wp_add_inline_script(
+			'dwads-upload',
+			'window.DWADS_UPLOAD=' . wp_json_encode( $js_cfg, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT ) . ';'
+		);
 
 		return $html . '</div>';
 	}
@@ -519,13 +521,13 @@ final class DWADS_Public_Pages {
 		if ( $php_cap > 0 && $php_cap < $max_rows ) {
 			return sprintf(
 				/* translators: 1: PHP max_file_uploads value */
-				__( 'Or click to choose files. Drop as many as you like — they are grouped by size. Your server accepts %1$d files per request, so that is the practical limit for one upload.', 'dwads' ),
+				__( 'Or click to choose files. Drop as many as you like — they are grouped by size. Your server accepts %1$d files per request, so that is the practical limit for one upload.', 'crypto-banner-ads' ),
 				$php_cap
 			);
 		}
 		return sprintf(
 			/* translators: %d: maximum banners per upload */
-			__( 'Or click to choose files. Drop as many as you like — they are grouped by size. Up to %d per upload.', 'dwads' ),
+			__( 'Or click to choose files. Drop as many as you like — they are grouped by size. Up to %d per upload.', 'crypto-banner-ads' ),
 			$max_rows
 		);
 	}
@@ -540,11 +542,11 @@ final class DWADS_Public_Pages {
 	 */
 	private static function upload_row( $index, $sizes, $max_kb ) {
 		$html  = '<div class="dwads-row">';
-		$html .= '<p><label>' . esc_html__( 'Banner image', 'dwads' ) . '<input type="file" name="rows[' . esc_attr( $index ) . '][file]" accept="image/png,image/jpeg,image/webp"></label></p>';
-		$html .= '<p><label>' . esc_html__( 'Destination link (https://…)', 'dwads' ) . '<input type="url" name="rows[' . esc_attr( $index ) . '][link]" placeholder="https://example.com/" required></label></p>';
-		$html .= '<p><label>' . esc_html__( 'Alt text (optional)', 'dwads' ) . '<input type="text" name="rows[' . esc_attr( $index ) . '][alt]" maxlength="255" value=""></label></p>';
-		$html .= '<p><label>' . esc_html__( 'Keywords (optional)', 'dwads' ) . '<input type="text" name="rows[' . esc_attr( $index ) . '][keywords]" maxlength="255" placeholder="' . esc_attr__( 'e.g. privacy, surveillance, crypto', 'dwads' ) . '"></label>';
-		$html .= '<span class="dwads-hint">' . esc_html__( 'Comma separated. Used later to favour banners that match the page.', 'dwads' ) . '</span></p>';
+		$html .= '<p><label>' . esc_html__( 'Banner image', 'crypto-banner-ads' ) . '<input type="file" name="rows[' . esc_attr( $index ) . '][file]" accept="image/png,image/jpeg,image/webp"></label></p>';
+		$html .= '<p><label>' . esc_html__( 'Destination link (https://…)', 'crypto-banner-ads' ) . '<input type="url" name="rows[' . esc_attr( $index ) . '][link]" placeholder="https://example.com/" required></label></p>';
+		$html .= '<p><label>' . esc_html__( 'Alt text (optional)', 'crypto-banner-ads' ) . '<input type="text" name="rows[' . esc_attr( $index ) . '][alt]" maxlength="255" value=""></label></p>';
+		$html .= '<p><label>' . esc_html__( 'Keywords (optional)', 'crypto-banner-ads' ) . '<input type="text" name="rows[' . esc_attr( $index ) . '][keywords]" maxlength="255" placeholder="' . esc_attr__( 'e.g. privacy, surveillance, crypto', 'crypto-banner-ads' ) . '"></label>';
+		$html .= '<span class="dwads-hint">' . esc_html__( 'Comma separated. Used later to favour banners that match the page.', 'crypto-banner-ads' ) . '</span></p>';
 		$html .= '</div>';
 		return $html;
 	}
@@ -571,39 +573,39 @@ final class DWADS_Public_Pages {
 	private static function message_text( $code ) {
 		switch ( $code ) {
 			case 'saved':
-				return __( 'Saved.', 'dwads' );
+				return __( 'Saved.', 'crypto-banner-ads' );
 			case 'paused':
-				return __( 'Your banner is paused and will not be shown until you resume it.', 'dwads' );
+				return __( 'Your banner is paused and will not be shown until you resume it.', 'crypto-banner-ads' );
 			case 'resumed':
-				return __( 'Your banner is live again.', 'dwads' );
+				return __( 'Your banner is live again.', 'crypto-banner-ads' );
 			case 'not_paused':
-				return __( 'This banner is not paused, so there is nothing to resume.', 'dwads' );
+				return __( 'This banner is not paused, so there is nothing to resume.', 'crypto-banner-ads' );
 			case 'invalid_link':
-				return __( 'That destination link is not valid. Use a full https:// address.', 'dwads' );
+				return __( 'That destination link is not valid. Use a full https:// address.', 'crypto-banner-ads' );
 			case 'image_updated':
-				return __( 'The image was replaced.', 'dwads' );
+				return __( 'The image was replaced.', 'crypto-banner-ads' );
 			case 'bad_image':
-				return __( 'The replacement image was rejected. It must be an image of exactly the same size.', 'dwads' );
+				return __( 'The replacement image was rejected. It must be an image of exactly the same size.', 'crypto-banner-ads' );
 			case 'no_image':
-				return __( 'Choose an image file first.', 'dwads' );
+				return __( 'Choose an image file first.', 'crypto-banner-ads' );
 			case 'rate_limited':
-				return __( 'Too many uploads from this connection. Try again in an hour.', 'dwads' );
+				return __( 'Too many uploads from this connection. Try again in an hour.', 'crypto-banner-ads' );
 			case 'spam':
-				return __( 'The upload was rejected.', 'dwads' );
+				return __( 'The upload was rejected.', 'crypto-banner-ads' );
 			case 'misconfigured':
-				return __( 'Uploads are temporarily unavailable. Please try later.', 'dwads' );
+				return __( 'Uploads are temporarily unavailable. Please try later.', 'crypto-banner-ads' );
 			case 'unknown':
-				return __( 'Nothing was changed.', 'dwads' );
+				return __( 'Nothing was changed.', 'crypto-banner-ads' );
 			case 'checked':
-				return __( 'Payment check complete. If a payment just arrived it is now included; otherwise give the network a minute and check again.', 'dwads' );
+				return __( 'Payment check complete. If a payment just arrived it is now included; otherwise give the network a minute and check again.', 'crypto-banner-ads' );
 			case 'just_checked':
-				return __( 'These amounts were checked less than a minute ago. Please try again shortly.', 'dwads' );
+				return __( 'These amounts were checked less than a minute ago. Please try again shortly.', 'crypto-banner-ads' );
 			case 'busy':
-				return __( 'Payment checks are paused for a few minutes after the API asked us to slow down. Your payment is not lost — it will be credited on the next automatic check.', 'dwads' );
+				return __( 'Payment checks are paused for a few minutes after the API asked us to slow down. Your payment is not lost — it will be credited on the next automatic check.', 'crypto-banner-ads' );
 			case 'check_failed':
-				return __( 'The payment API could not be reached just now. Nothing was lost; the next automatic check will pick the payment up.', 'dwads' );
+				return __( 'The payment API could not be reached just now. Nothing was lost; the next automatic check will pick the payment up.', 'crypto-banner-ads' );
 		}
-		return __( 'Request completed.', 'dwads' );
+		return __( 'Request completed.', 'crypto-banner-ads' );
 	}
 
 	/**
@@ -669,8 +671,8 @@ final class DWADS_Public_Pages {
 		if ( ! $banner || (int) $banner['id'] !== (int) $id ) {
 			status_header( 404 );
 			echo self::page_shell( // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-				__( 'Link not found', 'dwads' ),
-				'<p>' . esc_html__( 'This management link is not valid. If you lost your link, contact the site owner with your banner ID and payment transaction.', 'dwads' ) . '</p>'
+				__( 'Link not found', 'crypto-banner-ads' ),
+				'<p>' . esc_html__( 'This management link is not valid. If you lost your link, contact the site owner with your banner ID and payment transaction.', 'crypto-banner-ads' ) . '</p>'
 			);
 			return;
 		}
@@ -690,31 +692,31 @@ final class DWADS_Public_Pages {
 		}
 
 		if ( 'pending' === $banner['status'] ) {
-			$body .= self::notice( __( 'This banner is waiting for the site owner to approve it. Payments you send now are still counted.', 'dwads' ), 'success' );
+			$body .= self::notice( __( 'This banner is waiting for the site owner to approve it. Payments you send now are still counted.', 'crypto-banner-ads' ), 'success' );
 		}
 		if ( 'rejected' === $banner['status'] ) {
-			$body .= self::notice( __( 'This banner was rejected and is not being shown.', 'dwads' ), 'error' );
+			$body .= self::notice( __( 'This banner was rejected and is not being shown.', 'crypto-banner-ads' ), 'error' );
 		}
 		if ( 'paused' === $banner['status'] ) {
-			$body .= self::notice( __( 'This banner is paused.', 'dwads' ), 'error' );
+			$body .= self::notice( __( 'This banner is paused.', 'crypto-banner-ads' ), 'error' );
 		}
 		if ( 'active' === $banner['status'] && $balance <= 0 ) {
-			$body .= self::notice( __( 'The balance is empty, so the banner is not being shown. Top up to bring it back.', 'dwads' ), 'error' );
+			$body .= self::notice( __( 'The balance is empty, so the banner is not being shown. Top up to bring it back.', 'crypto-banner-ads' ), 'error' );
 		}
 
 		$body .= '<div class="dwads-summary">';
-		$body .= '<div><span class="dwads-label">' . esc_html__( 'Balance', 'dwads' ) . '</span><strong>' . esc_html( DWADS_Price::format_btc( $balance ) ) . '</strong><span class="dwads-muted">' . esc_html( sprintf( '≈ $%s', number_format( DWADS_Price::sats_to_usd( $balance ), 2 ) ) ) . '</span></div>';
-		$body .= '<div><span class="dwads-label">' . esc_html__( 'Clicks left', 'dwads' ) . '</span><strong>' . esc_html( number_format_i18n( $remaining ) ) . '</strong><span class="dwads-muted">' . esc_html( sprintf( __( '$%s per click', 'dwads' ), number_format( $price, 2 ) ) ) . '</span></div>';
-		$body .= '<div><span class="dwads-label">' . esc_html__( 'Clicks charged', 'dwads' ) . '</span><strong>' . esc_html( number_format_i18n( (int) $banner['clicks_charged'] ) ) . '</strong><span class="dwads-muted">' . esc_html__( 'billable', 'dwads' ) . '</span></div>';
+		$body .= '<div><span class="dwads-label">' . esc_html__( 'Balance', 'crypto-banner-ads' ) . '</span><strong>' . esc_html( DWADS_Price::format_btc( $balance ) ) . '</strong><span class="dwads-muted">' . esc_html( sprintf( '≈ $%s', number_format( DWADS_Price::sats_to_usd( $balance ), 2 ) ) ) . '</span></div>';
+		$body .= '<div><span class="dwads-label">' . esc_html__( 'Clicks left', 'crypto-banner-ads' ) . '</span><strong>' . esc_html( number_format_i18n( $remaining ) ) . '</strong><span class="dwads-muted">' . esc_html( sprintf( /* translators: %s: formatted price per click */ __( '$%s per click', 'crypto-banner-ads' ), number_format( $price, 2 ) ) ) . '</span></div>';
+		$body .= '<div><span class="dwads-label">' . esc_html__( 'Clicks charged', 'crypto-banner-ads' ) . '</span><strong>' . esc_html( number_format_i18n( (int) $banner['clicks_charged'] ) ) . '</strong><span class="dwads-muted">' . esc_html__( 'billable', 'crypto-banner-ads' ) . '</span></div>';
 
 		$impressions = (int) $banner['impressions'];
 		$charged     = (int) $banner['clicks_charged'];
-		$body .= '<div><span class="dwads-label">' . esc_html__( 'Impressions', 'dwads' ) . '</span><strong>' . esc_html( number_format_i18n( $impressions ) ) . '</strong><span class="dwads-muted">' . esc_html__( 'times shown', 'dwads' ) . '</span></div>';
+		$body .= '<div><span class="dwads-label">' . esc_html__( 'Impressions', 'crypto-banner-ads' ) . '</span><strong>' . esc_html( number_format_i18n( $impressions ) ) . '</strong><span class="dwads-muted">' . esc_html__( 'times shown', 'crypto-banner-ads' ) . '</span></div>';
 
 		// Only meaningful once something has been shown; a bare 0.00% reads like
 		// a failure rather than an absence of data.
 		$rate = $impressions > 0 ? ( $charged / $impressions ) * 100 : null;
-		$body .= '<div><span class="dwads-label">' . esc_html__( 'Click rate', 'dwads' ) . '</span><strong>' . esc_html( null === $rate ? '—' : number_format_i18n( $rate, 2 ) . '%' ) . '</strong><span class="dwads-muted">' . esc_html__( 'clicks ÷ impressions', 'dwads' ) . '</span></div>';
+		$body .= '<div><span class="dwads-label">' . esc_html__( 'Click rate', 'crypto-banner-ads' ) . '</span><strong>' . esc_html( null === $rate ? '—' : number_format_i18n( $rate, 2 ) . '%' ) . '</strong><span class="dwads-muted">' . esc_html__( 'clicks ÷ impressions', 'crypto-banner-ads' ) . '</span></div>';
 		$body .= '</div>';
 
 		$dedupe_hours = (int) DWADS_Settings::get( 'impression_dedupe_hours', 24 );
@@ -722,7 +724,7 @@ final class DWADS_Public_Pages {
 			$body .= '<p class="dwads-muted">' . esc_html(
 				sprintf(
 					/* translators: %d: number of hours */
-					__( 'An impression counts once per visitor every %d hours, only once the banner has actually been on screen, and never for a crawler — so the figure tracks people rather than page loads. A click is charged once per visitor in the same period, only after the banner was visible for a moment, which is why it is lower than the raw click count.', 'dwads' ),
+					__( 'An impression counts once per visitor every %d hours, only once the banner has actually been on screen, and never for a crawler — so the figure tracks people rather than page loads. A click is charged once per visitor in the same period, only after the banner was visible for a moment, which is why it is lower than the raw click count.', 'crypto-banner-ads' ),
 					$dedupe_hours
 				)
 			) . '</p>';
@@ -730,7 +732,7 @@ final class DWADS_Public_Pages {
 		$body .= '<p class="dwads-muted">' . esc_html(
 			sprintf(
 				/* translators: 1: received BTC, 2: spent BTC */
-				__( 'Received %1$s · spent %2$s on clicks. Balances are never refunded.', 'dwads' ),
+				__( 'Received %1$s · spent %2$s on clicks. Balances are never refunded.', 'crypto-banner-ads' ),
 				DWADS_Price::format_btc( (int) $banner['sats_received'] ),
 				DWADS_Price::format_btc( (int) $banner['sats_spent'] )
 			)
@@ -741,43 +743,43 @@ final class DWADS_Public_Pages {
 		$body .= '<input type="hidden" name="do" value="refresh">';
 		$body .= '<input type="hidden" name="banner_id" value="' . (int) $banner['id'] . '">';
 		$body .= '<input type="hidden" name="banner_token" value="' . esc_attr( $token ) . '">';
-		$body .= '<p><button type="submit" class="dwads-btn">' . esc_html__( 'Check for payment now', 'dwads' ) . '</button></p>';
-		$body .= '<p class="dwads-muted">' . esc_html__( 'Payments are usually credited within a minute of appearing on the network, and are checked automatically every 5 minutes. Amounts above may lag slightly behind.', 'dwads' ) . '</p>';
+		$body .= '<p><button type="submit" class="dwads-btn">' . esc_html__( 'Check for payment now', 'crypto-banner-ads' ) . '</button></p>';
+		$body .= '<p class="dwads-muted">' . esc_html__( 'Payments are usually credited within a minute of appearing on the network, and are checked automatically every 5 minutes. Amounts above may lag slightly behind.', 'crypto-banner-ads' ) . '</p>';
 		$body .= '</form>';
 
-		$body .= '<h2>' . esc_html__( 'Top up', 'dwads' ) . '</h2>';
+		$body .= '<h2>' . esc_html__( 'Top up', 'crypto-banner-ads' ) . '</h2>';
 
 		// Two ways to pay, in the order most people want them: convert something
 		// else with the provider's widget, or send Bitcoin straight to the address.
 		$widget = self::exchange_widget_html( $banner );
 		if ( '' !== $widget ) {
-			$body .= '<p>' . esc_html__( 'Pay with your cryptocurrency or regular money of choice: the widget converts it and sends it to this address, so there is nothing else to do.', 'dwads' ) . '</p>';
+			$body .= '<p>' . esc_html__( 'Pay with your cryptocurrency or regular money of choice: the widget converts it and sends it to this address, so there is nothing else to do.', 'crypto-banner-ads' ) . '</p>';
 			$body .= $widget;
-			$body .= '<p>' . esc_html__( 'Or send Bitcoin straight to the address below.', 'dwads' ) . '</p>';
+			$body .= '<p>' . esc_html__( 'Or send Bitcoin straight to the address below.', 'crypto-banner-ads' ) . '</p>';
 		} else {
-			$body .= '<p>' . esc_html__( 'Send Bitcoin to the address below.', 'dwads' ) . '</p>';
+			$body .= '<p>' . esc_html__( 'Send Bitcoin to the address below.', 'crypto-banner-ads' ) . '</p>';
 		}
 
 		$body .= '<p class="dwads-address"><code id="dwads-address">' . esc_html( $banner['address'] ) . '</code></p>';
-		$body .= '<p class="dwads-muted">' . esc_html__( 'Anything that arrives is credited within a few minutes of appearing on the network, before confirmation.', 'dwads' ) . '</p>';
-		$body .= '<p><button type="button" class="dwads-btn dwads-btn-secondary" id="dwads-copy" data-address="' . esc_attr( $banner['address'] ) . '">' . esc_html__( 'Copy address', 'dwads' ) . '</button></p>';
-		$body .= '<p><a class="dwads-btn dwads-btn-secondary" href="' . esc_attr( 'bitcoin:' . rawurlencode( $banner['address'] ) ) . '">' . esc_html__( 'Open in wallet', 'dwads' ) . '</a></p>';
+		$body .= '<p class="dwads-muted">' . esc_html__( 'Anything that arrives is credited within a few minutes of appearing on the network, before confirmation.', 'crypto-banner-ads' ) . '</p>';
+		$body .= '<p><button type="button" class="dwads-btn dwads-btn-secondary" id="dwads-copy" data-address="' . esc_attr( $banner['address'] ) . '">' . esc_html__( 'Copy address', 'crypto-banner-ads' ) . '</button></p>';
+		$body .= '<p><a class="dwads-btn dwads-btn-secondary" href="' . esc_attr( 'bitcoin:' . rawurlencode( $banner['address'] ) ) . '">' . esc_html__( 'Open in wallet', 'crypto-banner-ads' ) . '</a></p>';
 
 		$qr_template = DWADS_Settings::qr_template();
 		if ( '' !== $qr_template ) {
 			$qr_url = str_replace( '{ADDRESS}', rawurlencode( $banner['address'] ), $qr_template );
-			$body  .= '<p><img class="dwads-qr" src="' . esc_url( $qr_url ) . '" alt="' . esc_attr__( 'Payment address QR code', 'dwads' ) . '" loading="lazy"></p>';
+			$body  .= '<p><img class="dwads-qr" src="' . esc_url( $qr_url ) . '" alt="' . esc_attr__( 'Payment address QR code', 'crypto-banner-ads' ) . '" loading="lazy"></p>';
 		}
 
 
-		$body .= '<h2>' . esc_html__( 'Your banner', 'dwads' ) . '</h2>';
+		$body .= '<h2>' . esc_html__( 'Your banner', 'crypto-banner-ads' ) . '</h2>';
 		$body .= '<p><img class="dwads-preview" src="' . esc_url( DWADS_Banners::image_url( $banner ) ) . '" alt="" width="' . (int) $banner['image_w'] . '" height="' . (int) $banner['image_h'] . '"></p>';
 		$body .= '<p class="dwads-muted">' . esc_html( sprintf( '%d × %d px · %s', (int) $banner['image_w'], (int) $banner['image_h'], $banner['status'] ) ) . '</p>';
 		if ( (int) $banner['source_w'] > 0 && ( (int) $banner['source_w'] !== (int) $banner['image_w'] || (int) $banner['source_h'] !== (int) $banner['image_h'] ) ) {
 			$body .= '<p class="dwads-muted">' . esc_html(
 				sprintf(
 					/* translators: 1: width, 2: height, 3: final width, 4: final height */
-					__( 'Uploaded at %1$d×%2$d and fitted to %3$d×%4$d by centre-cropping.', 'dwads' ),
+					__( 'Uploaded at %1$d×%2$d and fitted to %3$d×%4$d by centre-cropping.', 'crypto-banner-ads' ),
 					(int) $banner['source_w'],
 					(int) $banner['source_h'],
 					(int) $banner['image_w'],
@@ -787,24 +789,24 @@ final class DWADS_Public_Pages {
 		}
 
 		$body .= '<table class="dwads-table"><tbody>';
-		$body .= '<tr><td>' . esc_html__( 'Destination', 'dwads' ) . '</td><td><a href="' . esc_url( $banner['target_url'] ) . '" rel="nofollow noopener" target="_blank">' . esc_html( wp_trim_words( (string) $banner['target_url'], 12 ) ) . '</a></td></tr>';
+		$body .= '<tr><td>' . esc_html__( 'Destination', 'crypto-banner-ads' ) . '</td><td><a href="' . esc_url( $banner['target_url'] ) . '" rel="nofollow noopener" target="_blank">' . esc_html( wp_trim_words( (string) $banner['target_url'], 12 ) ) . '</a></td></tr>';
 		if ( '' !== trim( (string) $banner['alt_text'] ) ) {
-			$body .= '<tr><td>' . esc_html__( 'Alt text', 'dwads' ) . '</td><td>' . esc_html( $banner['alt_text'] ) . '</td></tr>';
+			$body .= '<tr><td>' . esc_html__( 'Alt text', 'crypto-banner-ads' ) . '</td><td>' . esc_html( $banner['alt_text'] ) . '</td></tr>';
 		}
 		if ( '' !== trim( (string) $banner['keywords'] ) ) {
-			$body .= '<tr><td>' . esc_html__( 'Keywords', 'dwads' ) . '</td><td>' . esc_html( $banner['keywords'] ) . '</td></tr>';
+			$body .= '<tr><td>' . esc_html__( 'Keywords', 'crypto-banner-ads' ) . '</td><td>' . esc_html( $banner['keywords'] ) . '</td></tr>';
 		}
 		$body .= '</tbody></table>';
 
 		$recent = $wpdb->get_results(
 			$wpdb->prepare(
-				'SELECT created_at, sats_charged FROM ' . DWADS_Clicks::table() . ' WHERE banner_id = %d AND charged = 1 ORDER BY id DESC LIMIT 10',
+				'SELECT created_at, sats_charged FROM ' . $wpdb->prefix . 'dwads_clicks' . ' WHERE banner_id = %d AND charged = 1 ORDER BY id DESC LIMIT 10',
 				(int) $banner['id']
 			),
 			ARRAY_A
 		);
 		if ( $recent ) {
-			$body .= '<h2>' . esc_html__( 'Recent charged clicks', 'dwads' ) . '</h2><table class="dwads-table"><tbody>';
+			$body .= '<h2>' . esc_html__( 'Recent charged clicks', 'crypto-banner-ads' ) . '</h2><table class="dwads-table"><tbody>';
 			foreach ( $recent as $click ) {
 				$body .= '<tr><td>' . esc_html( $click['created_at'] ) . ' UTC</td><td>' . esc_html( DWADS_Price::format_btc( (int) $click['sats_charged'] ) ) . '</td></tr>';
 			}
@@ -815,12 +817,19 @@ final class DWADS_Public_Pages {
 		if ( '' !== $disclaimer ) {
 			$body .= '<p class="dwads-muted">' . wp_kses_post( $disclaimer ) . '</p>';
 		}
-		$body .= '<script>(function(){var b=document.getElementById("dwads-copy");if(!b)return;b.addEventListener("click",function(){var a=b.getAttribute("data-address")||"";function ok(){b.textContent="Copied";setTimeout(function(){b.textContent="Copy address";},1500);}if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(a).then(ok,ok);}else{var t=document.createElement("textarea");t.value=a;document.body.appendChild(t);t.select();try{document.execCommand("copy");}catch(e){}document.body.removeChild(t);ok();}});})();</script>';
+		if ( ! wp_script_is( 'dwads-upload', 'registered' ) ) {
+			DWADS_Shortcodes::register_assets();
+		}
+		wp_enqueue_script( 'dwads-upload' );
+		wp_add_inline_script(
+			'dwads-upload',
+			'(function(){var b=document.getElementById("dwads-copy");if(!b)return;b.addEventListener("click",function(){var a=b.getAttribute("data-address")||"";function ok(){b.textContent="Copied";setTimeout(function(){b.textContent="Copy address";},1500);}if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(a).then(ok,ok);}else{var t=document.createElement("textarea");t.value=a;document.body.appendChild(t);t.select();try{document.execCommand("copy");}catch(e){}document.body.removeChild(t);ok();}});})();'
+		);
 
 		echo self::page_shell(  // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 			sprintf(
 				/* translators: %d: banner id */
-				__( 'Banner #%d', 'dwads' ),
+				__( 'Banner #%d', 'crypto-banner-ads' ),
 				(int) $banner['id']
 			),
 			$body
@@ -887,7 +896,7 @@ final class DWADS_Public_Pages {
 		';
 		return '<!DOCTYPE html><html ' . get_language_attributes() . '><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex, nofollow">'
 			. '<title>' . esc_html( $title ) . ' · ' . esc_html( $site ) . '</title><style>' . $css . '</style></head><body><div class="dwads-wrap">'
-			. '<div class="dwads-brand"><span>' . esc_html( $site ) . '</span><a href="' . esc_url( $home ) . '">← ' . esc_html__( 'Back to the site', 'dwads' ) . '</a></div>'
+			. '<div class="dwads-brand"><span>' . esc_html( $site ) . '</span><a href="' . esc_url( $home ) . '">← ' . esc_html__( 'Back to the site', 'crypto-banner-ads' ) . '</a></div>'
 			. '<div class="dwads-card"><h1>' . esc_html( $title ) . '</h1>' . $body . '</div>'
 			. self::credit_html()
 			. '</div></body></html>';

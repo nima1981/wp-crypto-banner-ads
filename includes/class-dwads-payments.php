@@ -59,7 +59,7 @@ final class DWADS_Payments {
 	public static function schedules( $schedules ) {
 		$schedules['dwads_five_minutes'] = array(
 			'interval' => 300,
-			'display'  => __( 'Every 5 minutes (Crypto Banner Ads)', 'dwads' ),
+			'display'  => __( 'Every 5 minutes (Crypto Banner Ads)', 'crypto-banner-ads' ),
 		);
 		return $schedules;
 	}
@@ -109,7 +109,7 @@ final class DWADS_Payments {
 		if ( $force ) {
 			$rows = $wpdb->get_results(
 				$wpdb->prepare(
-					'SELECT * FROM ' . DWADS_Banners::table() . " WHERE status IN ('pending','active','paused') AND address <> '' ORDER BY last_poll_at ASC LIMIT %d",
+					'SELECT * FROM ' . $wpdb->prefix . 'dwads_banners' . " WHERE status IN ('pending','active','paused') AND address <> '' ORDER BY last_poll_at ASC LIMIT %d",
 					(int) $limit
 				),
 				ARRAY_A
@@ -129,7 +129,7 @@ final class DWADS_Payments {
 					break;
 				}
 			} else {
-				$after = (int) $wpdb->get_var( $wpdb->prepare( 'SELECT sats_received FROM ' . DWADS_Banners::table() . ' WHERE id = %d', (int) $banner['id'] ) );
+				$after = (int) $wpdb->get_var( $wpdb->prepare( 'SELECT sats_received FROM ' . $wpdb->prefix . 'dwads_banners' . ' WHERE id = %d', (int) $banner['id'] ) );
 				if ( $after !== $before ) {
 					$summary['credited']++;
 				}
@@ -188,7 +188,7 @@ final class DWADS_Payments {
 	public static function address_summary( $address ) {
 		$address = trim( (string) $address );
 		if ( '' === $address ) {
-			return new WP_Error( 'dwads_no_address', __( 'No address to check.', 'dwads' ) );
+			return new WP_Error( 'dwads_no_address', __( 'No address to check.', 'crypto-banner-ads' ) );
 		}
 		$data = self::api( '/address/' . rawurlencode( $address ) );
 		if ( is_wp_error( $data ) ) {
@@ -410,7 +410,7 @@ final class DWADS_Payments {
 		}
 
 		$wpdb->update(
-			DWADS_Banners::table(),
+			$wpdb->prefix . 'dwads_banners',
 			array( 'last_poll_at' => $now ),
 			array( 'id' => (int) $banner['id'] ),
 			array( '%s' ),
@@ -432,7 +432,7 @@ final class DWADS_Payments {
 		}
 		$wpdb->query(
 			$wpdb->prepare(
-				'UPDATE ' . DWADS_Banners::table() . ' SET sats_received = sats_received + %d, last_activity_at = %s WHERE id = %d',
+				'UPDATE ' . $wpdb->prefix . 'dwads_banners' . ' SET sats_received = sats_received + %d, last_activity_at = %s WHERE id = %d',
 				(int) $delta,
 				gmdate( 'Y-m-d H:i:s' ),
 				(int) $banner_id
@@ -449,7 +449,7 @@ final class DWADS_Payments {
 	public static function reconcile( $banner_id = null ) {
 		global $wpdb;
 
-		$banners = DWADS_Banners::table();
+		$banners = $wpdb->prefix . 'dwads_banners';
 		$payments = $wpdb->prefix . 'dwads_payments';
 		$clicks  = $wpdb->prefix . 'dwads_clicks';
 
