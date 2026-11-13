@@ -670,10 +670,11 @@ final class DWADS_Public_Pages {
 		$banner = DWADS_Banners::get_by_token( $token );
 		if ( ! $banner || (int) $banner['id'] !== (int) $id ) {
 			status_header( 404 );
-			echo self::page_shell( // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+			$not_found_html = self::page_shell(
 				__( 'Link not found', 'crypto-banner-ads' ),
 				'<p>' . esc_html__( 'This management link is not valid. If you lost your link, contact the site owner with your banner ID and payment transaction.', 'crypto-banner-ads' ) . '</p>'
 			);
+			echo $not_found_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- HTML built from escaped parts
 			return;
 		}
 
@@ -826,7 +827,7 @@ final class DWADS_Public_Pages {
 			'(function(){var b=document.getElementById("dwads-copy");if(!b)return;b.addEventListener("click",function(){var a=b.getAttribute("data-address")||"";function ok(){b.textContent="Copied";setTimeout(function(){b.textContent="Copy address";},1500);}if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(a).then(ok,ok);}else{var t=document.createElement("textarea");t.value=a;document.body.appendChild(t);t.select();try{document.execCommand("copy");}catch(e){}document.body.removeChild(t);ok();}});})();'
 		);
 
-		echo self::page_shell(  // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		$manage_html = self::page_shell(
 			sprintf(
 				/* translators: %d: banner id */
 				__( 'Banner #%d', 'crypto-banner-ads' ),
@@ -834,6 +835,8 @@ final class DWADS_Public_Pages {
 			),
 			$body
 		);
+		echo $manage_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- $body is built from escaped parts above
+
 	}
 
 	/**

@@ -281,7 +281,7 @@ final class DWADS_Admin {
 				} elseif ( 'reset_impressions' === $do ) {
 					$confirm = ' onclick="return confirm(\'' . esc_js( __( 'Reset the impression counter for this banner to zero? Clicks charged, the balance and the click log are kept.', 'crypto-banner-ads' ) ) . '\')"';
 				}
-				echo '<button type="submit" class="' . esc_attr( $class ) . '"' . $confirm . '>' . esc_html( $text ) . '</button>';
+				echo '<button type="submit" class="' . esc_attr( $class ) . '"' . esc_attr( $confirm ) . '>' . esc_html( $text ) . '</button>';
 				echo '</form>';
 			}
 
@@ -674,7 +674,7 @@ final class DWADS_Admin {
 			$mobile_attr = ' data-dwads-slot-mobile="' . esc_attr( $mobile ) . '"';
 		}
 
-		return "<script async src=\"{$script}\"></script>\n"
+		return "<script async src=\"{$script}\"></script>\n" // phpcs:ignore WordPress.WP.EnqueuedResources.NonEnqueuedScript -- copy-paste placement snippet for the site owner, not an enqueued asset
 			. "<!-- Repeat this div wherever a banner should appear -->\n"
 			. '<div data-dwads-slot="' . $slot . '"' . $mobile_attr . ' data-dwads-api="' . $api . '"></div>';
 	}

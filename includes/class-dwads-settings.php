@@ -119,7 +119,7 @@ final class DWADS_Settings {
 			// prints, with {ADDRESS} swapped for the banner's deposit address.
 			// Empty falls back to the shipped default; "none" hides the widget.
 			'exchange_widget'          => '<iframe id="iframe-widget" src="https://changenow.io/embeds/exchange-widget/v2/widget.html?FAQ=true&amount=0.01&amountFiat=6.50&backgroundColor=FFFFFF&darkMode=false&from=xmr&fromFiat=usd&horizontal=false&isFiat&lang=en-US&link_id=bc1c9b656c7061&locales=true&logo=false&primaryColor=00C26F&to=btc&toFiat=eth&toTheMoon=true&topUpAddress={ADDRESS}&topUpCurrency=btc&topUpExtraId&topUpMode=true&topUpNetwork=btc" style="height:356px;width:100%;border:none" title="ChangeNOW widget"></iframe>'
-				. "\n" . '<script defer src="https://changenow.io/embeds/exchange-widget/v2/stepper-connector.js"></script>',
+				. "\n" . '<script defer src="https://changenow.io/embeds/exchange-widget/v2/stepper-connector.js"></script>', // phpcs:ignore WordPress.WP.EnqueuedResources.NonEnqueuedScript -- optional swap-widget embed the site owner configures (documented service)
 			'qr_service'               => 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&margin=8&data=bitcoin:{ADDRESS}',
 			// Housekeeping.
 			'notify_admin_uploads'     => 1,

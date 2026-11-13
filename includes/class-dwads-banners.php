@@ -265,7 +265,7 @@ final class DWADS_Banners {
 	public static function delete_file( $file ) {
 		$path = self::file_path( $file );
 		if ( $file && is_file( $path ) ) {
-			@unlink( $path ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+			wp_delete_file( $path );
 		}
 	}
 
@@ -516,10 +516,10 @@ final class DWADS_Banners {
 		$saved_path = isset( $saved['path'] ) ? $saved['path'] : $path;
 		$check      = @getimagesize( $saved_path ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
 		if ( ! $check || (int) $check[0] !== (int) $target['w'] || (int) $check[1] !== (int) $target['h'] ) {
-			@unlink( $saved_path ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+			wp_delete_file( $saved_path );
 			return new WP_Error( 'dwads_upload_dims', __( 'The image could not be kept at its exact size.', 'crypto-banner-ads' ) );
 		}
-		@chmod( $saved_path, 0644 ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+		@chmod( $saved_path, 0644 ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged,WordPress.WP.AlternativeFunctions.file_system_operations_chmod -- WP_Filesystem is not available in this upload path
 
 		return array(
 			'file'     => basename( $saved_path ),

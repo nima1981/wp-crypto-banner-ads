@@ -70,8 +70,8 @@ if ( is_dir( $dwads_dir ) ) {
 	$dwads_files = glob( $dwads_dir . '/*' );
 	foreach ( (array) $dwads_files as $dwads_file ) {
 		if ( is_file( $dwads_file ) ) {
-			@unlink( $dwads_file ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+			wp_delete_file( $dwads_file );
 		}
 	}
-	@rmdir( $dwads_dir ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+	@rmdir( $dwads_dir ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged,WordPress.WP.AlternativeFunctions.file_system_operations_rmdir -- WP_Filesystem is not available in the uninstall context
 }

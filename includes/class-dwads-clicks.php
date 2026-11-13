@@ -395,9 +395,11 @@ final class DWADS_Clicks {
 			);
 		}
 
+		$hash_col = ( 'visitor_hash' === $column ) ? 'visitor_hash' : 'ip_hash';
+
 		return (int) $wpdb->get_var(
 			$wpdb->prepare(
-				'SELECT COUNT(*) FROM ' . $wpdb->prefix . 'dwads_clicks' . ' WHERE ' . $column . ' = %s AND charged = 1 AND created_at >= %s',
+				'SELECT COUNT(*) FROM ' . $wpdb->prefix . 'dwads_clicks' . ' WHERE ' . $hash_col . ' = %s AND charged = 1 AND created_at >= %s',
 				(string) $value,
 				(string) $since
 			)
