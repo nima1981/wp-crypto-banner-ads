@@ -315,8 +315,7 @@ final class DWADS_Payments {
 			$status         = $out['confirmed'] ? 'confirmed' : 'mempool';
 			$should_credit  = $out['confirmed'] || $credit_mempool;
 			$row            = $wpdb->get_row(
-				$wpdb->prepare( "SELECT * FROM {$table} WHERE txid = %s AND vout = %d", $out['txid'], $out['vout'] ), // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-				ARRAY_A
+				$wpdb->prepare( "SELECT * FROM {$wpdb->prefix}dwads_payments WHERE txid = %s AND vout = %d", $out['txid'], $out['vout'] ), 				ARRAY_A
 			);
 
 			if ( ! $row ) {
@@ -378,8 +377,7 @@ final class DWADS_Payments {
 		// Mempool payments that vanish twice in a row never confirmed: stop
 		// counting them, and remove the credit if it was already applied.
 		$open = $wpdb->get_results(
-			$wpdb->prepare( "SELECT * FROM {$table} WHERE banner_id = %d AND status = 'mempool'", (int) $banner['id'] ), // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-			ARRAY_A
+			$wpdb->prepare( "SELECT * FROM {$wpdb->prefix}dwads_payments WHERE banner_id = %d AND status = 'mempool'", (int) $banner['id'] ), 			ARRAY_A
 		);
 		foreach ( (array) $open as $row ) {
 			$key = $row['txid'] . ':' . $row['vout'];
@@ -449,22 +447,18 @@ final class DWADS_Payments {
 	public static function reconcile( $banner_id = null ) {
 		global $wpdb;
 
-		$banners = $wpdb->prefix . 'dwads_banners';
-		$payments = $wpdb->prefix . 'dwads_payments';
-		$clicks  = $wpdb->prefix . 'dwads_clicks';
 
 		if ( null === $banner_id ) {
-			$ids = $wpdb->get_col( 'SELECT id FROM ' . $banners ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+			$ids = $wpdb->get_col( 'SELECT id FROM ' . $wpdb->prefix . 'dwads_banners' ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 		} else {
 			$ids = array( (int) $banner_id );
 		}
 
 		foreach ( (array) $ids as $id ) {
-			$received = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COALESCE( SUM(sats), 0 ) FROM {$payments} WHERE banner_id = %d AND credited = 1", (int) $id ) ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-			$spent    = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COALESCE( SUM(sats_charged), 0 ) FROM {$clicks} WHERE banner_id = %d AND charged = 1", (int) $id ) ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-			$count    = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM {$clicks} WHERE banner_id = %d AND charged = 1", (int) $id ) ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			$received = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COALESCE( SUM(sats), 0 ) FROM {$wpdb->prefix}dwads_payments WHERE banner_id = %d AND credited = 1", (int) $id ) ); 			$spent    = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COALESCE( SUM(sats_charged), 0 ) FROM {$wpdb->prefix}dwads_clicks WHERE banner_id = %d AND charged = 1", (int) $id ) );
+			$count    = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM {$wpdb->prefix}dwads_clicks WHERE banner_id = %d AND charged = 1", (int) $id ) );
 			$wpdb->update(
-				$banners,
+				$wpdb->prefix . 'dwads_banners',
 				array(
 					'sats_received'  => $received,
 					'sats_spent'     => $spent,

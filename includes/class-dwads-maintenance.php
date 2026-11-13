@@ -61,8 +61,7 @@ final class DWADS_Maintenance {
 		global $wpdb;
 
 		$cutoff = gmdate( 'Y-m-d H:i:s', time() - 2 * DAY_IN_SECONDS );
-		$table  = $wpdb->prefix . 'dwads_impressions';
-		$deleted = $wpdb->query( $wpdb->prepare( "DELETE FROM {$table} WHERE created_at < %s", $cutoff ) ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$deleted = $wpdb->query( $wpdb->prepare( "DELETE FROM {$wpdb->prefix}dwads_impressions WHERE created_at < %s", $cutoff ) );
 
 		DWADS_Payments::reconcile();
 

@@ -132,32 +132,32 @@ final class DWADS_Admin {
 			return;
 		}
 
-		$table    = $wpdb->prefix . 'dwads_banners';
 		$status   = isset( $_GET['status'] ) ? sanitize_key( wp_unslash( $_GET['status'] ) ) : 'all'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		$paged    = isset( $_GET['paged'] ) ? max( 1, (int) $_GET['paged'] ) : 1; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		$per_page = 20;
 		$offset   = ( $paged - 1 ) * $per_page;
 
-		$where = '1=1';
+		$status_in = 'all' !== $status && in_array( $status, DWADS_Banners::statuses(), true );
 
-		if ( 'all' !== $status && in_array( $status, DWADS_Banners::statuses(), true ) ) {
-			$where .= ' AND status = %s';
-			$total  = (int) $wpdb->get_var( $wpdb->prepare( 'SELECT COUNT(*) FROM ' . $table . ' WHERE ' . $where, $status ) );
-			$rows   = $wpdb->get_results(
-				$wpdb->prepare( 'SELECT * FROM ' . $table . ' WHERE ' . $where . ' ORDER BY created_at DESC LIMIT %d OFFSET %d', $status, $per_page, $offset ),
+		if ( $status_in ) {
+			$total = (int) $wpdb->get_var(
+				$wpdb->prepare( 'SELECT COUNT(*) FROM ' . $wpdb->prefix . 'dwads_banners WHERE status = %s', $status )
+			);
+			$rows  = $wpdb->get_results(
+				$wpdb->prepare( 'SELECT * FROM ' . $wpdb->prefix . 'dwads_banners WHERE status = %s ORDER BY created_at DESC LIMIT %d OFFSET %d', $status, $per_page, $offset ),
 				ARRAY_A
 			);
 		} else {
-			$total = (int) $wpdb->get_var( 'SELECT COUNT(*) FROM ' . $table );
+			$total = (int) $wpdb->get_var( 'SELECT COUNT(*) FROM ' . $wpdb->prefix . 'dwads_banners' );
 			$rows  = $wpdb->get_results(
-				$wpdb->prepare( 'SELECT * FROM ' . $table . ' ORDER BY created_at DESC LIMIT %d OFFSET %d', $per_page, $offset ),
+				$wpdb->prepare( 'SELECT * FROM ' . $wpdb->prefix . 'dwads_banners ORDER BY created_at DESC LIMIT %d OFFSET %d', $per_page, $offset ),
 				ARRAY_A
 			);
 		}
 
 		$counts = array();
 		foreach ( DWADS_Banners::statuses() as $s ) {
-			$counts[ $s ] = (int) $wpdb->get_var( $wpdb->prepare( 'SELECT COUNT(*) FROM ' . $table . ' WHERE status = %s', $s ) ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+			$counts[ $s ] = (int) $wpdb->get_var( $wpdb->prepare( 'SELECT COUNT(*) FROM ' . $wpdb->prefix . 'dwads_banners WHERE status = %s', $s ) );
 		}
 
 		echo '<div class="wrap dwads-admin">';
