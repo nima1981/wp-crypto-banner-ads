@@ -190,6 +190,9 @@ final class DWADS_Public_Pages {
 		if ( ! empty( $_POST['dwads_hp'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
 			self::redirect( $back, array( 'dwads_msg' => 'spam' ) );
 		}
+		if ( ! isset( $_POST['dwads_upload_nonce'] ) || ! wp_verify_nonce( sanitize_key( wp_unslash( $_POST['dwads_upload_nonce'] ) ), 'dwads_upload' ) ) {
+			self::redirect( $back, array( 'dwads_msg' => 'spam' ) );
+		}
 		if ( ! DWADS_BigInt::available() ) {
 			self::redirect( $back, array( 'dwads_msg' => 'misconfigured' ) );
 		}
@@ -425,6 +428,7 @@ final class DWADS_Public_Pages {
 		$html .= '<input type="hidden" name="dwads_action" value="upload">';
 		$html .= '<input type="hidden" name="dwads_return" value="' . esc_url( $current ) . '">';
 		$html .= '<input type="text" name="dwads_hp" value="" tabindex="-1" autocomplete="off" style="position:absolute;left:-9999px;height:1px;width:1px;opacity:0">';
+		$html .= wp_nonce_field( 'dwads_upload', 'dwads_upload_nonce', true, false );
 		$intro = (string) DWADS_Settings::get( 'upload_intro' );
 		if ( '' !== trim( $intro ) ) {
 			$html .= '<div class="dwads-intro">' . wp_kses_post( wpautop( $intro ) ) . '</div>';
