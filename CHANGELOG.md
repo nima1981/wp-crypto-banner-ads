@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.9.2
+- The "Powered by Crypto Banner Ads from Reza Consulting" credit line is now opt-in
+  (off by default) on new installs, matching the WordPress.org guideline that
+  credits must default to not showing. Existing sites keep their saved choice.
+
 ## 1.9.1
 - **"Maximum banners per upload" now saves what you enter.** A hardcoded
   `min( 20, ... )` in the save path had been silently rewriting any value above
