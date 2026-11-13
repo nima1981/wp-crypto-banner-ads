@@ -1,6 +1,6 @@
 === Crypto Banner Ads ===
 Contributors: rezaconsulting
-Tags: banner ads, advertising, bitcoin, cryptocurrency, pay per click, monetization, cookie-free, no accounts, self-serve ads
+Tags: banner ads, advertising, bitcoin, pay per click, monetization
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 7.4
