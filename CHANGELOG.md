@@ -1,5 +1,21 @@
 # Changelog
 
+## 1.9.6
+- **The same-site Referer is now measured, not trusted.** 1.9.5 briefly let it
+  satisfy the viewability and gesture gates. That is reverted: billing
+  behaviour is identical to 1.9.4, and a click refused by either gate while a
+  Referer from this site was present is logged as `not_seen_ref` or
+  `no_gesture_ref` instead. Nothing about those clicks is charged.
+- **Diagnostics shows the measurement.** Above "Recent clicks" it now reports,
+  for the last 24 hours, how many clicks were refused with a same-site Referer
+  present and how many were charged. A high first number against a low second
+  means the gesture check is costing real clicks and the signal is worth
+  accepting; a low number means it is doing its job.
+
+## 1.9.5 (superseded before release)
+- Same-site Referer treated as proof of a human click. Replaced by 1.9.6,
+  which measures it first.
+
 ## 1.9.5
 - **A same-site Referer is now accepted as proof of a human click.** The
   pointer/key marker and the `armed` beacon are written by JavaScript, and

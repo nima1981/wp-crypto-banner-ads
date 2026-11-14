@@ -1016,6 +1016,33 @@ final class DWADS_Admin {
 		}
 
 		echo '<h2 class="title">' . esc_html__( 'Recent clicks', 'crypto-banner-ads' ) . '</h2>';
+
+		// Measurement, not billing: clicks that were refused purely because the
+		// browser's pointer marker did not arrive, but which did carry a Referer
+		// from this site. A high count means the gesture gate is dropping real
+		// people; a low count means it is mostly doing its job.
+		$since_ref     = gmdate( 'Y-m-d H:i:s', time() - DAY_IN_SECONDS );
+		$ref_rescued   = (int) $wpdb->get_var(
+			$wpdb->prepare(
+				'SELECT COUNT(*) FROM ' . $wpdb->prefix . "dwads_clicks WHERE ( reason = 'no_gesture_ref' OR reason = 'not_seen_ref' ) AND created_at >= %s",
+				$since_ref
+			)
+		);
+		$ref_charged   = (int) $wpdb->get_var(
+			$wpdb->prepare(
+				'SELECT COUNT(*) FROM ' . $wpdb->prefix . "dwads_clicks WHERE charged = 1 AND created_at >= %s",
+				$since_ref
+			)
+		);
+		echo '<p class="dwads-meta">' . esc_html(
+			sprintf(
+				/* translators: 1: clicks that a same-site Referer would have rescued in the last 24 hours, 2: clicks charged in the last 24 hours */
+				__( 'Last 24 hours: %1$d clicks were refused with a same-site Referer present (reason ends in _ref), and %2$d clicks were charged. If the first number is high relative to the second, the gesture check is costing real clicks.', 'crypto-banner-ads' ),
+				$ref_rescued,
+				$ref_charged
+			)
+		) . '</p>';
+
 		$recent_clicks = $wpdb->get_results( 'SELECT created_at, banner_id, charged, reason, sats_charged FROM ' . $wpdb->prefix . 'dwads_clicks' . ' ORDER BY id DESC LIMIT 40', ARRAY_A ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 		if ( ! $recent_clicks ) {
 			echo '<p class="dwads-meta">' . esc_html__( 'No clicks recorded yet.', 'crypto-banner-ads' ) . '</p>';

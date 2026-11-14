@@ -4,7 +4,7 @@ Tags: banner ads, advertising, bitcoin, pay per click, monetization
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.9.5
+Stable tag: 1.9.6
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -117,7 +117,13 @@ No. It is an advertising system. It never uses visitors' CPU, has no mining code
 
 == Changelog ==
 
+= 1.9.6 =
+* Diagnostics now measure the same-site Referer instead of trusting it. A click refused by the viewability or gesture check while a Referer from your own site was present is logged with a reason ending in `_ref` (`not_seen_ref`, `no_gesture_ref`) and still not billed. The Diagnostics screen shows, for the last 24 hours, how many such clicks occurred against how many were charged, so the decision to accept the signal can be made on evidence.
+
 = 1.9.5 =
+* Superseded by 1.9.6 before release: the same-site Referer was briefly treated as proof of a human click. It is now measured first.
+
+= 1.9.4 =
 * A same-site Referer now counts as proof of a human click, alongside the pointer/key marker. Browsers where the marker does not ride along (extensions, in-app browsers, unusual event order) were having real clicks dropped as not_seen or no_gesture; a page-referral from your own site is now enough to bill.
 
 = 1.9.4 =

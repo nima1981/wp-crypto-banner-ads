@@ -555,13 +555,14 @@ final class DWADS_Clicks {
 		$record = (bool) DWADS_Settings::get( 'record_impressions', 1 );
 		$row    = $record ? self::impression_row( (string) $payload['n'] ) : null;
 
-		// Proof a person acted on the creative, in order of directness: the
-		// pointer/key marker written into the link, the beacon the browser
-		// reported, or a Referer from this site (which scripts scraping the URL
-		// do not send). Any one of them is enough.
-		$human_signal = ( is_array( $row ) && ! empty( $row['armed_at'] ) )
-			|| ! empty( $_GET['dwads_g'] ) // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-			|| self::same_site_referer();
+		// The marker the browser wrote onto the link, or the beacon it reported.
+		// This is what decides billing; the Referer is measured, not trusted
+		// (yet). If a click is dropped and a same-site Referer was present, the
+		// reason gets a `_ref` suffix so the Diagnostics screen can count how
+		// many clicks that signal would have rescued.
+		$armed_click   = ( is_array( $row ) && ! empty( $row['armed_at'] ) )
+			|| ! empty( $_GET['dwads_g'] ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$has_referer   = self::same_site_referer();
 
 		// One click per served impression.
 		if ( $record ) {
@@ -606,8 +607,8 @@ final class DWADS_Clicks {
 		// gesture to offer.
 		if ( '' === $reason && $record && DWADS_Settings::get( 'impression_viewable', 1 ) ) {
 			if ( ! $row || empty( $row['seen_at'] ) ) {
-				if ( ! $human_signal ) {
-					$reason = 'not_seen';
+				if ( ! $armed_click ) {
+					$reason = $has_referer ? 'not_seen_ref' : 'not_seen';
 				}
 			} else {
 				$dwell_ms = max( 0, (int) DWADS_Settings::get( 'click_min_dwell_ms', 400 ) );
@@ -622,8 +623,8 @@ final class DWADS_Clicks {
 		// beacon and the link marker are written by our own handler in the same
 		// event that opens the link, so no ordering race can drop a real click.
 		if ( '' === $reason && DWADS_Settings::get( 'require_gesture', 1 ) && $record ) {
-			if ( ! $human_signal ) {
-				$reason = 'no_gesture';
+			if ( ! $armed_click ) {
+				$reason = $has_referer ? 'no_gesture_ref' : 'no_gesture';
 			}
 		}
 
