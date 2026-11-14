@@ -105,6 +105,7 @@ final class DWADS_Settings {
 			'require_gesture'          => 1,
 			'require_browser_headers'  => 1,
 			'honeypot_enabled'         => 1,
+			'honeypot_days'            => 1,
 			'max_clicks_per_visitor_day' => 3,
 			'max_clicks_per_ip_day'    => 15,
 			'max_clicks_per_banner_day' => 0,

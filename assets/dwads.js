@@ -199,7 +199,7 @@
 			report('armed', token);
 		}
 
-		var events = ['pointerdown', 'mousedown', 'touchstart', 'keydown', 'contextmenu', 'focus'];
+		var events = ['pointerdown', 'mousedown', 'touchstart', 'keydown', 'contextmenu', 'focus', 'auxclick'];
 		for (var i = 0; i < events.length; i++) {
 			link.addEventListener(events[i], arm);
 		}

@@ -447,7 +447,11 @@ final class DWADS_Clicks {
 			return false;
 		}
 
-		$since = gmdate( 'Y-m-d H:i:s', time() - 30 * DAY_IN_SECONDS );
+		$days = (int) DWADS_Settings::get( 'honeypot_days', 1 );
+		if ( $days <= 0 ) {
+			return false;
+		}
+		$since = gmdate( 'Y-m-d H:i:s', time() - $days * DAY_IN_SECONDS );
 		$found = $wpdb->get_var(
 			$wpdb->prepare(
 				'SELECT id FROM ' . $wpdb->prefix . 'dwads_clicks' . " WHERE visitor_hash = %s AND reason = 'honeypot' AND created_at >= %s LIMIT 1",
@@ -562,10 +566,17 @@ final class DWADS_Clicks {
 		}
 
 		// The creative has to have been on screen, for long enough that a person
-		// could have seen it, before a click is billable.
+		// could have seen it, before a click is billable. A gesture on the
+		// creative (armed) is itself proof a human engaged with it, so a click
+		// that carries a gesture is billed even when the viewability beacon was
+		// lost (ad blockers, flaky connections, fast clicks) — a machine has no
+		// gesture to offer.
 		if ( '' === $reason && $record && DWADS_Settings::get( 'impression_viewable', 1 ) ) {
+			$armed_click = ( is_array( $row ) && ! empty( $row['armed_at'] ) ) || ! empty( $_GET['dwads_g'] ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 			if ( ! $row || empty( $row['seen_at'] ) ) {
-				$reason = 'not_seen';
+				if ( ! $armed_click ) {
+					$reason = 'not_seen';
+				}
 			} else {
 				$dwell_ms = max( 0, (int) DWADS_Settings::get( 'click_min_dwell_ms', 400 ) );
 				$seen_ts  = strtotime( $row['seen_at'] . ' UTC' );
