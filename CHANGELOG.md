@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.9.5
+- **A same-site Referer is now accepted as proof of a human click.** The
+  pointer/key marker and the `armed` beacon are written by JavaScript, and
+  in a few real-world cases neither rides along (extensions that rewrite
+  links, in-app browsers, unusual event ordering) — the click was then
+  dropped as `not_seen` or `no_gesture` even though a person clicked. A
+  Referer from your own site is a second, independent signal: scripts that
+  scrape the URL out of the page do not send one. Same-site Referer now
+  satisfies both the viewability gate and the gesture gate.
+
 ## 1.9.3
 - **Text domain changed to `crypto-banner-ads`** to match the WordPress.org slug
   (was `dwads`). `load_plugin_textdomain()` is now called on init. No

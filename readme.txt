@@ -4,7 +4,7 @@ Tags: banner ads, advertising, bitcoin, pay per click, monetization
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.9.4
+Stable tag: 1.9.5
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -116,6 +116,9 @@ No. It is an advertising system. It never uses visitors' CPU, has no mining code
 3. Mobile view — the same slots reflow to phone-sized banners automatically.
 
 == Changelog ==
+
+= 1.9.5 =
+* A same-site Referer now counts as proof of a human click, alongside the pointer/key marker. Browsers where the marker does not ride along (extensions, in-app browsers, unusual event order) were having real clicks dropped as not_seen or no_gesture; a page-referral from your own site is now enough to bill.
 
 = 1.9.4 =
 * The invisible decoy flag now lasts one day by default (configurable under Settings → Anti-fraud → Decoy flag lifetime), instead of 30 days — shared addresses (VPNs, carriers) no longer lose a month of billing for one machine's mistake.

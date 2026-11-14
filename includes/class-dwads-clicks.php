@@ -464,6 +464,31 @@ final class DWADS_Clicks {
 	}
 
 	/**
+	 * Whether the request came from a page on this site.
+	 *
+	 * A real click on a banner carries a Referer from the same host. A script
+	 * that scrapes the link out of the page and fetches it does not. This is a
+	 * second, independent human signal for browsers where the pointer marker
+	 * did not ride along (extensions, in-app browsers, odd event ordering).
+	 *
+	 * @return bool
+	 */
+	private static function same_site_referer() {
+		if ( empty( $_SERVER['HTTP_REFERER'] ) ) {
+			return false;
+		}
+		$ref = (string) $_SERVER['HTTP_REFERER']; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- compared, never echoed
+		$ref_host = strtolower( (string) wp_parse_url( $ref, PHP_URL_HOST ) );
+		$own_host = strtolower( (string) wp_parse_url( home_url( '/' ), PHP_URL_HOST ) );
+		if ( '' === $ref_host || '' === $own_host ) {
+			return false;
+		}
+		$ref_host = preg_replace( '/^www\./', '', $ref_host );
+		$own_host = preg_replace( '/^www\./', '', $own_host );
+		return $ref_host === $own_host;
+	}
+
+	/**
 	 * Clicks seen from one hashed address in the last hour.
 	 *
 	 * @param string $ip_hash Hashed address.
@@ -530,6 +555,14 @@ final class DWADS_Clicks {
 		$record = (bool) DWADS_Settings::get( 'record_impressions', 1 );
 		$row    = $record ? self::impression_row( (string) $payload['n'] ) : null;
 
+		// Proof a person acted on the creative, in order of directness: the
+		// pointer/key marker written into the link, the beacon the browser
+		// reported, or a Referer from this site (which scripts scraping the URL
+		// do not send). Any one of them is enough.
+		$human_signal = ( is_array( $row ) && ! empty( $row['armed_at'] ) )
+			|| ! empty( $_GET['dwads_g'] ) // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			|| self::same_site_referer();
+
 		// One click per served impression.
 		if ( $record ) {
 			global $wpdb;
@@ -572,9 +605,8 @@ final class DWADS_Clicks {
 		// lost (ad blockers, flaky connections, fast clicks) — a machine has no
 		// gesture to offer.
 		if ( '' === $reason && $record && DWADS_Settings::get( 'impression_viewable', 1 ) ) {
-			$armed_click = ( is_array( $row ) && ! empty( $row['armed_at'] ) ) || ! empty( $_GET['dwads_g'] ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 			if ( ! $row || empty( $row['seen_at'] ) ) {
-				if ( ! $armed_click ) {
+				if ( ! $human_signal ) {
 					$reason = 'not_seen';
 				}
 			} else {
@@ -590,8 +622,7 @@ final class DWADS_Clicks {
 		// beacon and the link marker are written by our own handler in the same
 		// event that opens the link, so no ordering race can drop a real click.
 		if ( '' === $reason && DWADS_Settings::get( 'require_gesture', 1 ) && $record ) {
-			$armed = ( is_array( $row ) && ! empty( $row['armed_at'] ) ) || ! empty( $_GET['dwads_g'] ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-			if ( ! $armed ) {
+			if ( ! $human_signal ) {
 				$reason = 'no_gesture';
 			}
 		}
